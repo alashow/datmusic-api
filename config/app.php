@@ -16,6 +16,13 @@ return [
         'mp3' => 'md5'
     ],
 
+    'search' => [
+        // how many pages need to get for each page.
+        // ex: if value is 2, two pages will be for each requested.
+        // flush the cache after changing this value
+        'pageMultiplier' => 2,
+    ],
+
     'cache' => [
         'duration' => 24 * 60 // in minutes
     ],
@@ -26,7 +33,7 @@ return [
         ['phone_number', 'password'],
     ],
 
-    //allowing popular bitrates only: economy, standard, good, and best
+    //allowing popular bitrates only: economy, standard, good
     'allowed_bitrates' => [64, 128, 192],
     'allowed_bitrates_ffmpeg' => ["-q:a 9", "-q:a 5", "-q:a 2"],
     'ffmpeg_path' => 'ffmpeg'

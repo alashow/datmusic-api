@@ -7,7 +7,6 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
-use phpFastCache\CacheManager;
 
 class AppServiceProvider extends ServiceProvider
 {

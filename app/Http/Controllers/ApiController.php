@@ -87,10 +87,12 @@ class ApiController extends Controller
      */
     public function search()
     {
+        $cacheKey = $this->getCacheKeyForRequest();
+
         if ($this->hasRequestInCache()) {
             return $this->ok(
                 $this->transformSearchResponse(
-                    Cache::get($this->getCacheKeyForRequest())
+                    Cache::get($cacheKey)
                 )
             );
         }
@@ -103,13 +105,10 @@ class ApiController extends Controller
 
         // get inputs
         $query = trim($this->request->get('q'));
-        $page = intval($this->request->get('page')) * 50;
+        $offset = intval($this->request->get('page')) * 50; // calculate offset from page index
 
         // send request
-        $response = $this->client->get(
-            "audio?act=search&q=$query&offset=$page",
-            ['cookies' => $this->jar]
-        );
+        $response = $this->getSearchResults($query, $offset);
 
         // check for security checks
         $this->authSecurityCheck($response);
@@ -124,10 +123,44 @@ class ApiController extends Controller
             return $this->search();
         }
 
+        $result = array($this->parseAudioItems($response));
+
+        // get more pages if needed
+        for ($i = 1; $i < config('app.search.pageMultiplier'); $i++) {
+            // increment offset
+            $offset += 50;
+            // get result and parse it
+            $resultData = $this->parseAudioItems($this->getSearchResults($query, $offset));
+
+            //  we can't request more pages if result is empty, break the loop
+            if (empty($resultData)) {
+                break;
+            }
+
+            array_push($result, $resultData);
+        }
+
+        // store in cache
+        Cache::put($cacheKey, $result, config('app.cache.duration'));
+
         // parse data, save in cache, and response
         return $this->ok($this->transformSearchResponse(
-            $this->parseAudioItems($response)
+            $result
         ));
+    }
+
+    /**
+     * Request search page
+     * @param $query
+     * @param $offset
+     * @return ResponseInterface
+     */
+    private function getSearchResults($query, $offset)
+    {
+        return $this->client->get(
+            "audio?act=search&q=$query&offset=$offset",
+            ['cookies' => $this->jar]
+        );
     }
 
     /**
@@ -143,8 +176,6 @@ class ApiController extends Controller
         $items = $dom->find('.audio_item');
         $data = array();
 
-        $cacheKey = $this->getCacheKeyForRequest();
-
         foreach ($items as $item) {
             $audio = new Dom();
             $audio->load($item->innerHtml);
@@ -157,15 +188,12 @@ class ApiController extends Controller
 
             array_push($data, [
                 'id' => $id,
-                'artist' => htmlspecialchars_decode($artist, ENT_QUOTES),
-                'title' => htmlspecialchars_decode($title, ENT_QUOTES),
+                'artist' => trim(htmlspecialchars_decode($artist, ENT_QUOTES)),
+                'title' => trim(htmlspecialchars_decode($title, ENT_QUOTES)),
                 'duration' => (int)$duration,
                 'mp3' => $mp3
             ]);
         }
-
-        // store in cache
-        Cache::put($cacheKey, $data, config('app.cache.duration'));
 
         return $data;
     }
@@ -250,13 +278,13 @@ class ApiController extends Controller
     public function bytes($key, $id)
     {
         // get from cache or store to cache and return value
-        // big minutes because somehow it doesn't stay forever if it's 0 or null
-        return Cache::remember($id . $key, 1000000, function () use ($key, $id) {
-            $item = $this->getAudio($key, $id);
+        return Cache::remember($id . $key, config('app.cache.duration'),
+            function () use ($key, $id) {
+                $item = $this->getAudio($key, $id);
 
-            $response = $this->client->head($item['mp3']);
-            return $response->getHeader('Content-Length')[0];
-        });
+                $response = $this->client->head($item['mp3']);
+                return $response->getHeader('Content-Length')[0];
+            });
     }
 
     /**
@@ -439,12 +467,12 @@ class ApiController extends Controller
      * @param string $arrayName
      * @return array
      */
-    private function ok($data, $arrayName = 'data')
+    private function ok($data, $arrayName = 'data', $headers = [])
     {
-        return [
+        return response()->json([
             'status' => 'ok',
             $arrayName => $data
-        ];
+        ], 200, ['Access-Control-Allow-Origin' => '*']);
     }
 
     // File manipulation related functions
