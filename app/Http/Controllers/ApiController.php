@@ -157,8 +157,8 @@ class ApiController extends Controller
 
             array_push($data, [
                 'id' => $id,
-                'artist' => $artist,
-                'title' => $title,
+                'artist' => htmlspecialchars_decode($artist, ENT_QUOTES),
+                'title' => htmlspecialchars_decode($title, ENT_QUOTES),
                 'duration' => (int)$duration,
                 'mp3' => $mp3
             ]);
