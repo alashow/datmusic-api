@@ -105,7 +105,7 @@ class ApiController extends Controller
 
         // get inputs
         $query = trim($this->request->get('q'));
-        $offset = intval($this->request->get('page')) * 50; // calculate offset from page index
+        $offset = abs(intval($this->request->get('page'))) * 50; // calculate offset from page index
 
         // send request
         $response = $this->getSearchResults($query, $offset);
@@ -420,8 +420,8 @@ class ApiController extends Controller
      */
     private function getCacheKeyForRequest()
     {
-        $q = $this->request->get('q');
-        $page = $this->request->get('page');
+        $q = strtolower($this->request->get('q'));
+        $page = abs(intval($this->request->get('page')));
 
         return hash(config('app.hash.cache'), ($q . $page));
     }
