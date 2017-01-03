@@ -81,7 +81,12 @@ class ApiController extends Controller
 
     // Route & parse related functions
 
-    public function index(){
+    /**
+     * Just response status
+     * @return array
+     */
+    public function index()
+    {
         return $this->ok(null);
     }
 
@@ -127,7 +132,7 @@ class ApiController extends Controller
             return $this->search();
         }
 
-        $result = array($this->parseAudioItems($response));
+        $result = $this->parseAudioItems($response);
 
         // get more pages if needed
         for ($i = 1; $i < config('app.search.pageMultiplier'); $i++) {
@@ -141,7 +146,7 @@ class ApiController extends Controller
                 break;
             }
 
-            array_push($result, $resultData);
+            $result = array_merge($result, $resultData);
         }
 
         // store in cache
@@ -442,6 +447,20 @@ class ApiController extends Controller
     // Response related functions
 
     /**
+     * @param array $strings items need to be tested
+     * @return bool true if any of inputs is bad match
+     */
+    private function isBadMatch(array $strings)
+    {
+        foreach ($strings as $string) {
+            if (preg_match_all(config('app.search.sortRegex'), $string) == 1) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * Cleanup data for response
      *
      * @param $data
@@ -449,21 +468,44 @@ class ApiController extends Controller
      */
     private function transformSearchResponse($data)
     {
-        $cacheKey = $this->getCacheKeyForRequest();
-        return array_map(function ($item) use ($cacheKey) {
+        // if query matches sort regex, we shouldn't sort
+        $query = $this->request->get('q');
+        $sortable = $this->isBadMatch([$query]) == false;
 
+        // items that needs to sorted to the end of response list if matches the regex
+        $badMatches = array();
+
+        $cacheKey = $this->getCacheKeyForRequest();
+        $mapped = array_map(function ($item) use (&$cacheKey, &$badMatches, &$sortable) {
             $downloadUrl = Utils::url(sprintf('%s/%s', $cacheKey, $item['id']));
             $streamUrl = Utils::url(sprintf('stream/%s/%s', $cacheKey, $item['id']));
 
-            // remove mp3 link and id from array.
+            // remove mp3 link and id from array
             unset($item['mp3']);
             unset($item['id']);
 
-            return array_merge($item, [
+            $result = array_merge($item, [
                 'download' => $downloadUrl,
                 'stream' => $streamUrl
             ]);
+
+            // is audio name bad match
+            $badMatch = $sortable && $this->isBadMatch([$item['artist'], $item['title']]);
+
+            // add to bad matches
+            if ($badMatch) {
+                array_push($badMatches, $result);
+            }
+
+            // remove from main array if bad match
+            return $badMatch ? null : $result;
         }, $data);
+
+        // remove null items from mapped (nulls are added to badMatches, emptied in mapping above)
+        $mapped = array_filter($mapped);
+
+        // if there was any bad matches, merge with base list or just return
+        return empty($badMatches) ? $mapped : array_merge($mapped, $badMatches);
     }
 
     /**
@@ -477,7 +519,7 @@ class ApiController extends Controller
     {
         $result = ['status' => 'ok'];
         if (!empty($data)) {
-            array_push($result, [$arrayName => $data]);
+            $result = array_merge($result, [$arrayName => $data]);
         }
 
         return response()->json($result, $status, $headers);

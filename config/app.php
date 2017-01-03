@@ -21,6 +21,8 @@ return [
         // ex: if value is 2, two pages will be for each requested.
         // flush the cache after changing this value
         'pageMultiplier' => 2,
+
+        'sortRegex' => '/[ \[\],.:\)\(\-_](bass ?boost(ed)?|dub sound|remake|low bass|cover|(re)?mix|dj|bootleg|edit|aco?ustic|instrumental|karaoke|tribute|vs|rework|mash|rmx|(night|day|slow)core|remode|ringtone?|рингтон|РИНГТОН|Рингтон|звонок|минус)([ ,.:\[\]\)\(\-_].*)?$/i'
     ],
 
     'cache' => [
