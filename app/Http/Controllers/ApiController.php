@@ -79,7 +79,11 @@ class ApiController extends Controller
         ]);
     }
 
-    // Data & parse related functions
+    // Route & parse related functions
+
+    public function index(){
+        return $this->ok(null);
+    }
 
     /**
      * Searches audios from request query, with caching
@@ -465,14 +469,18 @@ class ApiController extends Controller
     /**
      * @param $data
      * @param string $arrayName
+     * @param int $status
+     * @param $headers
      * @return array
      */
-    private function ok($data, $arrayName = 'data', $headers = [])
+    private function ok($data, $arrayName = 'data', $status = 200, $headers = [])
     {
-        return response()->json([
-            'status' => 'ok',
-            $arrayName => $data
-        ], 200, ['Access-Control-Allow-Origin' => '*']);
+        $result = ['status' => 'ok'];
+        if (!empty($data)) {
+            array_push($result, [$arrayName => $data]);
+        }
+
+        return response()->json($result, $status, $headers);
     }
 
     // File manipulation related functions
