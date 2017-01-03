@@ -175,20 +175,40 @@ class ApiController extends Controller
      * @param string $key
      * @param string $id
      * @param bool $stream
+     * @param int $bitrate
      * @return mixed
      */
-    public function download($key, $id, $stream = false)
+    public function download($key, $id, $stream = false, $bitrate = -1)
     {
+        if (!in_array($bitrate, config('app.allowed_bitrates'))) {
+            $bitrate = -1;
+        }
+
         $item = $this->getAudio($key, $id);
 
-        $name = sprintf('%s - %s', $item['artist'], $item['title']);
-        $name = Utils::sanitize($name, false, false);
-        $name = sprintf('%s.mp3', $name);
+        $name = sprintf('%s - %s', $item['artist'], $item['title']); // format
+        $name = Utils::sanitize($name, false, false); // remove bad characters
+        $name = sprintf('%s.mp3', $name); // append extension
 
         $filePath = sprintf('%s.mp3', hash(config('app.hash.mp3'), $item['id']));
+
         $path = sprintf('%s/%s', config('app.mp3Path'), $filePath);
 
         if (file_exists($path) || $this->downloadFile($item['mp3'], $path)) {
+            if ($bitrate > 0) {
+                $pathConverted = str_replace('.mp3', "_$bitrate.mp3", $path);
+                $filePathConverted = str_replace('.mp3', "_$bitrate.mp3", $filePath);
+
+                // change path only if already converted or conversion function returns true
+                if (file_exists($filePathConverted) || $this->convertMp3Bitrate($bitrate, $path,
+                        $pathConverted)
+                ) {
+                    //change file path to converted one.
+                    $path = $pathConverted;
+                    $filePath = $filePathConverted;
+                }
+            }
+
             if ($stream) {
                 return redirect("mp3/$filePath");
             } else {
@@ -208,6 +228,17 @@ class ApiController extends Controller
     public function stream($key, $id)
     {
         return $this->download($key, $id, true);
+    }
+
+    /**
+     * Just like download but with bitrate converting enabled
+     * @param $key
+     * @param $id
+     * @return mixed
+     */
+    public function bitrateDownload($key, $id, $bitrate)
+    {
+        return $this->download($key, $id, false, $bitrate);
     }
 
     /**
@@ -473,13 +504,17 @@ class ApiController extends Controller
      */
     function downloadResponse($path, $name)
     {
+        if (!file_exists($path)) {
+            abort(404);
+        }
+
         $this->checkIsBadMp3($path);
 
         $headers = [
             'Cache-Control' => 'private',
             'Cache-Description' => 'File Transfer',
-            'Cache-Type' => 'audio/mpeg',
-            'Cache-length' => filesize($path),
+            'Content-Type' => 'audio/mpeg',
+            'Content-Length' => filesize($path),
         ];
 
         return response()->download(
@@ -487,5 +522,24 @@ class ApiController extends Controller
             $name,
             $headers
         );
+    }
+
+    /**
+     * Executes ffmpeg command synchronously for converting given file to given bitrate
+     * @param $bitrate integer, one of $config["allowed_bitrates"]
+     * @param $input string input mp3 file full path
+     * @param $output string output mp3 file full path
+     * @return bool is success
+     */
+    function convertMp3Bitrate($bitrate, $input, $output)
+    {
+        $bitrateString = config('app.allowed_bitrates_ffmpeg')[array_search($bitrate,
+            config('app.allowed_bitrates'))];
+        $ffmpegPath = config('app.ffmpeg_path');
+
+        exec("$ffmpegPath -i $input -codec:a libmp3lame $bitrateString $output", $exOutput,
+            $result);
+
+        return $result == 0;
     }
 }

@@ -24,5 +24,11 @@ return [
     // environment variable ACCOUNTS can override this
     'accounts' => [
         ['phone_number', 'password'],
-    ]
+    ],
+
+    //allowing popular bitrates only: economy, standart, good, and best
+    // update in routes too
+    'allowed_bitrates' => [64, 128, 192, 320],
+    'allowed_bitrates_ffmpeg' => ["-q:a 9", "-q:a 5", "-q:a 2", "-b:a 320k"],
+    'ffmpeg_path' => 'ffmpeg'
 ];
