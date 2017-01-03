@@ -26,9 +26,8 @@ return [
         ['phone_number', 'password'],
     ],
 
-    //allowing popular bitrates only: economy, standart, good, and best
-    // update in routes too
-    'allowed_bitrates' => [64, 128, 192, 320],
-    'allowed_bitrates_ffmpeg' => ["-q:a 9", "-q:a 5", "-q:a 2", "-b:a 320k"],
+    //allowing popular bitrates only: economy, standard, good, and best
+    'allowed_bitrates' => [64, 128, 192],
+    'allowed_bitrates_ffmpeg' => ["-q:a 9", "-q:a 5", "-q:a 2"],
     'ffmpeg_path' => 'ffmpeg'
 ];
