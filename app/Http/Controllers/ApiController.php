@@ -11,6 +11,7 @@ use GuzzleHttp\Cookie\FileCookieJar;
 use Illuminate\Contracts\Routing\ResponseFactory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use PHPHtmlParser\Dom;
 use Psr\Http\Message\ResponseInterface;
@@ -225,7 +226,9 @@ class ApiController extends Controller
         $item = $this->getAudio($key, $id);
 
         $name = sprintf('%s - %s', $item['artist'], $item['title']); // format
-        $name = Utils::sanitize($name, false, false); // remove bad characters
+        // ascii-fy and remove bad characters
+        $name = Str::ascii($name);
+        $name = Utils::sanitize($name, false, false);
         $name = sprintf('%s.mp3', $name); // append extension
 
         $filePath = sprintf('%s.mp3', hash(config('app.hash.mp3'), $item['id']));
@@ -556,22 +559,17 @@ class ApiController extends Controller
     }
 
     /**
-     * VK sometimes redirects to error page, but curl downloads redirect page, which is html.
-     * check if downloaded file is html and throw 404
-     * if mp3 size smaller than 170 bytes (default/expected size is 158) check is html and exit with 404
+     * Checks given files mime type and abort with 404 if file is not an mp3 file
      * @param string $path full path of mp3
      */
     function checkIsBadMp3($path)
     {
-        $size = filesize($path);
+        $mime = finfo_file(finfo_open(FILEINFO_MIME_TYPE), $path);
 
-        if ($size < 170) {
-            $content = file_get_contents($path);
-
-            if (str_contains($content, "<html>")) {
-                unlink($path);
-                abort(404);
-            }
+        // if the file is corrupted (mime is wrong), delete it from cache and return 404
+        if ($mime !== 'audio/mpeg') {
+            @unlink($path);
+            abort(404);
         }
     }
 
