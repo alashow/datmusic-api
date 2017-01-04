@@ -11,6 +11,7 @@ use GuzzleHttp\Cookie\FileCookieJar;
 use Illuminate\Contracts\Routing\ResponseFactory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Str;
 use PHPHtmlParser\Dom;
 use Psr\Http\Message\ResponseInterface;
 use Utils;
@@ -63,7 +64,7 @@ class ApiController extends Controller
         $this->authPhone = $account[0];
         $this->authPassword = $account[1];
 
-        $this->cookieFile = sprintf(config('app.cookiePath'), md5($this->authPhone));
+        $this->cookieFile = sprintf(config('app.paths.cookie'), md5($this->authPhone));
         $this->authenticated = file_exists($this->cookieFile);
         $this->jar = new FileCookieJar($this->cookieFile);
 
@@ -217,7 +218,7 @@ class ApiController extends Controller
      */
     public function download($key, $id, $stream = false, $bitrate = -1)
     {
-        if (!in_array($bitrate, config('app.allowed_bitrates'))) {
+        if (!in_array($bitrate, config('app.conversion.allowed'))) {
             $bitrate = -1;
         }
 
@@ -229,7 +230,7 @@ class ApiController extends Controller
 
         $filePath = sprintf('%s.mp3', hash(config('app.hash.mp3'), $item['id']));
 
-        $path = sprintf('%s/%s', config('app.mp3Path'), $filePath);
+        $path = sprintf('%s/%s', config('app.paths.mp3'), $filePath);
 
         if (file_exists($path) || $this->downloadFile($item['mp3'], $path)) {
             if ($bitrate > 0) {
@@ -611,9 +612,9 @@ class ApiController extends Controller
      */
     function convertMp3Bitrate($bitrate, $input, $output)
     {
-        $bitrateString = config('app.allowed_bitrates_ffmpeg')[array_search($bitrate,
-            config('app.allowed_bitrates'))];
-        $ffmpegPath = config('app.ffmpeg_path');
+        $bitrateString = config('app.conversion.allowed_ffmpeg')[array_search($bitrate,
+            config('app.conversion.allowed'))];
+        $ffmpegPath = config('app.conversion.ffmpeg_path');
 
         exec("$ffmpegPath -i $input -codec:a libmp3lame $bitrateString $output", $exOutput,
             $result);

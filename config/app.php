@@ -5,9 +5,11 @@
  */
 
 return [
-    'cookiePath' => storage_path('app/cookies/%s.json'),
-    'cachePath' => storage_path('app/cache'),
-    'mp3Path' => storage_path('app/public/mp3'),
+
+    'paths' => [
+        'cookie' => storage_path('app/cookies/%s.json'),
+        'mp3' => storage_path('app/public/mp3'),
+    ],
 
     // hashing algorithms
     'hash' => [
@@ -35,8 +37,11 @@ return [
         ['phone_number', 'password'],
     ],
 
-    //allowing popular bitrates only: economy, standard, good
-    'allowed_bitrates' => [64, 128, 192],
-    'allowed_bitrates_ffmpeg' => ["-q:a 9", "-q:a 5", "-q:a 2"],
-    'ffmpeg_path' => 'ffmpeg'
+    'conversion' => [
+        //popular bitrates: economy, standard, good
+        'allowed' => [64, 128, 192],
+        'allowed_ffmpeg' => ["-q:a 9", "-q:a 5", "-q:a 2"],
+        'ffmpeg_path' => 'ffmpeg'
+    ]
+
 ];
