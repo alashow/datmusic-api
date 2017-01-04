@@ -28,10 +28,11 @@ $app = new Laravel\Lumen\Application(
 );
 
 $app->configure('app');
+$app->configure('database');
+$app->configure('cache');
 
- $app->withFacades();
 
-// $app->withEloquent();
+$app->withFacades();
 
 /*
 |--------------------------------------------------------------------------
@@ -65,9 +66,9 @@ $app->singleton(
 |
 */
 
- $app->routeMiddleware([
-     'auth.basic' => App\Http\Middleware\HttpBasicAuth::class,
- ]);
+$app->routeMiddleware([
+    'auth.basic' => App\Http\Middleware\HttpBasicAuth::class,
+]);
 
 /*
 |--------------------------------------------------------------------------
@@ -80,7 +81,8 @@ $app->singleton(
 |
 */
 
- $app->register(App\Providers\AppServiceProvider::class);
+$app->register(App\Providers\AppServiceProvider::class);
+$app->register(Illuminate\Redis\RedisServiceProvider::class);
 
 /*
 |--------------------------------------------------------------------------
