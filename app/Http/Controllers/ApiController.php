@@ -544,10 +544,14 @@ class ApiController extends Controller
         curl_setopt($curl, CURLOPT_FILE, $handle);
         curl_setopt($curl, CURLOPT_HEADER, 0);
         curl_setopt($curl, CURLOPT_FAILONERROR, 1);
+        curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, config('app.downloading.timeout.connection'));
+        curl_setopt($curl, CURLOPT_TIMEOUT, config('app.downloading.timeout.execution'));
         curl_exec($curl);
 
         // if curl had errors
         if (curl_errno($curl) > 0) {
+            // remove the file just in case
+            @unlink($path);
             return false;
         }
 

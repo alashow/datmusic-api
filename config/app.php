@@ -37,11 +37,18 @@ return [
         ['phone_number', 'password'],
     ],
 
+    'downloading' => [
+        'timeout' => [
+            //seconds
+            'connection' => 2, // connection timeout
+            'execution' => 60, // downloading timeout
+        ]
+    ],
+
     'conversion' => [
         //popular bitrates: economy, standard, good
         'allowed' => [64, 128, 192],
         'allowed_ffmpeg' => ["-q:a 9", "-q:a 5", "-q:a 2"],
         'ffmpeg_path' => 'ffmpeg'
     ]
-
 ];
