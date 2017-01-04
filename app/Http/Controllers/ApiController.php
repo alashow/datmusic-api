@@ -87,7 +87,7 @@ class ApiController extends Controller
      */
     public function index()
     {
-        return $this->ok(null);
+        return $this->ok();
     }
 
     /**
@@ -515,10 +515,10 @@ class ApiController extends Controller
      * @param $headers
      * @return array
      */
-    private function ok($data, $arrayName = 'data', $status = 200, $headers = [])
+    private function ok($data = null, $arrayName = 'data', $status = 200, $headers = [])
     {
         $result = ['status' => 'ok'];
-        if (!empty($data)) {
+        if (!is_null($data)) {
             $result = array_merge($result, [$arrayName => $data]);
         }
 
