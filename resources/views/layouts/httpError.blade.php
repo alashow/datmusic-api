@@ -2,4 +2,4 @@
 
 @section('title', 'Error')
 
-@section('code', $exception->getStatusCode())
+@section('code', !empty($exception->getStatusCode()) ? $exception->getStatusCode() : 500)
