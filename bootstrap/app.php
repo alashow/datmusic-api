@@ -30,7 +30,7 @@ $app = new Laravel\Lumen\Application(
 $app->configure('app');
 $app->configure('database');
 $app->configure('cache');
-
+$app->configure('cors');
 
 $app->withFacades();
 
@@ -66,6 +66,10 @@ $app->singleton(
 |
 */
 
+$app->middleware([
+    \Barryvdh\Cors\HandleCors::class
+]);
+
 $app->routeMiddleware([
     'auth.basic' => App\Http\Middleware\HttpBasicAuth::class,
 ]);
@@ -83,6 +87,7 @@ $app->routeMiddleware([
 
 $app->register(App\Providers\AppServiceProvider::class);
 $app->register(Illuminate\Redis\RedisServiceProvider::class);
+$app->register(Barryvdh\Cors\LumenServiceProvider::class);
 
 /*
 |--------------------------------------------------------------------------

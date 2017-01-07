@@ -49,7 +49,7 @@ class Handler extends ExceptionHandler
      */
     public function render($request, Exception $e)
     {
-        if (! env('APP_DEBUG')) {
+        if (!env('APP_DEBUG')) {
             if ($e instanceof HttpException) {
                 $status = $e->getStatusCode();
 
@@ -62,7 +62,7 @@ class Handler extends ExceptionHandler
         if (env('APP_DEBUG')) {
             return parent::render($request, $e);
         } else {
-            return response(view("errors.500"), 500);
+            return response(view("errors.500", ['exception' => $e]), 500);
         }
     }
 }

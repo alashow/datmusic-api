@@ -10,7 +10,8 @@
         "vlucas/phpdotenv": "~2.2",
         "guzzlehttp/guzzle": "^6.2",
         "paquettg/php-html-parser": "^1.7",
-        "illuminate/redis": "^5.3"
+        "illuminate/redis": "^5.3",
+        "barryvdh/laravel-cors": "^0.8.2"
     },
     "require-dev": {
         "fzaninotto/faker": "~1.4",
