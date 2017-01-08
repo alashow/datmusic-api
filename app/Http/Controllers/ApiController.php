@@ -6,12 +6,12 @@
 
 namespace App\Http\Controllers;
 
+use Aws\S3\S3Client;
 use GuzzleHttp\Client;
 use GuzzleHttp\Cookie\FileCookieJar;
 use Illuminate\Contracts\Routing\ResponseFactory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use PHPHtmlParser\Dom;
 use Psr\Http\Message\ResponseInterface;
@@ -48,6 +48,10 @@ class ApiController extends Controller
      */
     protected $client;
     /**
+     * @var S3Client Amazon S3 client
+     */
+    protected $s3Client;
+    /**
      * @var Request
      */
     protected $request;
@@ -79,6 +83,11 @@ class ApiController extends Controller
                 ]
             ]
         ]);
+
+        if (config('app.aws.enabled')) {
+            $this->s3Client = new S3Client(config('app.aws.config'));
+            $this->s3Client->registerStreamWrapper();
+        }
     }
 
     // Route & parse related functions
@@ -191,14 +200,16 @@ class ApiController extends Controller
             $audio = new Dom();
             $audio->load($item->innerHtml);
 
+            $id = explode('_search-', $item->getAttribute('data-id'))[0];
             $artist = $audio->find('.ai_artist')->text(true);
             $title = $audio->find('.ai_title')->text(true);
             $duration = $audio->find('.ai_dur')->getAttribute('data-dur');
             $mp3 = $audio->find('input[type=hidden]')->value;
-            $id = hash(config('app.hash.id'), $mp3);
+
+            $hash = hash(config('app.hash.id'), $id);
 
             array_push($data, [
-                'id' => $id,
+                'id' => $hash,
                 'artist' => trim(htmlspecialchars_decode($artist, ENT_QUOTES)),
                 'title' => trim(htmlspecialchars_decode($title, ENT_QUOTES)),
                 'duration' => (int)$duration,
@@ -219,8 +230,30 @@ class ApiController extends Controller
      */
     public function download($key, $id, $stream = false, $bitrate = -1)
     {
+        // is using s3 as storage
+        $isS3 = !is_null($this->s3Client);
+
         if (!in_array($bitrate, config('app.conversion.allowed'))) {
             $bitrate = -1;
+        }
+
+        // filename including extension
+        $filePath = sprintf('%s.mp3', hash(config('app.hash.mp3'), $id));
+        // used for downloading from s3 when bitrate converting
+        $localPath = sprintf('%s/%s', config('app.paths.mp3'), $filePath);
+
+        // build full path from file path
+        if ($isS3) {
+            $s3PathWithFolder = sprintf(config('app.aws.paths.mp3'), $filePath);
+            $path = sprintf('s3://%s/%s', config('app.aws.bucket'), $s3PathWithFolder);
+        } else {
+            $path = $localPath;
+        }
+
+        // cache check only for s3.
+        // check bucket for file and redirect if exists
+        if ($isS3 && @file_exists(Utils::formatPathWithBitrate($path, $bitrate))) {
+            return redirect(Utils::buildS3Url(Utils::formatPathWithBitrate($filePath, $bitrate)));
         }
 
         $item = $this->getAudio($key, $id);
@@ -231,29 +264,62 @@ class ApiController extends Controller
         $name = Utils::sanitize($name, false, false);
         $name = sprintf('%s.mp3', $name); // append extension
 
-        $filePath = sprintf('%s.mp3', hash(config('app.hash.mp3'), $item['id']));
+        if ($isS3) {
+            $streamContext = Utils::buildS3StreamContextOptions($name);
+        } else {
+            $streamContext = null;
+        }
 
-        $path = sprintf('%s/%s', config('app.paths.mp3'), $filePath);
+        if (@file_exists($path) || $this->downloadFile($item['mp3'], $path, $streamContext)) {
 
-        if (file_exists($path) || $this->downloadFile($item['mp3'], $path)) {
+            //TODO: make bitrate conversion function separate
             if ($bitrate > 0) {
-                $pathConverted = str_replace('.mp3', "_$bitrate.mp3", $path);
-                $filePathConverted = str_replace('.mp3', "_$bitrate.mp3", $filePath);
+                // Download to local if s3 mode and upload converted one to s3
+                // Change path only if already converted or conversion function returns true
 
-                // change path only if already converted or conversion function returns true
-                if (file_exists($filePathConverted) || $this->convertMp3Bitrate($bitrate, $path,
-                        $pathConverted)
-                ) {
-                    //change file path to converted one.
-                    $path = $pathConverted;
-                    $filePath = $filePathConverted;
+                $pathConverted = Utils::formatPathWithBitrate($localPath, $bitrate);
+                $filePathConverted = Utils::formatPathWithBitrate($filePath, $bitrate);
+
+                // s3 mode
+                if ($isS3) {
+                    // download file from s3 to local
+                    // continue only if download succeeds
+                    $convertable = $this->downloadFile(Utils::buildS3Url($filePath), $localPath);
+                } else {
+                    $convertable = true;
+                }
+
+                if ($convertable) {
+                    if (file_exists($pathConverted)
+                        || $this->convertMp3Bitrate($bitrate, $localPath, $pathConverted)
+                    ) {
+                        // upload converted file
+                        if ($isS3) {
+                            $converted = fopen($pathConverted, 'r');
+                            $s3ConvertedPath = Utils::formatPathWithBitrate($path, $bitrate);
+                            $s3Stream = fopen($s3ConvertedPath, 'w', false, $streamContext);
+
+                            // if upload succeeds
+                            if (stream_copy_to_stream($converted, $s3Stream) != false) {
+                                $filePath = $filePathConverted;
+                            }
+                        } else {
+                            //change file paths to converted ones
+                            $path = $pathConverted;
+                            $filePath = $filePathConverted;
+                        }
+                    }
                 }
             }
 
-            if ($stream) {
-                return redirect("mp3/$filePath");
+            if ($isS3) {
+                return redirect(Utils::buildS3Url($filePath));
             } else {
-                return $this->downloadResponse($path, $name);
+                if ($stream) {
+                    return redirect("mp3/$filePath");
+                } else {
+                    return $this->downloadResponse($path, $name);
+                }
             }
         } else {
             abort(404);
@@ -262,8 +328,8 @@ class ApiController extends Controller
 
     /**
      * Just like download but with stream enabled
-     * @param $key
-     * @param $id
+     * @param string $key
+     * @param string $id
      * @return mixed
      */
     public function stream($key, $id)
@@ -273,8 +339,9 @@ class ApiController extends Controller
 
     /**
      * Just like download but with bitrate converting enabled
-     * @param $key
-     * @param $id
+     * @param string $key
+     * @param string $id
+     * @param int $bitrate
      * @return mixed
      */
     public function bitrateDownload($key, $id, $bitrate)
@@ -290,14 +357,15 @@ class ApiController extends Controller
      */
     public function bytes($key, $id)
     {
-        // get from cache or store to cache and return value
-        return Cache::remember($id . $key, config('app.cache.duration'),
-            function () use ($key, $id) {
-                $item = $this->getAudio($key, $id);
+        $cacheKey = "bytes_$id";
 
-                $response = $this->client->head($item['mp3']);
-                return $response->getHeader('Content-Length')[0];
-            });
+        // get from cache or store in cache and return value
+        return Cache::rememberForever($cacheKey, function () use ($key, $id) {
+            $item = $this->getAudio($key, $id);
+
+            $response = $this->client->head($item['mp3']);
+            return $response->getHeader('Content-Length')[0];
+        });
     }
 
     /**
@@ -535,11 +603,17 @@ class ApiController extends Controller
      * Download given file url to given path
      * @param string $url
      * @param string $path
+     * @param resource $context stream context options when opening $path
      * @return bool true if succeeds
      */
-    function downloadFile($url, $path)
+    function downloadFile($url, $path, $context = null)
     {
-        $handle = fopen($path, 'x');
+        if ($context == null) {
+            $handle = fopen($path, 'w');
+        } else {
+            $handle = fopen($path, 'w', false, $context);
+        }
+
         $curl = curl_init($url);
         curl_setopt($curl, CURLOPT_FILE, $handle);
         curl_setopt($curl, CURLOPT_HEADER, 0);

@@ -4,6 +4,8 @@
  * It is licensed under GNU GPL v. 2 or later. For full terms see the file LICENSE.
  */
 
+use Aws\Credentials\CredentialProvider;
+
 return [
 
     'paths' => [
@@ -50,5 +52,24 @@ return [
         'allowed' => [64, 128, 192],
         'allowed_ffmpeg' => ["-q:a 9", "-q:a 5", "-q:a 2"],
         'ffmpeg_path' => 'ffmpeg'
+    ],
+
+    'aws' => [
+        'enabled' => true,
+
+        'config' => [
+            'version' => 'latest',
+            'region' => 'eu-central-1',
+
+            //http://docs.aws.amazon.com/aws-sdk-php/v3/guide/guide/credentials.html#env-provider
+            'credentials' => CredentialProvider::env()
+        ],
+
+        'bucket' => 'datmusic',
+
+        'paths' => [
+            // will be formatted with mp3 file name
+            'mp3' => 'mp3/%s'
+        ]
     ]
 ];

@@ -11,7 +11,8 @@
         "guzzlehttp/guzzle": "^6.2",
         "paquettg/php-html-parser": "^1.7",
         "illuminate/redis": "^5.3",
-        "barryvdh/laravel-cors": "^0.8.2"
+        "barryvdh/laravel-cors": "^0.8.2",
+        "aws/aws-sdk-php": "^3.20"
     },
     "require-dev": {
         "fzaninotto/faker": "~1.4",
