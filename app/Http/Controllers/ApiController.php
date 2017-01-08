@@ -109,6 +109,7 @@ class ApiController extends Controller
     {
         $cacheKey = $this->getCacheKeyForRequest();
 
+        // return immediately if has in cache
         if ($this->hasRequestInCache()) {
             return $this->ok(
                 $this->transformSearchResponse(
@@ -117,7 +118,7 @@ class ApiController extends Controller
             );
         }
 
-        // if cookie file doesn't exist, we need to authenticate first
+        // if the cookie file doesn't exist, we need to authenticate first
         if (!$this->authenticated) {
             $this->auth();
             $this->authenticated = true;
@@ -135,7 +136,7 @@ class ApiController extends Controller
 
         // if not authenticated, authenticate then retry the search
         if (!$this->checkIsAuthenticated($response)) {
-            // we need to get out of the loop. maybe something is wrong authentication.
+            // we need to get out of the loop. maybe something is wrong with authentication.
             if ($this->authRetries >= 3) {
                 abort(403);
             }
@@ -239,7 +240,7 @@ class ApiController extends Controller
 
         // filename including extension
         $filePath = sprintf('%s.mp3', hash(config('app.hash.mp3'), $id));
-        // used for downloading from s3 when bitrate converting
+        // used for bitrate converting when using s3
         $localPath = sprintf('%s/%s', config('app.paths.mp3'), $filePath);
 
         // build full path from file path
@@ -258,11 +259,11 @@ class ApiController extends Controller
 
         $item = $this->getAudio($key, $id);
 
-        $name = sprintf('%s - %s', $item['artist'], $item['title']); // format
-        // ascii-fy and remove bad characters
+        //format name, ascii-fy and remove bad characters
+        $name = sprintf('%s - %s', $item['artist'], $item['title']);
         $name = Str::ascii($name);
         $name = Utils::sanitize($name, false, false);
-        $name = sprintf('%s.mp3', $name); // append extension
+        $name = sprintf('%s.mp3', $name);
 
         if ($isS3) {
             $streamContext = Utils::buildS3StreamContextOptions($name);
@@ -272,7 +273,7 @@ class ApiController extends Controller
 
         if (@file_exists($path) || $this->downloadFile($item['mp3'], $path, $streamContext)) {
 
-            //TODO: make bitrate conversion function separate
+            //TODO: do bitrate conversion in separate function
             if ($bitrate > 0) {
                 // Download to local if s3 mode and upload converted one to s3
                 // Change path only if already converted or conversion function returns true
