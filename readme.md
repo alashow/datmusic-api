@@ -18,11 +18,19 @@ Search results are cached for 24 hours by default.
 
 # Downloads & Streams
 
-`https://api.datmusic.xyz/{search_hash}{audio_hash}/{}` (force download with proper file name (`Artist - Title.mp3`))
+`https://api.datmusic.xyz/{search_hash}/{audio_hash}` (force download with proper file name (`Artist - Title.mp3`))
 
-`https://api.datmusic.xyz/stream/{search_hash}{audio_hash}` (redirects to mp3 file)
+`https://api.datmusic.xyz/stream/{search_hash}/{audio_hash}` (redirects to mp3 file)
 
-`https://api.datmusic.xyz/bytes/{search_hash}{audio_hash}` (returns file size of mp3 in bytes)
+`https://api.datmusic.xyz/bytes/{search_hash}/{audio_hash}` (returns file size of mp3 in bytes)
+
+# Bitrate converting
+
+Default convertable bitrates are: `64`, `128`, `192`
+You need to install `ffmpeg` to your server to make it work and change path to binary in [config file](config/app.php).
+ 
+`https://api.datmusic.xyz/{search_hash}/{audio_hash}/{bitrate}`
+`https://api.datmusic.xyz/stream/{search_hash}/{audio_hash}/{bitrate}`
 
 # Hashing
 
@@ -43,7 +51,7 @@ Redis cache driver is configured. Just change driver and set credentials in .env
  
 # Using with S3 Storage
  
-You can enable S3 storage option in [config file](config/app.php).
+You can enable or disable S3 storage option in [config file](config/app.php) (enabled by default).
 
 When it's enabled, mp3 files will be downloaded to s3 bucket instead of local disk.
 
