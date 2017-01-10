@@ -643,10 +643,20 @@ class ApiController extends Controller
      */
     function checkIsBadMp3($path)
     {
-        $mime = finfo_file(finfo_open(FILEINFO_MIME_TYPE), $path);
+        // valid mimes
+        $validMimes = ['audio/mpeg', 'audio/mp3'];
 
-        // if the file is corrupted (mime is wrong), delete it from cache and return 404
-        if ($mime !== 'audio/mpeg') {
+        $mime = finfo_file(finfo_open(FILEINFO_MIME_TYPE), $path);
+        // checks mime-type with unix file command
+        $nativeCheck = function () use ($path) {
+            return exec("file -b --mime-type $path");
+        };
+
+        $checks = [$mime, $nativeCheck()];
+
+        // if the file is corrupted (mime is wrong), delete it from storage and return 404
+        // if arrays don't have any common values, mp3 is broken.
+        if (!count(array_intersect($checks, $validMimes))) {
             @unlink($path);
             abort(404);
         }
