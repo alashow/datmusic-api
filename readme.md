@@ -36,7 +36,7 @@ You need to install `ffmpeg` to your server to make it work and change path to b
 
 Search hash calculated by request params (query and page).
 Audio hash calculated by audio id.
-Default hashing algorithm is [`adler32`](https://en.wikipedia.org/wiki/Adler-32). I chose this because of speed, short length, and I didn't need cryptographic hashing. You can change it in config if you want.
+Default hashing algorithm is [`crc32`](https://en.wikipedia.org/wiki/Cyclic_redundancy_check). I chose this because of speed, short length, and I didn't need cryptographic hashing. You can change it in config if you want.
 
 In web version of VK, there is no page similar to [audio.get](https://vk.com/dev/audio.get), so we can only serve and stream mp3 files that are shown by search function (it searches from cache). But if using S3 as for caching mp3 files, it will search from there. 
  

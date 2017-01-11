@@ -15,8 +15,8 @@ return [
 
     // hashing algorithms
     'hash' => [
-        'cache' => 'adler32',
-        'id' => 'adler32',
+        'cache' => 'crc32',
+        'id' => 'crc32',
         'mp3' => 'md5'
     ],
 
