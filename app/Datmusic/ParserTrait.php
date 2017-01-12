@@ -38,8 +38,8 @@ trait ParserTrait
 
             array_push($data, [
                 'id' => $hash,
-                'artist' => trim(htmlspecialchars_decode($artist, ENT_QUOTES)),
-                'title' => trim(htmlspecialchars_decode($title, ENT_QUOTES)),
+                'artist' => trim(html_entity_decode($artist, ENT_QUOTES)),
+                'title' => trim(html_entity_decode($title, ENT_QUOTES)),
                 'duration' => (int)$duration,
                 'mp3' => $mp3
             ]);
