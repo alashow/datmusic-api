@@ -116,15 +116,15 @@ trait DownloaderTrait
 
         // cache check only for s3.
         // check bucket for file and redirect if exists
-        if ($this->isS3 && @file_exists(Utils::formatPathWithBitrate($path, $bitrate))) {
-            return redirect(Utils::buildS3Url(Utils::formatPathWithBitrate($filePath, $bitrate)));
+        if ($this->isS3 && @file_exists($this->formatPathWithBitrate($path, $bitrate))) {
+            return redirect($this->buildS3Url($this->formatPathWithBitrate($filePath, $bitrate)));
         }
 
         $item = $this->getAudio($key, $id);
         $name = $this->getFormattedName($item);
 
         if ($this->isS3) {
-            $this->s3StreamContext = Utils::buildS3StreamContextOptions($name);
+            $this->s3StreamContext = $this->buildS3StreamContextOptions($name);
         }
 
         if (@file_exists($path) || $this->downloadFile($item['mp3'], $path)) {
@@ -135,7 +135,7 @@ trait DownloaderTrait
             }
 
             if ($this->isS3) {
-                return redirect(Utils::buildS3Url($filePath));
+                return redirect($this->buildS3Url($filePath));
             } else {
                 if ($stream) {
                     return redirect("mp3/$filePath");
@@ -162,14 +162,14 @@ trait DownloaderTrait
             // Download to local if s3 mode and upload converted one to s3
             // Change path only if already converted or conversion function returns true
 
-            $pathConverted = Utils::formatPathWithBitrate($localPath, $bitrate);
-            $filePathConverted = Utils::formatPathWithBitrate($filePath, $bitrate);
+            $pathConverted = $this->formatPathWithBitrate($localPath, $bitrate);
+            $filePathConverted = $this->formatPathWithBitrate($filePath, $bitrate);
 
             // s3 mode
             if ($this->isS3) {
                 // download file from s3 to local
                 // continue only if download succeeds
-                $convertable = $this->downloadFile(Utils::buildS3Url($filePath), $localPath);
+                $convertable = $this->downloadFile($this->buildS3Url($filePath), $localPath);
             } else {
                 $convertable = true;
             }
@@ -181,7 +181,7 @@ trait DownloaderTrait
                     // upload converted file
                     if ($this->isS3) {
                         $converted = fopen($pathConverted, 'r');
-                        $s3ConvertedPath = Utils::formatPathWithBitrate($path, $bitrate);
+                        $s3ConvertedPath = $this->formatPathWithBitrate($path, $bitrate);
                         $s3Stream = fopen($s3ConvertedPath, 'w', false, $this->s3StreamContext);
 
                         // if upload succeeds
@@ -319,5 +319,53 @@ trait DownloaderTrait
             $result);
 
         return $result == 0;
+    }
+
+    /**
+     * @param string $path path to mp3
+     * @param int $bitrate bitrate
+     * @return string path_bitrate.mp3 formatted path
+     */
+    private function formatPathWithBitrate($path, $bitrate)
+    {
+        if ($bitrate > 0) {
+            return str_replace('.mp3', "_$bitrate.mp3", $path);
+        } else {
+            return $path;
+        }
+    }
+
+    // s3 utils
+
+    /**
+     * Builds url with region and bucket name from config
+     * @param string $fileName path to file
+     * @return string full url
+     */
+    private function buildS3Url($fileName)
+    {
+        $region = config('app.aws.config.region');
+        $bucket = config('app.aws.bucket');
+        $path = sprintf(config('app.aws.paths.mp3'), $fileName);
+
+        return "https://s3-$region.amazonaws.com/$bucket/$path";
+    }
+
+    /**
+     * Builds S3 schema stream context options
+     * All options available at http://docs.aws.amazon.com/aws-sdk-php/v3/api/api-s3-2006-03-01.html#putobject
+     * @param string $name Force download file name
+     * @return resource
+     */
+    private function buildS3StreamContextOptions($name)
+    {
+        return stream_context_create([
+            's3' => [
+                'ACL' => 'public-read',
+                'ContentType' => 'audio/mpeg',
+                'ContentDisposition' => "attachment; filename=\"$name\"",
+                'StorageClass' => 'STANDARD_IA'
+            ]
+        ]);
     }
 }
