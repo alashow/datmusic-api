@@ -14,23 +14,23 @@ Then it searches songs with given query in vk website (currently from mobile ver
 
 Search results are cached for 24 hours by default.
 
-`https://api.datmusic.xyz/search?q={query}&page={page}`
+`https://example.com/search?q={query}&page={page}`
 
 # Downloads & Streams
 
-`https://api.datmusic.xyz/{search_hash}/{audio_hash}` (force download with proper file name (`Artist - Title.mp3`))
+`https://example.com/{search_hash}/{audio_hash}` (force download with proper file name (`Artist - Title.mp3`))
 
-`https://api.datmusic.xyz/stream/{search_hash}/{audio_hash}` (redirects to mp3 file)
+`https://example.com/stream/{search_hash}/{audio_hash}` (redirects to mp3 file)
 
-`https://api.datmusic.xyz/bytes/{search_hash}/{audio_hash}` (returns file size of mp3 in bytes)
+`https://example.com/bytes/{search_hash}/{audio_hash}` (returns file size of mp3 in bytes)
 
 # Bitrate converting
 
 Default convertable bitrates are: `64`, `128`, `192`
 You need to install `ffmpeg` to your server to make it work and change path to binary in [config file](config/app.php).
  
-`https://api.datmusic.xyz/{search_hash}/{audio_hash}/{bitrate}`
-`https://api.datmusic.xyz/stream/{search_hash}/{audio_hash}/{bitrate}`
+`https://example.com/{search_hash}/{audio_hash}/{bitrate}`
+`https://example.com/stream/{search_hash}/{audio_hash}/{bitrate}`
 
 # Hashing
 
@@ -56,9 +56,17 @@ You can enable or disable S3 storage option in [config file](config/app.php) (en
 When it's enabled, mp3 files will be downloaded to s3 bucket instead of local disk.
 
 Download/stream links will be redirected to S3 servers.
- 
 
 Please browse code or open an issue to understand more. 
+
+# Demo 
+
+https://api.datmusic.xyz/search
+
+This is used by https://datmusic.xyz and [android app](https://play.google.com/store/apps/details?id=tm.alashow.datmusic).
+It's not for public usage. If you need to use it with your website or app, deploy this project to your own domain.
+
+Open an issue or contact me at me@alashov.com for help with deployment.
 
 ## License
 
