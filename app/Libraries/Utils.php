@@ -32,49 +32,4 @@ class Utils
     {
         return sprintf('%s/%s', env('APP_URL'), $path);
     }
-
-    /**
-     * @param string $path path to mp3
-     * @param int $bitrate bitrate
-     * @return string path_bitrate.mp3 formatted path
-     */
-    public static function formatPathWithBitrate($path, $bitrate)
-    {
-        if ($bitrate > 0) {
-            return str_replace('.mp3', "_$bitrate.mp3", $path);
-        } else {
-            return $path;
-        }
-    }
-
-    /**
-     * Builds url with region and bucket name from config
-     * @param string $fileName path to file
-     * @return string full url
-     */
-    public static function buildS3Url($fileName)
-    {
-        $region = config('app.aws.config.region');
-        $bucket = config('app.aws.bucket');
-        $path = sprintf(config('app.aws.paths.mp3'), $fileName);
-
-        return "https://s3-$region.amazonaws.com/$bucket/$path";
-    }
-
-    /**
-     * Builds S3 schema stream context options
-     * All options available at http://docs.aws.amazon.com/aws-sdk-php/v3/api/api-s3-2006-03-01.html#putobject
-     * @param string $name Force download file name
-     * @return resource
-     */
-    public static function buildS3StreamContextOptions($name)
-    {
-        return stream_context_create([
-            's3' => [
-                'ACL' => 'public-read',
-                'ContentType' => 'audio/mpeg',
-                'ContentDisposition' => "attachment; filename=\"$name\""
-            ]
-        ]);
-    }
 }
