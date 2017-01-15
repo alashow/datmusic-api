@@ -109,6 +109,7 @@ trait SearchesTrait
      */
     private function getSearchResults($query, $offset)
     {
+        $query = urlencode($query);
         return $this->httpClient->get(
             "audio?act=search&q=$query&offset=$offset",
             ['cookies' => $this->jar]
