@@ -137,6 +137,9 @@ trait SearchesTrait
             $downloadUrl = Utils::url(sprintf('%s/%s', $cacheKey, $item['id']));
             $streamUrl = Utils::url(sprintf('stream/%s/%s', $cacheKey, $item['id']));
 
+            $item['artist'] = $this->cleanBadWords($item['artist']);
+            $item['title'] = $this->cleanBadWords($item['title']);
+
             // remove mp3 link and id from array
             unset($item['mp3']);
             unset($item['id']);
@@ -177,5 +180,15 @@ trait SearchesTrait
             }
         }
         return false;
+    }
+
+    /**
+     * Replace bad words with empty string
+     * @param $string
+     * @return mixed
+     */
+    private function cleanBadWords($string)
+    {
+        return preg_replace(config('app.search.badWordsRegex'), '', $string);
     }
 }
