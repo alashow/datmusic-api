@@ -17,10 +17,6 @@ use Utils;
 trait DownloaderTrait
 {
     /**
-     * @var Client Guzzle client
-     */
-    protected $httpClient;
-    /**
      * @var S3Client
      */
     protected $s3Client;
@@ -59,7 +55,8 @@ trait DownloaderTrait
         return Cache::rememberForever($cacheKey, function () use ($key, $id) {
             $item = $this->getAudio($key, $id);
 
-            $response = $this->httpClient->head($item['mp3']);
+            $httpClient = HttpClient::getInstance()->getClient();
+            $response = $httpClient->head($item['mp3']);
             return $response->getHeader('Content-Length')[0];
         });
     }

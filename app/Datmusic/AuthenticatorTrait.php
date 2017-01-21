@@ -8,14 +8,11 @@ namespace App\Datmusic;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Cookie\FileCookieJar;
+use PHPHtmlParser\Dom;
 use Psr\Http\Message\ResponseInterface;
 
 trait AuthenticatorTrait
 {
-    /**
-     * @var Client Guzzle client
-     */
-    protected $httpClient;
     /**
      * @var string selected account phone number
      */
@@ -85,12 +82,14 @@ trait AuthenticatorTrait
      */
     private function auth()
     {
+        $httpClient = HttpClient::getInstance()->getClient();
+
         $this->authRetries++;
-        $loginResponse = $this->httpClient->get('login', ['cookies' => $this->jar]);
+        $loginResponse = $httpClient->get('login', ['cookies' => $this->jar]);
 
         $authUrl = $this->getFormUrl($loginResponse);
 
-        $this->httpClient->post($authUrl, [
+        $httpClient->post($authUrl, [
             'cookies' => $this->jar,
             'form_params' => [
                 'email' => $this->authPhone,
@@ -128,7 +127,8 @@ trait AuthenticatorTrait
         if (isset($securityCode)) {
             $formUrl = $this->getFormUrl($response);
 
-            $this->httpClient->post($formUrl, [
+            $httpClient = HttpClient::getInstance()->getClient();
+            $httpClient->post($formUrl, [
                 'cookies' => $this->jar,
                 'form_params' => [
                     'code' => $securityCode,

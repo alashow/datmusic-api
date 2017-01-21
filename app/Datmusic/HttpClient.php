@@ -7,18 +7,21 @@
 namespace App\Datmusic;
 
 use GuzzleHttp\Client;
+use SingletonTrait;
 
-trait HttpClientTrait
+class HttpClient
 {
+    use SingletonTrait;
+
     /**
      * @var Client Guzzle client
      */
-    protected $httpClient;
+    private $httpClient;
 
     /**
      * HttpClientTrait constructor.
      */
-    public function bootHttpClient()
+    public function __construct()
     {
         $this->httpClient = new Client([
             'base_uri' => 'https://m.vk.com',
@@ -29,5 +32,10 @@ trait HttpClientTrait
                 ]
             ]
         ]);
+    }
+
+    public function getClient()
+    {
+        return $this->httpClient;
     }
 }

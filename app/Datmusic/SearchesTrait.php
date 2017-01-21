@@ -17,11 +17,6 @@ trait SearchesTrait
     use CachesTrait, AuthenticatorTrait, ParserTrait;
 
     /**
-     * @var Client Guzzle client
-     */
-    protected $httpClient;
-
-    /**
      * SearchesTrait constructor.
      */
     public function bootSearches()
@@ -110,7 +105,8 @@ trait SearchesTrait
     private function getSearchResults($query, $offset)
     {
         $query = urlencode($query);
-        return $this->httpClient->get(
+        $httpClient = HttpClient::getInstance()->getClient();
+        return $httpClient->get(
             "audio?act=search&q=$query&offset=$offset",
             ['cookies' => $this->jar]
         );

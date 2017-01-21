@@ -7,26 +7,18 @@
 namespace App\Http\Controllers;
 
 use App\Datmusic\DownloaderTrait;
-use App\Datmusic\HttpClientTrait;
 use App\Datmusic\SearchesTrait;
-use GuzzleHttp\Client;
 
 class ApiController extends Controller
 {
 
-    use SearchesTrait, DownloaderTrait, HttpClientTrait;
-
-    /**
-     * @var Client Guzzle client
-     */
-    protected $httpClient;
+    use SearchesTrait, DownloaderTrait;
 
     /**
      * ApiController constructor.
      */
     public function __construct()
     {
-        $this->bootHttpClient();
         $this->bootSearches();
         $this->bootDownloader();
     }
