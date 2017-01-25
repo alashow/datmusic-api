@@ -130,7 +130,7 @@ trait SearchesTrait
 
         $cacheKey = $this->getCacheKey($request);
         $mapped = array_map(function ($item) use (&$cacheKey, &$badMatches, &$sortable) {
-            $downloadUrl = Utils::url(sprintf('%s/%s', $cacheKey, $item['id']));
+            $downloadUrl = Utils::url(sprintf('dl/%s/%s', $cacheKey, $item['id']));
             $streamUrl = Utils::url(sprintf('stream/%s/%s', $cacheKey, $item['id']));
 
             $item['artist'] = $this->cleanBadWords($item['artist']);

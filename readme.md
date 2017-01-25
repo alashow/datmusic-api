@@ -18,7 +18,7 @@ Search results are cached for 24 hours by default.
 
 # Downloads & Streams
 
-`https://example.com/{search_hash}/{audio_hash}` (force download with proper file name (`Artist - Title.mp3`))
+`https://example.com/dl/{search_hash}/{audio_hash}` (force download with proper file name (`Artist - Title.mp3`))
 
 `https://example.com/stream/{search_hash}/{audio_hash}` (redirects to mp3 file)
 
@@ -29,7 +29,7 @@ Search results are cached for 24 hours by default.
 Default convertable bitrates are: `64`, `128`, `192`
 You need to install `ffmpeg` to your server to make it work and change path to binary in [config file](config/app.php).
  
-`https://example.com/{search_hash}/{audio_hash}/{bitrate}`
+`https://example.com/dl/{search_hash}/{audio_hash}/{bitrate}`
 `https://example.com/stream/{search_hash}/{audio_hash}/{bitrate}`
 
 # Hashing
