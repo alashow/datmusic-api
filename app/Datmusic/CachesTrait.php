@@ -21,6 +21,8 @@ trait CachesTrait
         $q = strtolower($request->get('q'));
         $page = abs(intval($request->get('page')));
 
+        $q = empty($q) ? md5('popular') : $q;
+
         return hash(config('app.hash.cache'), ($q . $page));
     }
 

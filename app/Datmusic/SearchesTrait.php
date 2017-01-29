@@ -6,7 +6,6 @@
 
 namespace App\Datmusic;
 
-use GuzzleHttp\Client;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Psr\Http\Message\ResponseInterface;
@@ -104,10 +103,28 @@ trait SearchesTrait
      */
     private function getSearchResults($query, $offset)
     {
+        if (empty($query)) {
+            return $this->getPopular($offset);
+        }
+
         $query = urlencode($query);
         $httpClient = HttpClient::getInstance()->getClient();
         return $httpClient->get(
             "audio?act=search&q=$query&offset=$offset",
+            ['cookies' => $this->jar]
+        );
+    }
+
+    /**
+     * Request popular page
+     * @param $offset
+     * @return ResponseInterface
+     */
+    private function getPopular($offset)
+    {
+        $httpClient = HttpClient::getInstance()->getClient();
+        return $httpClient->get(
+            "audio?act=popular&offset=$offset",
             ['cookies' => $this->jar]
         );
     }
