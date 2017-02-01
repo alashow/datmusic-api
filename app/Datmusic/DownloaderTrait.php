@@ -341,6 +341,10 @@ trait DownloaderTrait
      */
     private function buildS3Url($fileName)
     {
+        if (env('CDN_ROOT_URL', null) !== null) {
+            return sprintf('%s%s', env('CDN_ROOT_URL'), $fileName);
+        }
+
         $region = config('app.aws.config.region');
         $bucket = config('app.aws.bucket');
         $path = sprintf(config('app.aws.paths.mp3'), $fileName);
