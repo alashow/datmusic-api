@@ -8,8 +8,10 @@ namespace App\Datmusic;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Cookie\FileCookieJar;
+use Illuminate\Support\Str;
 use PHPHtmlParser\Dom;
 use Psr\Http\Message\ResponseInterface;
+use Utils;
 
 trait AuthenticatorTrait
 {
@@ -109,16 +111,19 @@ trait AuthenticatorTrait
             return;
         }
         $body = $response->getBody();
+        $dom = new Dom;
+        $dom->load($body);
+        $prefixes = $dom->find('.field_prefix');
 
         // for now we can handle only phone number security checks
-        if (str_contains($body, "все недостающие цифры номера")) {
-            $dom = new Dom;
-            $dom->load($body);
-            $prefixes = $dom->find('.field_prefix');
 
+        // check is prefixes looks like phone numbers
+        $isPhoneCheck = Str::startsWith($this->authPhone, Utils::getIntegers($prefixes[0]->text))
+            && Str::endsWith($this->authPhone, Utils::getIntegers($prefixes[1]->text));
+
+        if ($isPhoneCheck) {
             $leftPrefixCount = strlen($prefixes[0]->text) - 1; // length country code without plus: +7(1), +33(2), +993(3).
-            $rightPrefixCount = strlen(filter_var($prefixes[1]->text,
-                FILTER_SANITIZE_NUMBER_INT)); // just filter out numbers and count
+            $rightPrefixCount = strlen(Utils::getIntegers($prefixes[1]->text));
 
             // code is 'middle' of the phone number
             $securityCode = substr($this->authPhone, $leftPrefixCount, -$rightPrefixCount);

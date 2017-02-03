@@ -28,8 +28,24 @@ class Utils
         return ($force_lowercase) ? (function_exists('mb_strtolower')) ? mb_strtolower($clean, 'UTF-8') : strtolower($clean) : $clean;
     }
 
+    /**
+     * Build full url. Prepends APP_URL to given string
+     * @param $path
+     * @return string
+     */
     public static function url($path)
     {
         return sprintf('%s/%s', env('APP_URL'), $path);
+    }
+
+    /**
+     * Extracts integers from given string
+     * @param $string
+     * @return mixed
+     */
+    public static function getIntegers($string)
+    {
+        preg_match_all('!\d+!', $string, $matches);
+        return $matches[0][0];
     }
 }
