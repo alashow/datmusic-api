@@ -59,7 +59,7 @@ return [
     ],
 
     'aws' => [
-        'enabled' => true,
+        'enabled' => false,
 
         'config' => [
             'version' => 'latest',
