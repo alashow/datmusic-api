@@ -253,7 +253,7 @@ trait DownloaderTrait
     function checkIsBadMp3($path)
     {
         // valid mimes
-        $validMimes = ['audio/mpeg', 'audio/mp3'];
+        $validMimes = ['audio/mpeg', 'audio/mp3', 'application/octet-stream'];
 
         $mime = finfo_file(finfo_open(FILEINFO_MIME_TYPE), $path);
         // checks mime-type with unix file command
