@@ -135,6 +135,8 @@ trait DownloaderTrait
                 return redirect($this->buildS3Url($filePath));
             } else {
                 if ($stream) {
+                    $this->checkIsBadMp3($path);
+
                     return redirect("mp3/$filePath");
                 } else {
                     return $this->downloadResponse($path, $name);
@@ -252,6 +254,10 @@ trait DownloaderTrait
      */
     function checkIsBadMp3($path)
     {
+        if (!file_exists($path)) {
+            abort(404);
+        }
+
         // valid mimes
         $validMimes = ['audio/mpeg', 'audio/mp3', 'application/octet-stream'];
 
@@ -263,9 +269,15 @@ trait DownloaderTrait
 
         $checks = [$mime, $nativeCheck()];
 
-        // if the file is corrupted (mime is wrong), delete it from storage and return 404
-        // if arrays don't have any common values, mp3 is broken.
-        if (!count(array_intersect($checks, $validMimes))) {
+        // md5 hash blacklist of bad mp3's
+        $badMp3Hashes = ['9d6ddee7a36a6b1b638c2ca1e26ad46e', '8efd23e1cf7989a537a8bf0fb3ed7f62'];
+
+        // if the file is corrupted (mime is wrong) or md5 file is one of the bad mp3s,
+        // delete it from storage and return 404
+        if (in_array(md5_file($path), $badMp3Hashes)
+            || !count(array_intersect($checks,
+                $validMimes))) // if arrays don't have any common values, mp3 is broken.
+        {
             @unlink($path);
             abort(404);
         }
@@ -279,10 +291,6 @@ trait DownloaderTrait
      */
     function downloadResponse($path, $name)
     {
-        if (!file_exists($path)) {
-            abort(404);
-        }
-
         $this->checkIsBadMp3($path);
 
         $headers = [
