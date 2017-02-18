@@ -104,7 +104,11 @@ trait SearchesTrait
     private function getSearchResults($query, $offset)
     {
         if (empty($query)) {
-            return $this->getPopular($offset);
+            if (config('app.popularSearchEnabled')) {
+                return $this->getPopular($offset);
+            } else {
+                $query = Utils::randomArtist();
+            }
         }
 
         $query = urlencode($query);

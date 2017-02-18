@@ -19,6 +19,10 @@ class VkMp3Decoder
 
     public function decodeMp3Url()
     {
+        if (empty($this->encoded)) {
+            return '';
+        }
+
         $values = explode("#", explode("?extra=", $this->encoded)[1]);
         $miga = $this->leth($values[0]);
         $lacaror = $this->leth($values[1]);

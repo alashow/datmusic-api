@@ -48,4 +48,15 @@ class Utils
         preg_match_all('!\d+!', $string, $matches);
         return $matches[0][0];
     }
+
+    /**
+     * @return string random artist name
+     */
+    public static function randomArtist()
+    {
+        $randomArray = config('app.artists');
+        $randomIndex = array_rand($randomArray);
+
+        return $randomArray[$randomIndex];
+    }
 }
