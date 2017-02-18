@@ -191,6 +191,11 @@ trait SearchesTrait
      */
     private function isBadMatch(array $strings)
     {
+        // if audio name is too long, consider it bad match.
+        if (strlen(implode($strings)) > 100) {
+            return true;
+        }
+
         foreach ($strings as $string) {
             if (preg_match_all(config('app.search.sortRegex'), $string) == 1) {
                 return true;
