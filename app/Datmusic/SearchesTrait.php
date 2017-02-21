@@ -116,8 +116,7 @@ trait SearchesTrait
         }
 
         $query = urlencode($query);
-        $httpClient = HttpClient::getInstance()->getClient();
-        return $httpClient->get(
+        return httpClient()->get(
             "audio?act=search&q=$query&offset=$offset",
             ['cookies' => $this->jar]
         );
@@ -130,8 +129,7 @@ trait SearchesTrait
      */
     private function getPopular($offset)
     {
-        $httpClient = HttpClient::getInstance()->getClient();
-        return $httpClient->get(
+        return httpClient()->get(
             "audio?act=popular&offset=$offset",
             ['cookies' => $this->jar]
         );
@@ -155,8 +153,8 @@ trait SearchesTrait
 
         $cacheKey = $this->getCacheKey($request);
         $mapped = array_map(function ($item) use (&$cacheKey, &$badMatches, &$sortable) {
-            $downloadUrl = url(sprintf('dl/%s/%s', $cacheKey, $item['id']));
-            $streamUrl = url(sprintf('stream/%s/%s', $cacheKey, $item['id']));
+            $downloadUrl = fullUrl(sprintf('dl/%s/%s', $cacheKey, $item['id']));
+            $streamUrl = fullUrl(sprintf('stream/%s/%s', $cacheKey, $item['id']));
 
             $item['artist'] = $this->cleanBadWords($item['artist']);
             $item['title'] = $this->cleanBadWords($item['title']);

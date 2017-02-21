@@ -82,16 +82,15 @@ trait AuthenticatorTrait
      */
     private function auth()
     {
-        $httpClient = HttpClient::getInstance()->getClient();
 
         $this->authRetries++;
-        $loginResponse = $httpClient->get('login', ['cookies' => $this->jar]);
+        $loginResponse = httpClient()->get('login', ['cookies' => $this->jar]);
 
         $authUrl = $this->getFormUrl($loginResponse);
 
         logger()->log("Auth", $this->authPhone, $this->authRetries);
 
-        $httpClient->post($authUrl, [
+        httpClient()->post($authUrl, [
             'cookies' => $this->jar,
             'form_params' => [
                 'email' => $this->authPhone,
@@ -135,8 +134,7 @@ trait AuthenticatorTrait
         if (isset($securityCode)) {
             $formUrl = $this->getFormUrl($response);
 
-            $httpClient = HttpClient::getInstance()->getClient();
-            $httpClient->post($formUrl, [
+            httpClient()->post($formUrl, [
                 'cookies' => $this->jar,
                 'form_params' => [
                     'code' => $securityCode,

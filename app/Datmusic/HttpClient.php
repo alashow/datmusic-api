@@ -7,11 +7,9 @@
 namespace App\Datmusic;
 
 use GuzzleHttp\Client;
-use SingletonTrait;
 
 class HttpClient
 {
-    use SingletonTrait;
 
     /**
      * @var Client Guzzle client

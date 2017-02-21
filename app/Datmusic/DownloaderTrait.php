@@ -54,8 +54,7 @@ trait DownloaderTrait
         return Cache::rememberForever($cacheKey, function () use ($key, $id) {
             $item = $this->getAudio($key, $id);
 
-            $httpClient = HttpClient::getInstance()->getClient();
-            $response = $httpClient->head($item['mp3']);
+            $response = httpClient()->head($item['mp3']);
             return $response->getHeader('Content-Length')[0];
         });
     }

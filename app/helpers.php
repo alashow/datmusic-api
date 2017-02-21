@@ -1,6 +1,14 @@
 <?php
 
 /**
+ * @return GuzzleHttp\Client Guzzle http client
+ */
+function httpClient()
+{
+    return app('httpClient')->getClient();
+}
+
+/**
  * @return \App\Datmusic\Logger logger instance
  */
 function logger()
@@ -34,7 +42,7 @@ function sanitize($string, $force_lowercase = true, $anal = false, $trunc = 100)
  * @param $path
  * @return string
  */
-function url($path)
+function fullUrl($path)
 {
     return sprintf('%s/%s', env('APP_URL'), $path);
 }

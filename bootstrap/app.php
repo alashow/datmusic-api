@@ -55,6 +55,9 @@ $app->singleton(
     App\Console\Kernel::class
 );
 
+$app->singleton('httpClient', function ($app) {
+    return $app->make('httpClient');
+});
 $app->singleton('logger', function ($app) {
     return $app->make('logger');
 });
