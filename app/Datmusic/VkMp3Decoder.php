@@ -20,6 +20,7 @@ class VkMp3Decoder
     public function decodeMp3Url()
     {
         if (empty($this->encoded)) {
+            logger()->log('Decoder.Empty');
             return '';
         }
 

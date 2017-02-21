@@ -11,6 +11,7 @@ return [
     'paths' => [
         'cookie' => storage_path('app/cookies/%s.json'),
         'mp3' => storage_path('app/public/mp3'),
+        'log' => storage_path('logs/datmusic.log')
     ],
 
     // hashing algorithms

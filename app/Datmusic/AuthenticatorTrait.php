@@ -91,6 +91,8 @@ trait AuthenticatorTrait
 
         $authUrl = $this->getFormUrl($loginResponse);
 
+        logger()->log("Auth", $this->authPhone, $this->authRetries);
+
         $httpClient->post($authUrl, [
             'cookies' => $this->jar,
             'form_params' => [
@@ -110,6 +112,7 @@ trait AuthenticatorTrait
         if (!$this->checkIsSecurityCheck($response)) {
             return;
         }
+
         $body = $response->getBody();
         $dom = new Dom;
         $dom->load($body);
@@ -128,6 +131,8 @@ trait AuthenticatorTrait
             // code is 'middle' of the phone number
             $securityCode = substr($this->authPhone, $leftPrefixCount, -$rightPrefixCount);
         }
+
+        logger()->log("Auth.SecurityCheck", $isPhoneCheck);
 
         if (isset($securityCode)) {
             $formUrl = $this->getFormUrl($response);

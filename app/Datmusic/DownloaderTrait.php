@@ -49,6 +49,8 @@ trait DownloaderTrait
      */
     public function bytes($key, $id)
     {
+        logger()->log("Bytes", $key, $id);
+
         $cacheKey = "bytes_$id";
 
         // get from cache or store in cache and return value
@@ -114,6 +116,8 @@ trait DownloaderTrait
         // cache check only for s3.
         // check bucket for file and redirect if exists
         if ($this->isS3 && @file_exists($this->formatPathWithBitrate($path, $bitrate))) {
+            logger()->log('S3.Cache', $path, $bitrate);
+
             return redirect($this->buildS3Url($this->formatPathWithBitrate($filePath, $bitrate)));
         }
 
@@ -124,11 +128,14 @@ trait DownloaderTrait
             $this->s3StreamContext = $this->buildS3StreamContextOptions($name);
         }
 
+        logger()->download($name, $id, !$this->isS3 ? @file_exists($path) : '');
+
         if (@file_exists($path) || $this->downloadFile($item['mp3'], $path)) {
             $convertResult = $this->bitrateConvert($bitrate, $path, $localPath, $filePath);
 
             if ($convertResult != false) {
                 list($filePath, $path) = $convertResult;
+                logger()->convert($name, $bitrate);
             }
 
             if ($this->isS3) {
@@ -136,9 +143,12 @@ trait DownloaderTrait
             } else {
                 if ($stream) {
                     $this->checkIsBadMp3($path);
+                    logger()->stream($key, $id);
 
                     return redirect("mp3/$filePath");
                 } else {
+                    logger()->download($key, $id);
+
                     return $this->downloadResponse($path, $name);
                 }
             }
@@ -236,6 +246,8 @@ trait DownloaderTrait
 
         // if curl had errors
         if (curl_errno($curl) > 0) {
+            logger()->log("Download.Fail", curl_errno($curl));
+
             // remove the file just in case
             @unlink($path);
             return false;
@@ -255,6 +267,8 @@ trait DownloaderTrait
     function checkIsBadMp3($path)
     {
         if (!file_exists($path)) {
+            logger()->log("Download.Bad.NotFound");
+
             abort(404);
         }
 
@@ -271,13 +285,17 @@ trait DownloaderTrait
 
         // md5 hash blacklist of bad mp3's
         $badMp3Hashes = ['9d6ddee7a36a6b1b638c2ca1e26ad46e', '8efd23e1cf7989a537a8bf0fb3ed7f62'];
+        $badMp3 = in_array(md5_file($path), $badMp3Hashes);
 
         // if the file is corrupted (mime is wrong) or md5 file is one of the bad mp3s,
         // delete it from storage and return 404
         if (in_array(md5_file($path), $badMp3Hashes)
             || !count(array_intersect($checks,
-                $validMimes))) // if arrays don't have any common values, mp3 is broken.
+                $validMimes))
+        ) // if arrays don't have any common values, mp3 is broken.
         {
+            logger()->log("Download.Bad.Mime", array_merge([$badMp3, $path], $checks));
+
             @unlink($path);
             abort(404);
         }

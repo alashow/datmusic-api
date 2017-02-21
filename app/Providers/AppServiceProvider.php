@@ -6,6 +6,7 @@
 
 namespace App\Providers;
 
+use App\Datmusic\Logger;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -27,5 +28,8 @@ class AppServiceProvider extends ServiceProvider
 
             config(['app.accounts' => $accounts]);
         }
+
+        $logger = new Logger();
+        $this->app->instance("logger", $logger);
     }
 }

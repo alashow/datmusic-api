@@ -25,6 +25,9 @@
         },
         "classmap": [
             "app/Libraries"
+        ],
+        "files": [
+            "app/helpers.php"
         ]
     },
     "autoload-dev": {

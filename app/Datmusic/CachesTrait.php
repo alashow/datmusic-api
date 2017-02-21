@@ -48,6 +48,7 @@ trait CachesTrait
         $data = Cache::get($key);
 
         if (is_null($data)) {
+            logger()->log("Cache.NoAudio", $key, $id);
             abort(404);
         }
 

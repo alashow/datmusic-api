@@ -30,10 +30,16 @@ trait SearchesTrait
      */
     public function search(Request $request)
     {
+        // get inputs
+        $query = trim($request->get('q'));
+        $offset = abs(intval($request->get('page'))) * 50; // calculate offset from page index
+
         $cacheKey = $this->getCacheKey($request);
 
         // return immediately if has in cache
         if ($this->hasRequestInCache($request)) {
+            logger()->searchCache($query, $offset);
+
             return $this->ok(
                 $this->transformSearchResponse(
                     $request,
@@ -48,10 +54,6 @@ trait SearchesTrait
             $this->authenticated = true;
         }
 
-        // get inputs
-        $query = trim($request->get('q'));
-        $offset = abs(intval($request->get('page'))) * 50; // calculate offset from page index
-
         // send request
         $response = $this->getSearchResults($query, $offset);
 
@@ -62,6 +64,7 @@ trait SearchesTrait
         if (!$this->checkIsAuthenticated($response)) {
             // we need to get out of the loop. maybe something is wrong with authentication.
             if ($this->authRetries >= 3) {
+                logger()->log('Auth.TooMany', $this->authRetries);
                 abort(403);
             }
             $this->auth();
@@ -87,6 +90,8 @@ trait SearchesTrait
 
         // store in cache
         Cache::put($cacheKey, $result, config('app.cache.duration'));
+
+        logger()->search($query, $offset);
 
         // parse data, save in cache, and response
         return $this->ok($this->transformSearchResponse(
