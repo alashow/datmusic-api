@@ -7,12 +7,9 @@
 namespace App\Datmusic;
 
 use Aws\S3\S3Client;
-use GuzzleHttp\Client;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
-use phpDocumentor\Reflection\Types\Resource;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
-use Utils;
 
 trait DownloaderTrait
 {
@@ -215,7 +212,7 @@ trait DownloaderTrait
     {
         $name = sprintf('%s - %s', $item['artist'], $item['title']);
         $name = Str::ascii($name);
-        $name = Utils::sanitize($name, false, false);
+        $name = sanitize($name, false, false);
         $name = sprintf('%s.mp3', $name);
 
         return $name;

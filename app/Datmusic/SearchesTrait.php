@@ -9,7 +9,6 @@ namespace App\Datmusic;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Psr\Http\Message\ResponseInterface;
-use Utils;
 
 trait SearchesTrait
 {
@@ -112,7 +111,7 @@ trait SearchesTrait
             if (config('app.popularSearchEnabled')) {
                 return $this->getPopular($offset);
             } else {
-                $query = Utils::randomArtist();
+                $query = randomArtist();
             }
         }
 
@@ -156,8 +155,8 @@ trait SearchesTrait
 
         $cacheKey = $this->getCacheKey($request);
         $mapped = array_map(function ($item) use (&$cacheKey, &$badMatches, &$sortable) {
-            $downloadUrl = Utils::url(sprintf('dl/%s/%s', $cacheKey, $item['id']));
-            $streamUrl = Utils::url(sprintf('stream/%s/%s', $cacheKey, $item['id']));
+            $downloadUrl = url(sprintf('dl/%s/%s', $cacheKey, $item['id']));
+            $streamUrl = url(sprintf('stream/%s/%s', $cacheKey, $item['id']));
 
             $item['artist'] = $this->cleanBadWords($item['artist']);
             $item['title'] = $this->cleanBadWords($item['title']);
