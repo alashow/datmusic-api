@@ -290,7 +290,8 @@ trait DownloaderTrait
                 $validMimes))
         ) // if arrays don't have any common values, mp3 is broken.
         {
-            logger()->log("Download.Bad.Mime", array_merge([$badMp3, $path], $checks));
+
+            logger()->log("Download.Bad.Mime", $badMp3, $path, implode(' ', $checks));
 
             @unlink($path);
             abort(404);
