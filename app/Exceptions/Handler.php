@@ -54,7 +54,7 @@ class Handler extends ExceptionHandler
                 $status = $e->getStatusCode();
 
                 if (view()->exists("errors.$status")) {
-                    return response(view("errors.$status", ['exception' => $e]), $status);
+                    return response(view("errors.$status", [$status]), $status);
                 }
             }
         }
@@ -62,7 +62,7 @@ class Handler extends ExceptionHandler
         if (env('APP_DEBUG')) {
             return parent::render($request, $e);
         } else {
-            return response(view("errors.500", ['exception' => $e]), 500);
+            return response(view("errors.500", [500]), 500);
         }
     }
 }
