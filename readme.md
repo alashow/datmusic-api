@@ -59,12 +59,7 @@ Download/stream links will be redirected to S3 servers.
 
 Please browse code or open an issue to understand more. 
 
-# Demo 
-
-https://api.datmusic.xyz/search
-
-This is used by https://datmusic.xyz and [android app](https://play.google.com/store/apps/details?id=tm.alashow.datmusic).
-It's not for public usage. If you need to use it with your website or app, deploy this project to your own domain.
+If you need to use it with your website or app, deploy this project to your own domain.
 
 Open an issue or contact me at me@alashov.com for help with deployment.
 
