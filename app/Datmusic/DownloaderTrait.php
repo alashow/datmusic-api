@@ -115,7 +115,11 @@ trait DownloaderTrait
             return redirect($this->buildS3Url($this->formatPathWithBitrate($filePath, $bitrate)));
         } elseif (@file_exists($path)) {
             $item = $this->getAudioCache($id);
-            $name = $item != null ? $this->getFormattedName($item) : "$id.mp3";
+            // try looking in search cache if not found
+            if (is_null($item)) {
+                $item = $this->getAudio($key, $id, false);
+            }
+            $name = !is_null($item) ? $this->getFormattedName($item) : "$id.mp3";
 
             return $this->downloadLocal($path, $filePath, $key, $id, $name, $stream, true);
         }

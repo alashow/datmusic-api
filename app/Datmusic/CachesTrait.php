@@ -40,23 +40,30 @@ trait CachesTrait
      * Get audio item from cache or abort with 404 if not found
      * @param string $key
      * @param string $id
+     * @param $abort boolean aborts with 404 if not found, otherwise returns null
      * @return mixed
      */
-    public function getAudio($key, $id)
+    public function getAudio($key, $id, $abort = true)
     {
         // get search cache instance
         $data = Cache::get($key);
 
         if (is_null($data)) {
             logger()->log("Cache.NoAudio", $key, $id);
-            abort(404);
+            if ($abort) {
+                abort(404);
+            }
+            return null;
         }
 
         // search audio by audio id/hash
         $key = array_search($id, array_column($data, 'id'));
 
         if ($key === false) {
-            abort(404);
+            if ($abort) {
+                abort(404);
+            }
+            return null;
         }
 
         $item = $data[$key];
