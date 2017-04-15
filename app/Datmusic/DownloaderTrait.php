@@ -179,13 +179,14 @@ trait DownloaderTrait
      * @param $filePath string file path
      * @param $name string file name (logging)
      */
-    private function tryToConvert($bitrate, &$path, $localPath, &$filePath, $name)
+    private function tryToConvert($bitrate, &$path, $localPath, &$filePath, &$name)
     {
         $convertResult = $this->bitrateConvert($bitrate, $path, $localPath, $filePath);
 
         if ($convertResult != false) {
             list($filePath, $path) = $convertResult;
             logger()->convert($name, $bitrate);
+            $name = str_replace('.mp3', " ($bitrate).mp3", $name);
         }
     }
 
