@@ -59,6 +59,30 @@ trait CachesTrait
             abort(404);
         }
 
-        return $data[$key];
+        $item = $data[$key];
+        $this->cacheAudioItem($id, $item);
+
+        return $item;
+    }
+
+    /**
+     * Save audio item in cache
+     * @param $id string audio id
+     * @param $item array audio item
+     */
+    public function cacheAudioItem($id, $item)
+    {
+        // we don't need to cache audios url, it's gonna expire anyways.
+        unset($item['mp3']);
+        return Cache::forever("audio.$id", $item);
+    }
+
+    /**
+     * Get audio item from cache
+     * @param $id string audio id
+     */
+    public function getAudioCache($id)
+    {
+        return Cache::get("audio.$id");
     }
 }

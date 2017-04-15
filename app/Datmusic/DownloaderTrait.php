@@ -109,12 +109,15 @@ trait DownloaderTrait
             $path = $localPath;
         }
 
-        // cache check only for s3.
         // check bucket for file and redirect if exists
         if ($this->isS3 && @file_exists($this->formatPathWithBitrate($path, $bitrate))) {
             logger()->log('S3.Cache', $path, $bitrate);
-
             return redirect($this->buildS3Url($this->formatPathWithBitrate($filePath, $bitrate)));
+        } elseif (@file_exists($path)) {
+            $item = $this->getAudioCache($id);
+            $name = $item != null ? $this->getFormattedName($item) : "$id.mp3";
+
+            return $this->downloadLocal($path, $filePath, $key, $id, $name, $stream, true);
         }
 
         $item = $this->getAudio($key, $id);
@@ -124,9 +127,7 @@ trait DownloaderTrait
             $this->s3StreamContext = $this->buildS3StreamContextOptions($name);
         }
 
-        logger()->download($name, $id, !$this->isS3 ? @file_exists($path) : '');
-
-        if (@file_exists($path) || $this->downloadFile($item['mp3'], $path)) {
+        if ($this->downloadFile($item['mp3'], $path)) {
             $convertResult = $this->bitrateConvert($bitrate, $path, $localPath, $filePath);
 
             if ($convertResult != false) {
@@ -137,21 +138,37 @@ trait DownloaderTrait
             if ($this->isS3) {
                 return redirect($this->buildS3Url($filePath));
             } else {
-                if ($stream) {
-                    $this->checkIsBadMp3($path);
-                    logger()->stream($key, $id);
-
-                    return redirect("mp3/$filePath");
-                } else {
-                    logger()->download($key, $id);
-
-                    return $this->downloadResponse($path, $name);
-                }
+                return $this->downloadLocal($path, $filePath, $key, $id, $name, $stream, false);
             }
         } else {
             abort(404);
         }
         return 0;
+    }
+
+    /**
+     * Download/Stream local file
+     * @param $path string full path
+     * @param $filePath string file name
+     * @param $key string search key
+     * @param $id string audio id
+     * @param $name string download response name
+     * @param $stream boolean  is stream
+     * @param $cache boolean is cache
+     * @return \Illuminate\Http\RedirectResponse|\Laravel\Lumen\Http\Redirector|BinaryFileResponse
+     */
+    private function downloadLocal($path, $filePath, $key, $id, $name, $stream, $cache)
+    {
+        if ($stream) {
+            $this->checkIsBadMp3($path);
+            logger()->stream($cache, $key, $id);
+
+            return redirect("mp3/$filePath");
+        } else {
+            logger()->download($cache, $key, $id);
+
+            return $this->downloadResponse($path, $name);
+        }
     }
 
     /**

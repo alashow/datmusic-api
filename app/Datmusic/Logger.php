@@ -52,14 +52,14 @@ class Logger
         return $this->writeLog("Search.Cache", $args);
     }
 
-    public function download(...$args)
+    public function download($cache, ...$args)
     {
-        return $this->writeLog("Download", $args);
+        return $this->writeLog("Download" . ($cache ? '.Cache' : ''), $args);
     }
 
-    public function stream(...$args)
+    public function stream($cache, ...$args)
     {
-        return $this->writeLog("Streaming", $args);
+        return $this->writeLog("Streaming" . ($cache ? '.Cache' : ''), $args);
     }
 
     public function convert(...$args)
