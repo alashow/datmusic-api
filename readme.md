@@ -57,9 +57,12 @@ When it's enabled, mp3 files will be downloaded to s3 bucket instead of local di
 
 Download/stream links will be redirected to S3 servers.
 
-Please browse code or open an issue to understand more. 
+# Deployment
 
-If you need to use it with your website or app, deploy this project to your own domain.
+Follow instructions described in [here](https://goo.gl/gK73JE).
+or see short version in this [comment](https://github.com/alashow/datmusic-api/issues/2#issuecomment-275946684);
+
+Please browse code or open an issue to understand more. 
 
 Open an issue or contact me at me@alashov.com for help with deployment.
 
