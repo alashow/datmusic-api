@@ -121,6 +121,7 @@ trait DownloaderTrait
             }
             $name = !is_null($item) ? $this->getFormattedName($item) : "$id.mp3";
 
+            $this->tryToConvert($bitrate, $path, $localPath, $filePath, $name);
             return $this->downloadLocal($path, $filePath, $key, $id, $name, $stream, true);
         }
 
@@ -132,12 +133,7 @@ trait DownloaderTrait
         }
 
         if ($this->downloadFile($item['mp3'], $path)) {
-            $convertResult = $this->bitrateConvert($bitrate, $path, $localPath, $filePath);
-
-            if ($convertResult != false) {
-                list($filePath, $path) = $convertResult;
-                logger()->convert($name, $bitrate);
-            }
+            $this->tryToConvert($bitrate, $path, $localPath, $filePath, $name);
 
             if ($this->isS3) {
                 return redirect($this->buildS3Url($filePath));
@@ -172,6 +168,24 @@ trait DownloaderTrait
             logger()->download($cache, $key, $id);
 
             return $this->downloadResponse($path, $name);
+        }
+    }
+
+    /**
+     * Try to convert mp3 if possible, alters given path and file path if succeeds
+     * @param $bitrate int bitrate
+     * @param $path string path
+     * @param $localPath string local file path
+     * @param $filePath string file path
+     * @param $name string file name (logging)
+     */
+    private function tryToConvert($bitrate, &$path, $localPath, &$filePath, $name)
+    {
+        $convertResult = $this->bitrateConvert($bitrate, $path, $localPath, $filePath);
+
+        if ($convertResult != false) {
+            list($filePath, $path) = $convertResult;
+            logger()->convert($name, $bitrate);
         }
     }
 
