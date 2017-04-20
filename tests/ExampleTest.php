@@ -4,8 +4,6 @@
  * It is licensed under GNU GPL v. 2 or later. For full terms see the file LICENSE.
  */
 
-use Laravel\Lumen\Testing\DatabaseTransactions;
-
 class ExampleTest extends TestCase
 {
     /**

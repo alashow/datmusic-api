@@ -11,11 +11,10 @@ return [
      |
      */
     'supportsCredentials' => false,
-    'allowedOrigins' => ['datmusic.xyz', 'music.dev'],
-    'allowedHeaders' => ['*'],
-    'allowedMethods' => ['*'],
-    'exposedHeaders' => [],
-    'maxAge' => 0,
-    'hosts' => [],
+    'allowedOrigins'      => ['datmusic.xyz', 'music.dev'],
+    'allowedHeaders'      => ['*'],
+    'allowedMethods'      => ['*'],
+    'exposedHeaders'      => [],
+    'maxAge'              => 0,
+    'hosts'               => [],
 ];
-

@@ -12,8 +12,10 @@ use Illuminate\Support\Facades\Cache;
 trait CachesTrait
 {
     /**
-     * Get current request cache key
+     * Get current request cache key.
+     *
      * @param Request $request
+     *
      * @return string
      */
     private function getCacheKey($request)
@@ -23,12 +25,14 @@ trait CachesTrait
 
         $q = empty($q) ? md5('popular') : $q;
 
-        return hash(config('app.hash.cache'), ($q . $page));
+        return hash(config('app.hash.cache'), ($q.$page));
     }
 
     /**
-     * Whether current request is already cached
+     * Whether current request is already cached.
+     *
      * @param Request $request
+     *
      * @return mixed
      */
     private function hasRequestInCache($request)
@@ -37,10 +41,12 @@ trait CachesTrait
     }
 
     /**
-     * Get audio item from cache or abort with 404 if not found
+     * Get audio item from cache or abort with 404 if not found.
+     *
      * @param string $key
      * @param string $id
      * @param $abort boolean aborts with 404 if not found, otherwise returns null
+     *
      * @return mixed
      */
     public function getAudio($key, $id, $abort = true)
@@ -49,11 +55,12 @@ trait CachesTrait
         $data = Cache::get($key);
 
         if (is_null($data)) {
-            logger()->log("Cache.NoAudio", $key, $id);
+            logger()->log('Cache.NoAudio', $key, $id);
             if ($abort) {
                 abort(404);
             }
-            return null;
+
+            return;
         }
 
         // search audio by audio id/hash
@@ -63,7 +70,8 @@ trait CachesTrait
             if ($abort) {
                 abort(404);
             }
-            return null;
+
+            return;
         }
 
         $item = $data[$key];
@@ -73,7 +81,8 @@ trait CachesTrait
     }
 
     /**
-     * Save audio item in cache
+     * Save audio item in cache.
+     *
      * @param $id string audio id
      * @param $item array audio item
      */
@@ -81,11 +90,13 @@ trait CachesTrait
     {
         // we don't need to cache audios url, it's gonna expire anyways.
         unset($item['mp3']);
+
         return Cache::forever("audio.$id", $item);
     }
 
     /**
-     * Get audio item from cache
+     * Get audio item from cache.
+     *
      * @param $id string audio id
      */
     public function getAudioCache($id)

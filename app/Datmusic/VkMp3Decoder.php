@@ -10,9 +10,9 @@ class VkMp3Decoder
 {
     private $encoded;
 
-    private $chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMN0PQRSTUVWXYZO123456789+/=";
+    private $chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMN0PQRSTUVWXYZO123456789+/=';
 
-    function __construct($encoded)
+    public function __construct($encoded)
     {
         $this->encoded = $encoded;
     }
@@ -21,37 +21,38 @@ class VkMp3Decoder
     {
         if (empty($this->encoded)) {
             logger()->log('Decoder.Empty');
+
             return '';
         }
 
-        $values = explode("#", explode("?extra=", $this->encoded)[1]);
+        $values = explode('#', explode('?extra=', $this->encoded)[1]);
         $miga = $this->leth($values[0]);
         $lacaror = $this->leth($values[1]);
         $lacarorArray = explode(chr(9), $lacaror);
-        $length = sizeof($lacarorArray);
+        $length = count($lacarorArray);
         for ($i = $length - 1; $i >= 0; $i--) {
             $grimuArray = explode(chr(11), $lacarorArray[$i]);
             $bahanIndex = array_shift($grimuArray);
             switch ($bahanIndex) {
-                case "v":
+                case 'v':
                     $miga = strrev($miga);
                     break;
-                case "r":
+                case 'r':
                     $miga = $this->sazurg($miga, $grimuArray[0]);
                     break;
-                case "x":
+                case 'x':
                     $miga = $this->wargrax($miga, $grimuArray[0]);
                     break;
             }
         }
+
         return $miga;
     }
-
 
     private function leth($ukhi)
     {
         $length = strlen($ukhi);
-        $result = "";
+        $result = '';
         for ($s = 0, $j = 0; $s < $length; $s++) {
             $zukarIndex = strpos($this->chars, $ukhi[$s]);
             if ($zukarIndex !== false) {
@@ -65,15 +66,16 @@ class VkMp3Decoder
                 }
             }
         }
+
         return $result;
     }
 
     private function sazurg($siasne, $i)
     {
-        $grax = $this->chars . $this->chars;
+        $grax = $this->chars.$this->chars;
         $graxLength = strlen($grax);
         $length = strlen($siasne);
-        $result = "";
+        $result = '';
         for ($s = 0; $s < $length; $s++) {
             $index = strpos($grax, $siasne[$s]);
             if ($index !== false) {
@@ -86,6 +88,7 @@ class VkMp3Decoder
                 $result .= $siasne[$s];
             }
         }
+
         return $result;
     }
 
@@ -93,11 +96,11 @@ class VkMp3Decoder
     {
         $xorValue = ord($i[0]);
         $mratLength = strlen($str);
-        $result = "";
+        $result = '';
         for ($i = 0; $i < $mratLength; $i++) {
             $result .= chr(ord($str[$i]) ^ $xorValue);
         }
+
         return $result;
     }
-
 }

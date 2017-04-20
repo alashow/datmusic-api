@@ -31,9 +31,9 @@ class AppServiceProvider extends ServiceProvider
         }
 
         $httpClient = new HttpClient();
-        $this->app->instance("httpClient", $httpClient);
+        $this->app->instance('httpClient', $httpClient);
 
         $logger = new Logger();
-        $this->app->instance("logger", $logger);
+        $this->app->instance('logger', $logger);
     }
 }
