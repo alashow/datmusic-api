@@ -23,8 +23,10 @@ trait SearchesTrait
     }
 
     /**
-     * Searches audios from request query, with caching
+     * Searches audios from request query, with caching.
+     *
      * @param Request $request
+     *
      * @return array
      */
     public function search(Request $request)
@@ -67,6 +69,7 @@ trait SearchesTrait
                 abort(403);
             }
             $this->auth();
+
             return $this->search($request);
         }
 
@@ -100,9 +103,11 @@ trait SearchesTrait
     }
 
     /**
-     * Request search page
+     * Request search page.
+     *
      * @param $query
      * @param $offset
+     *
      * @return ResponseInterface
      */
     private function getSearchResults($query, $offset)
@@ -116,6 +121,7 @@ trait SearchesTrait
         }
 
         $query = urlencode($query);
+
         return httpClient()->get(
             "audio?act=search&q=$query&offset=$offset",
             ['cookies' => $this->jar]
@@ -123,8 +129,10 @@ trait SearchesTrait
     }
 
     /**
-     * Request popular page
+     * Request popular page.
+     *
      * @param $offset
+     *
      * @return ResponseInterface
      */
     private function getPopular($offset)
@@ -136,10 +144,11 @@ trait SearchesTrait
     }
 
     /**
-     * Cleanup data for response
+     * Cleanup data for response.
      *
      * @param Request $request
-     * @param array $data
+     * @param array   $data
+     *
      * @return array
      */
     private function transformSearchResponse($request, $data)
@@ -149,7 +158,7 @@ trait SearchesTrait
         $sortable = $this->isBadMatch([$query]) == false;
 
         // items that needs to sorted to the end of response list if matches the regex
-        $badMatches = array();
+        $badMatches = [];
 
         $cacheKey = $this->getCacheKey($request);
         $mapped = array_map(function ($item) use (&$cacheKey, &$badMatches, &$sortable) {
@@ -165,7 +174,7 @@ trait SearchesTrait
 
             $result = array_merge($item, [
                 'download' => $downloadUrl,
-                'stream' => $streamUrl
+                'stream'   => $streamUrl,
             ]);
 
             // is audio name bad match
@@ -189,6 +198,7 @@ trait SearchesTrait
 
     /**
      * @param array $strings items need to be tested
+     *
      * @return bool true if any of inputs is bad match
      */
     private function isBadMatch(array $strings)
@@ -203,12 +213,15 @@ trait SearchesTrait
                 return true;
             }
         }
+
         return false;
     }
 
     /**
-     * Replace bad words with empty string
+     * Replace bad words with empty string.
+     *
      * @param $string
+     *
      * @return mixed
      */
     private function cleanBadWords($string)

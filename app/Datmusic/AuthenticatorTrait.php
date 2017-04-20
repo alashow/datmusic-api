@@ -22,7 +22,7 @@ trait AuthenticatorTrait
      */
     protected $authPassword;
     /**
-     * @var bool is $cookieFiles exists
+     * @var bool is exists
      */
     protected $authenticated = false;
     /**
@@ -54,54 +54,58 @@ trait AuthenticatorTrait
     }
 
     /**
-     * Checks whether response page has authenticated user data
+     * Checks whether response page has authenticated user data.
+     *
      * @param ResponseInterface $response
-     * @return boolean
+     *
+     * @return bool
      */
     private function checkIsAuthenticated($response)
     {
-        $body = (string)$response->getBody();
+        $body = (string) $response->getBody();
 
         return str_contains($body, 'https://login.vk.com/?act=logout');
     }
 
     /**
-     * Checks whether response page has security check form
+     * Checks whether response page has security check form.
+     *
      * @param ResponseInterface $response
+     *
      * @return array
      */
     private function checkIsSecurityCheck($response)
     {
-        $body = (string)$response->getBody();
+        $body = (string) $response->getBody();
 
         return str_contains($body, 'login.php?act=security_check');
     }
 
     /**
-     * Login to the site
+     * Login to the site.
      */
     private function auth()
     {
-
         $this->authRetries++;
         $loginResponse = httpClient()->get('login', ['cookies' => $this->jar]);
 
         $authUrl = $this->getFormUrl($loginResponse);
 
-        logger()->log("Auth", $this->authPhone, $this->authRetries);
+        logger()->log('Auth', $this->authPhone, $this->authRetries);
 
         httpClient()->post($authUrl, [
-            'cookies' => $this->jar,
+            'cookies'     => $this->jar,
             'form_params' => [
                 'email' => $this->authPhone,
-                'pass' => $this->authPassword
-            ]
+                'pass'  => $this->authPassword,
+            ],
         ]);
     }
 
     /**
      * Completes VK security check with current credentials if response has security check form
-     * Has side effects
+     * Has side effects.
+     *
      * @param ResponseInterface $response
      */
     private function authSecurityCheck($response)
@@ -111,7 +115,7 @@ trait AuthenticatorTrait
         }
 
         $body = $response->getBody();
-        $dom = new Dom;
+        $dom = new Dom();
         $dom->load($body);
         $prefixes = $dom->find('.field_prefix');
 
@@ -129,16 +133,16 @@ trait AuthenticatorTrait
             $securityCode = substr($this->authPhone, $leftPrefixCount, -$rightPrefixCount);
         }
 
-        logger()->log("Auth.SecurityCheck", $isPhoneCheck);
+        logger()->log('Auth.SecurityCheck', $isPhoneCheck);
 
         if (isset($securityCode)) {
             $formUrl = $this->getFormUrl($response);
 
             httpClient()->post($formUrl, [
-                'cookies' => $this->jar,
+                'cookies'     => $this->jar,
                 'form_params' => [
                     'code' => $securityCode,
-                ]
+                ],
             ]);
         } else {
             abort(403);
@@ -146,8 +150,10 @@ trait AuthenticatorTrait
     }
 
     /**
-     * Get form action url from response
+     * Get form action url from response.
+     *
      * @param ResponseInterface $response
+     *
      * @return string
      */
     private function getFormUrl($response)
@@ -156,7 +162,7 @@ trait AuthenticatorTrait
             $match)) {
             return $match[1];
         } else {
-            return null;
+            return;
         }
     }
 }

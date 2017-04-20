@@ -12,17 +12,19 @@ use Psr\Http\Message\ResponseInterface;
 trait ParserTrait
 {
     /**
-     * Parses response html for audio items, saves it in cache and returns parsed array
+     * Parses response html for audio items, saves it in cache and returns parsed array.
+     *
      * @param ResponseInterface $response
+     *
      * @return array
      */
     public static function getAudioItems($response)
     {
-        $dom = new Dom;
-        $dom->load((string)$response->getBody());
+        $dom = new Dom();
+        $dom->load((string) $response->getBody());
 
         $items = $dom->find('.audio_item');
-        $data = array();
+        $data = [];
 
         foreach ($items as $item) {
             $audio = new Dom();
@@ -39,11 +41,11 @@ trait ParserTrait
             $hash = hash(config('app.hash.id'), $id);
 
             array_push($data, [
-                'id' => $hash,
-                'artist' => trim(html_entity_decode($artist, ENT_QUOTES)),
-                'title' => trim(html_entity_decode($title, ENT_QUOTES)),
-                'duration' => (int)$duration,
-                'mp3' => $mp3
+                'id'       => $hash,
+                'artist'   => trim(html_entity_decode($artist, ENT_QUOTES)),
+                'title'    => trim(html_entity_decode($title, ENT_QUOTES)),
+                'duration' => (int) $duration,
+                'mp3'      => $mp3,
             ]);
         }
 

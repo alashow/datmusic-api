@@ -3,11 +3,10 @@
  * Copyright (c) 2017  Alashov Berkeli
  * It is licensed under GNU GPL v. 2 or later. For full terms see the file LICENSE.
  */
-
-require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__.'/../vendor/autoload.php';
 
 try {
-    (new Dotenv\Dotenv(__DIR__ . '/../'))->load();
+    (new Dotenv\Dotenv(__DIR__.'/../'))->load();
 } catch (Dotenv\Exception\InvalidPathException $e) {
     //
 }
@@ -24,7 +23,7 @@ try {
 */
 
 $app = new Laravel\Lumen\Application(
-    realpath(__DIR__ . '/../')
+    realpath(__DIR__.'/../')
 );
 
 $app->configure('app');
@@ -74,7 +73,7 @@ $app->singleton('logger', function ($app) {
 */
 
 $app->middleware([
-    \Barryvdh\Cors\HandleCors::class
+    \Barryvdh\Cors\HandleCors::class,
 ]);
 
 $app->routeMiddleware([
@@ -108,10 +107,10 @@ $app->register(Barryvdh\Cors\LumenServiceProvider::class);
 */
 
 $app->group([
-    'namespace' => 'App\Http\Controllers',
-    'middleware' => 'auth.basic'
+    'namespace'  => 'App\Http\Controllers',
+    'middleware' => 'auth.basic',
 ], function ($app) {
-    require __DIR__ . '/../routes/api.php';
+    require __DIR__.'/../routes/api.php';
 });
 
 return $app;

@@ -18,7 +18,7 @@ trait DownloaderTrait
      */
     protected $s3Client;
     /**
-     * @var Resource S3 atream context resource
+     * @var resource S3 atream context resource
      */
     protected $s3StreamContext;
     /**
@@ -39,14 +39,16 @@ trait DownloaderTrait
     }
 
     /**
-     * Get size of audio file in bytes
+     * Get size of audio file in bytes.
+     *
      * @param $key
      * @param $id
+     *
      * @return mixed
      */
     public function bytes($key, $id)
     {
-        logger()->log("Bytes", $key, $id);
+        logger()->log('Bytes', $key, $id);
 
         $cacheKey = "bytes_$id";
 
@@ -55,14 +57,17 @@ trait DownloaderTrait
             $item = $this->getAudio($key, $id);
 
             $response = httpClient()->head($item['mp3']);
+
             return $response->getHeader('Content-Length')[0];
         });
     }
 
     /**
-     * Just like download but with stream enabled
+     * Just like download but with stream enabled.
+     *
      * @param string $key
      * @param string $id
+     *
      * @return mixed
      */
     public function stream($key, $id)
@@ -71,10 +76,12 @@ trait DownloaderTrait
     }
 
     /**
-     * Just like download but with bitrate converting enabled
+     * Just like download but with bitrate converting enabled.
+     *
      * @param string $key
      * @param string $id
-     * @param int $bitrate
+     * @param int    $bitrate
+     *
      * @return mixed
      */
     public function bitrateDownload($key, $id, $bitrate)
@@ -83,11 +90,13 @@ trait DownloaderTrait
     }
 
     /**
-     * Serves given audio item or aborts with 404 if not found
+     * Serves given audio item or aborts with 404 if not found.
+     *
      * @param string $key
      * @param string $id
-     * @param bool $stream
-     * @param int $bitrate
+     * @param bool   $stream
+     * @param int    $bitrate
+     *
      * @return mixed
      */
     public function download($key, $id, $stream = false, $bitrate = -1)
@@ -112,6 +121,7 @@ trait DownloaderTrait
         // check bucket for file and redirect if exists
         if ($this->isS3 && @file_exists($this->formatPathWithBitrate($path, $bitrate))) {
             logger()->log('S3.Cache', $path, $bitrate);
+
             return redirect($this->buildS3Url($this->formatPathWithBitrate($filePath, $bitrate)));
         } elseif (@file_exists($path)) {
             $item = $this->getAudioCache($id);
@@ -122,6 +132,7 @@ trait DownloaderTrait
             $name = !is_null($item) ? $this->getFormattedName($item) : "$id.mp3";
 
             $this->tryToConvert($bitrate, $path, $localPath, $filePath, $name);
+
             return $this->downloadLocal($path, $filePath, $key, $id, $name, $stream, true);
         }
 
@@ -143,11 +154,13 @@ trait DownloaderTrait
         } else {
             abort(404);
         }
+
         return 0;
     }
 
     /**
-     * Download/Stream local file
+     * Download/Stream local file.
+     *
      * @param $path string full path
      * @param $filePath string file name
      * @param $key string search key
@@ -155,6 +168,7 @@ trait DownloaderTrait
      * @param $name string download response name
      * @param $stream boolean  is stream
      * @param $cache boolean is cache
+     *
      * @return \Illuminate\Http\RedirectResponse|\Laravel\Lumen\Http\Redirector|BinaryFileResponse
      */
     private function downloadLocal($path, $filePath, $key, $id, $name, $stream, $cache)
@@ -172,7 +186,8 @@ trait DownloaderTrait
     }
 
     /**
-     * Try to convert mp3 if possible, alters given path and file path if succeeds
+     * Try to convert mp3 if possible, alters given path and file path if succeeds.
+     *
      * @param $bitrate int bitrate
      * @param $path string path
      * @param $localPath string local file path
@@ -195,6 +210,7 @@ trait DownloaderTrait
      * @param $path
      * @param $localPath
      * @param $filePath
+     *
      * @return array|bool
      */
     private function bitrateConvert($bitrate, $path, $localPath, $filePath)
@@ -235,15 +251,18 @@ trait DownloaderTrait
                 }
             }
         }
+
         return isset($convertedPaths) ? $convertedPaths : false;
     }
 
     /**
-     * Formats name, appends mp3, ascii-fy and remove bad characters
+     * Formats name, appends mp3, ascii-fy and remove bad characters.
+     *
      * @param array $item
+     *
      * @return string formatted name
      */
-    function getFormattedName($item)
+    public function getFormattedName($item)
     {
         $name = sprintf('%s - %s', $item['artist'], $item['title']);
         $name = Str::ascii($name);
@@ -254,13 +273,15 @@ trait DownloaderTrait
     }
 
     /**
-     * Download given file url to given path
-     * @param string $url
-     * @param string $path
+     * Download given file url to given path.
+     *
+     * @param string   $url
+     * @param string   $path
      * @param resource $context stream context options when opening $path
+     *
      * @return bool true if succeeds
      */
-    function downloadFile($url, $path)
+    public function downloadFile($url, $path)
     {
         if ($this->s3StreamContext == null) {
             $handle = fopen($path, 'w');
@@ -278,10 +299,11 @@ trait DownloaderTrait
 
         // if curl had errors
         if (curl_errno($curl) > 0) {
-            logger()->log("Download.Fail", curl_errno($curl));
+            logger()->log('Download.Fail', curl_errno($curl));
 
             // remove the file just in case
             @unlink($path);
+
             return false;
         }
 
@@ -293,13 +315,14 @@ trait DownloaderTrait
     }
 
     /**
-     * Checks given files mime type and abort with 404 if file is not an mp3 file
+     * Checks given files mime type and abort with 404 if file is not an mp3 file.
+     *
      * @param string $path full path of mp3
      */
-    function checkIsBadMp3($path)
+    public function checkIsBadMp3($path)
     {
         if (!file_exists($path)) {
-            logger()->log("Download.Bad.NotFound");
+            logger()->log('Download.Bad.NotFound');
 
             abort(404);
         }
@@ -324,10 +347,8 @@ trait DownloaderTrait
         if (in_array(md5_file($path), $badMp3Hashes)
             || !count(array_intersect($checks,
                 $validMimes))
-        ) // if arrays don't have any common values, mp3 is broken.
-        {
-
-            logger()->log("Download.Bad.Mime", $badMp3, $path, implode(' ', $checks));
+        ) { // if arrays don't have any common values, mp3 is broken.
+            logger()->log('Download.Bad.Mime', $badMp3, $path, implode(' ', $checks));
 
             @unlink($path);
             abort(404);
@@ -335,20 +356,22 @@ trait DownloaderTrait
     }
 
     /**
-     * Force download given file with given name
+     * Force download given file with given name.
+     *
      * @param $path string path of the file
      * @param $name string name of the downloading file
+     *
      * @return BinaryFileResponse
      */
-    function downloadResponse($path, $name)
+    public function downloadResponse($path, $name)
     {
         $this->checkIsBadMp3($path);
 
         $headers = [
-            'Cache-Control' => 'private',
+            'Cache-Control'     => 'private',
             'Cache-Description' => 'File Transfer',
-            'Content-Type' => 'audio/mpeg',
-            'Content-Length' => filesize($path),
+            'Content-Type'      => 'audio/mpeg',
+            'Content-Length'    => filesize($path),
         ];
 
         return response()->download(
@@ -359,13 +382,15 @@ trait DownloaderTrait
     }
 
     /**
-     * Executes ffmpeg command synchronously for converting given file to given bitrate
+     * Executes ffmpeg command synchronously for converting given file to given bitrate.
+     *
      * @param $bitrate integer, one of $config["allowed_bitrates"]
      * @param $input string input mp3 file full path
      * @param $output string output mp3 file full path
+     *
      * @return bool is success
      */
-    function convertMp3Bitrate($bitrate, $input, $output)
+    public function convertMp3Bitrate($bitrate, $input, $output)
     {
         $bitrateString = config('app.conversion.allowed_ffmpeg')[array_search($bitrate,
             config('app.conversion.allowed'))];
@@ -378,8 +403,9 @@ trait DownloaderTrait
     }
 
     /**
-     * @param string $path path to mp3
-     * @param int $bitrate bitrate
+     * @param string $path    path to mp3
+     * @param int    $bitrate bitrate
+     *
      * @return string path_bitrate.mp3 formatted path
      */
     private function formatPathWithBitrate($path, $bitrate)
@@ -394,8 +420,10 @@ trait DownloaderTrait
     // s3 utils
 
     /**
-     * Builds url with region and bucket name from config
+     * Builds url with region and bucket name from config.
+     *
      * @param string $fileName path to file
+     *
      * @return string full url
      */
     private function buildS3Url($fileName)
@@ -413,19 +441,21 @@ trait DownloaderTrait
 
     /**
      * Builds S3 schema stream context options
-     * All options available at http://docs.aws.amazon.com/aws-sdk-php/v3/api/api-s3-2006-03-01.html#putobject
+     * All options available at http://docs.aws.amazon.com/aws-sdk-php/v3/api/api-s3-2006-03-01.html#putobject.
+     *
      * @param string $name Force download file name
+     *
      * @return resource
      */
     private function buildS3StreamContextOptions($name)
     {
         return stream_context_create([
             's3' => [
-                'ACL' => 'public-read',
-                'ContentType' => 'audio/mpeg',
+                'ACL'                => 'public-read',
+                'ContentType'        => 'audio/mpeg',
                 'ContentDisposition' => "attachment; filename=\"$name\"",
-                'StorageClass' => 'STANDARD_IA'
-            ]
+                'StorageClass'       => 'STANDARD_IA',
+            ],
         ]);
     }
 }

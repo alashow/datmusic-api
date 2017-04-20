@@ -11,7 +11,6 @@ use App\Datmusic\SearchesTrait;
 
 class ApiController extends Controller
 {
-
     use SearchesTrait, DownloaderTrait;
 
     /**
@@ -24,7 +23,8 @@ class ApiController extends Controller
     }
 
     /**
-     * Just response status
+     * Just response status.
+     *
      * @return array
      */
     public function index()
@@ -35,8 +35,9 @@ class ApiController extends Controller
     /**
      * @param $data
      * @param string $arrayName
-     * @param int $status
+     * @param int    $status
      * @param $headers
+     *
      * @return array
      */
     private function ok($data = null, $arrayName = 'data', $status = 200, $headers = [])

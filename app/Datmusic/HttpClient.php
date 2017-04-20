@@ -10,7 +10,6 @@ use GuzzleHttp\Client;
 
 class HttpClient
 {
-
     /**
      * @var Client Guzzle client
      */
@@ -23,10 +22,10 @@ class HttpClient
     {
         $this->httpClient = new Client([
             'base_uri' => 'https://m.vk.com',
-            'cookies' => true,
-            'headers' => [
-                'User-Agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.95 Safari/537.36'
-            ]
+            'cookies'  => true,
+            'headers'  => [
+                'User-Agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.95 Safari/537.36',
+            ],
         ]);
     }
 

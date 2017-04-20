@@ -13,8 +13,9 @@ class HttpBasicAuth
     /**
      * Handle an incoming request.
      *
-     * @param  \Illuminate\Http\Request $request
-     * @param  Closure $next
+     * @param \Illuminate\Http\Request $request
+     * @param Closure                  $next
+     *
      * @return mixed
      */
     public function handle($request, Closure $next)
@@ -22,17 +23,18 @@ class HttpBasicAuth
         if (env('BASIC_AUTH_ENABLED', true)) {
             $envs = [
                 'staging',
-                'production'
+                'production',
             ];
 
             if (in_array(app()->environment(), $envs)) {
                 if ($request->getUser() != env('API_USERNAME') || $request->getPassword() != env('API_PASSWORD')) {
-                    $headers = array('WWW-Authenticate' => 'Basic');
+                    $headers = ['WWW-Authenticate' => 'Basic'];
+
                     return response('Unauthorized', 401, $headers);
                 }
             }
         }
+
         return $next($request);
     }
-
 }
