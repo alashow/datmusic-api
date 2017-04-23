@@ -6,8 +6,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Datmusic\DownloaderTrait;
 use App\Datmusic\SearchesTrait;
+use App\Datmusic\DownloaderTrait;
 
 class ApiController extends Controller
 {
@@ -43,7 +43,7 @@ class ApiController extends Controller
     private function ok($data = null, $arrayName = 'data', $status = 200, $headers = [])
     {
         $result = ['status' => 'ok'];
-        if (!is_null($data)) {
+        if (! is_null($data)) {
             $result = array_merge($result, [$arrayName => $data]);
         }
 

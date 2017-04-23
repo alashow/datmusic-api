@@ -50,7 +50,7 @@ trait SearchesTrait
         }
 
         // if the cookie file doesn't exist, we need to authenticate first
-        if (!$this->authenticated) {
+        if (! $this->authenticated) {
             $this->auth();
             $this->authenticated = true;
         }
@@ -62,7 +62,7 @@ trait SearchesTrait
         $this->authSecurityCheck($response);
 
         // if not authenticated, authenticate then retry the search
-        if (!$this->checkIsAuthenticated($response)) {
+        if (! $this->checkIsAuthenticated($response)) {
             // we need to get out of the loop. maybe something is wrong with authentication.
             if ($this->authRetries >= 3) {
                 logger()->log('Auth.TooMany', $this->authRetries);

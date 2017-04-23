@@ -7,8 +7,8 @@
 namespace App\Datmusic;
 
 use Aws\S3\S3Client;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Cache;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 trait DownloaderTrait
@@ -101,7 +101,7 @@ trait DownloaderTrait
      */
     public function download($key, $id, $stream = false, $bitrate = -1)
     {
-        if (!in_array($bitrate, config('app.conversion.allowed'))) {
+        if (! in_array($bitrate, config('app.conversion.allowed'))) {
             $bitrate = -1;
         }
 
@@ -129,7 +129,7 @@ trait DownloaderTrait
             if (is_null($item)) {
                 $item = $this->getAudio($key, $id, false);
             }
-            $name = !is_null($item) ? $this->getFormattedName($item) : "$id.mp3";
+            $name = ! is_null($item) ? $this->getFormattedName($item) : "$id.mp3";
 
             $this->tryToConvert($bitrate, $path, $localPath, $filePath, $name);
 
@@ -321,7 +321,7 @@ trait DownloaderTrait
      */
     public function checkIsBadMp3($path)
     {
-        if (!file_exists($path)) {
+        if (! file_exists($path)) {
             logger()->log('Download.Bad.NotFound');
 
             abort(404);
@@ -345,7 +345,7 @@ trait DownloaderTrait
         // if the file is corrupted (mime is wrong) or md5 file is one of the bad mp3s,
         // delete it from storage and return 404
         if (in_array(md5_file($path), $badMp3Hashes)
-            || !count(array_intersect($checks,
+            || ! count(array_intersect($checks,
                 $validMimes))
         ) { // if arrays don't have any common values, mp3 is broken.
             logger()->log('Download.Bad.Mime', $badMp3, $path, implode(' ', $checks));

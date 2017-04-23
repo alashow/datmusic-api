@@ -6,9 +6,9 @@
 
 namespace App\Datmusic;
 
-use GuzzleHttp\Cookie\FileCookieJar;
-use Illuminate\Support\Str;
 use PHPHtmlParser\Dom;
+use Illuminate\Support\Str;
+use GuzzleHttp\Cookie\FileCookieJar;
 use Psr\Http\Message\ResponseInterface;
 
 trait AuthenticatorTrait
@@ -110,7 +110,7 @@ trait AuthenticatorTrait
      */
     private function authSecurityCheck($response)
     {
-        if (!$this->checkIsSecurityCheck($response)) {
+        if (! $this->checkIsSecurityCheck($response)) {
             return;
         }
 
