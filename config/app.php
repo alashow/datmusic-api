@@ -22,7 +22,7 @@ return [
 
     'search' => [
         // how many pages need to get for each page.
-        // ex: if value is 2, two pages will be for each requested.
+        // ex: if value is 2, two pages will be requested for each query.
         // flush the cache after changing this value
         'pageMultiplier' => 2,
 
