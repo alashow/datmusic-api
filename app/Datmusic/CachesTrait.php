@@ -25,7 +25,7 @@ trait CachesTrait
 
         $q = empty($q) ? md5('popular') : $q;
 
-        return hash(config('app.hash.cache'), ($q.$page));
+        return "query.".hash(config('app.hash.cache'), ($q.$page));
     }
 
     /**
