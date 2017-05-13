@@ -25,19 +25,28 @@ trait CachesTrait
 
         $q = empty($q) ? md5('popular') : $q;
 
-        return 'query.'.hash(config('app.hash.cache'), ($q.$page));
+        return hash(config('app.hash.cache'), ($q.$page));
     }
 
     /**
-     * Whether current request is already cached.
+     * Save search result in cache
      *
-     * @param Request $request
-     *
-     * @return mixed
+     * @param string $cacheKey cache key
+     * @param array  $result   audio array
      */
-    private function hasRequestInCache($request)
+    private function cacheSearchResult($cacheKey, $result)
     {
-        return Cache::has($this->getCacheKey($request));
+        Cache::put('query.'.$cacheKey, $result, config('app.cache.duration'));
+    }
+
+    /**
+     * @param $request
+     *
+     * @return array|null audio array or null if not cached
+     */
+    private function getSearchResult($request)
+    {
+        return Cache::get('query.'.$this->getCacheKey($request));
     }
 
     /**
@@ -52,7 +61,7 @@ trait CachesTrait
     public function getAudio($key, $id, $abort = true)
     {
         // get search cache instance
-        $data = Cache::get($key);
+        $data = Cache::get('query.'.$key);
 
         if (is_null($data)) {
             logger()->log('Cache.NoAudio', $key, $id);

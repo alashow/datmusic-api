@@ -38,13 +38,14 @@ trait SearchesTrait
         $cacheKey = $this->getCacheKey($request);
 
         // return immediately if has in cache
-        if ($this->hasRequestInCache($request)) {
+        $cachedResult = $this->getSearchResult($request);
+        if (!is_null($cachedResult)) {
             logger()->searchCache($query, $offset);
 
             return $this->ok(
                 $this->transformSearchResponse(
                     $request,
-                    Cache::get($cacheKey)
+                    $cachedResult
                 )
             );
         }
@@ -91,7 +92,7 @@ trait SearchesTrait
         }
 
         // store in cache
-        Cache::put($cacheKey, $result, config('app.cache.duration'));
+        $this->cacheSearchResult($cacheKey, $result);
 
         logger()->search($query, $offset);
 
