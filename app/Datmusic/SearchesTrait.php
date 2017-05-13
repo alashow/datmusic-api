@@ -39,7 +39,7 @@ trait SearchesTrait
 
         // return immediately if has in cache
         $cachedResult = $this->getSearchResult($request);
-        if (!is_null($cachedResult)) {
+        if (! is_null($cachedResult)) {
             logger()->searchCache($query, $offset);
 
             return $this->ok(
