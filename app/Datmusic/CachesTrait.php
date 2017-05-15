@@ -29,7 +29,7 @@ trait CachesTrait
     }
 
     /**
-     * Save search result in cache
+     * Save search result in cache.
      *
      * @param string $cacheKey cache key
      * @param array  $result   audio array
