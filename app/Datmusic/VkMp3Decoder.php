@@ -26,6 +26,10 @@ class VkMp3Decoder
         }
 
         $values = explode('#', explode('?extra=', $this->encoded)[1]);
+        if (! (count($values) >= 2)) {
+            return $this->encoded;
+        }
+
         $miga = $this->leth($values[0]);
         $lacaror = $this->leth($values[1]);
         $lacarorArray = explode(chr(9), $lacaror);
