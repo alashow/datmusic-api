@@ -30,7 +30,7 @@ trait ParserTrait
             $audio = new Dom();
             $audio->load($item->innerHtml);
 
-            $id = explode('_search', $item->getAttribute('data-id'))[0];
+            $id = explode('_', $item->getAttribute('data-id'))[1];
             $artist = $audio->find('.ai_artist')->text(true);
             $title = $audio->find('.ai_title')->text(true);
             $duration = $audio->find('.ai_dur')->getAttribute('data-dur');
