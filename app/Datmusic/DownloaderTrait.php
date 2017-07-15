@@ -339,7 +339,7 @@ trait DownloaderTrait
         $checks = [$mime, $nativeCheck()];
 
         // md5 hash blacklist of bad mp3's
-        $badMp3Hashes = ['9d6ddee7a36a6b1b638c2ca1e26ad46e', '8efd23e1cf7989a537a8bf0fb3ed7f62'];
+        $badMp3Hashes = ['9d6ddee7a36a6b1b638c2ca1e26ad46e', '8efd23e1cf7989a537a8bf0fb3ed7f62', '21a9fef2f321de657d7b54985be55888'];
         $badMp3 = in_array(md5_file($path), $badMp3Hashes);
 
         // if the file is corrupted (mime is wrong) or md5 file is one of the bad mp3s,
