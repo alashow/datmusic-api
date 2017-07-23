@@ -344,11 +344,8 @@ trait DownloaderTrait
 
         // if the file is corrupted (mime is wrong) or md5 file is one of the bad mp3s,
         // delete it from storage and return 404
-        if (in_array(md5_file($path), $badMp3Hashes)
-            || ! count(array_intersect($checks,
-                $validMimes))
-        ) { // if arrays don't have any common values, mp3 is broken.
-            logger()->log('Download.Bad.Mime', $badMp3, $path, implode(' ', $checks));
+        if ($badMp3 || ! count(array_intersect($checks, $validMimes))) { // if arrays don't have any common values, mp3 is broken.
+            logger()->log('Download.Bad.'.($badMp3 ? 'Mp3' : 'Mime'), $path, implode(' ', $checks));
 
             @unlink($path);
             abort(404);
