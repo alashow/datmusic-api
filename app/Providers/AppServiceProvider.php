@@ -6,6 +6,7 @@
 
 namespace App\Providers;
 
+use Log;
 use App\Datmusic\Logger;
 use App\Datmusic\HttpClient;
 use Illuminate\Support\ServiceProvider;
@@ -19,8 +20,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register()
     {
+        // setup accounts
         $accounts = env('ACCOUNTS', null);
         if ($accounts != null && strlen($accounts) > 1) {
+            Log::info('Using accounts from .env');
+
             $accounts = explode(',', $accounts);
 
             $accounts = array_map(function ($item) {
@@ -30,10 +34,23 @@ class AppServiceProvider extends ServiceProvider
             config(['app.accounts' => $accounts]);
         }
 
+        // register singletons
         $httpClient = new HttpClient();
         $this->app->instance('httpClient', $httpClient);
 
         $logger = new Logger();
         $this->app->instance('logger', $logger);
+
+        // Create mp3s folder if it doesn't exist
+        $mp3s = config('app.paths.mp3');
+        if (! @file_exists($mp3s)) {
+            $created = mkdir($mp3s, 0777, true);
+
+            if ($created) {
+                Log::info(sprintf("Created mp3s folder '%s'", $mp3s));
+            } else {
+                Log::critical(sprintf("Mp3 folder doesn't exist and couldn't create it %s", $mp3s));
+            }
+        };
     }
 }
