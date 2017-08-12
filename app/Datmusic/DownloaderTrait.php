@@ -295,6 +295,17 @@ trait DownloaderTrait
         curl_setopt($curl, CURLOPT_FAILONERROR, 1);
         curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, config('app.downloading.timeout.connection'));
         curl_setopt($curl, CURLOPT_TIMEOUT, config('app.downloading.timeout.execution'));
+
+        if (env('PROXY_ENABLE', false)) {
+            curl_setopt($curl, CURLOPT_PROXY, env('PROXY_IP'));
+            curl_setopt($curl, CURLOPT_PROXYPORT, env('PROXY_PORT'));
+            curl_setopt($curl, CURLOPT_PROXYTYPE, env('PROXY_METHOD'));
+
+            if (! empty(env('PROXY_USERNAME')) && ! empty(env('PROXY_PASSWORD'))) {
+                curl_setopt($curl, CURLOPT_PROXYUSERPWD, sprintf('%s:%s', env('PROXY_USERNAME'), env('PROXY_PASSWORD')));
+            }
+        }
+
         curl_exec($curl);
 
         // if curl had errors
