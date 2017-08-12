@@ -30,13 +30,6 @@ class AppServiceProvider extends ServiceProvider
             config(['app.accounts' => $accounts]);
         }
 
-        config(['app.proxy.enabled' => env('PROXY_ENABLE', false)]);
-        config(['app.proxy.ip' => env('PROXY_IP', null)]);
-        config(['app.proxy.port' => env('PROXY_PORT', null)]);
-        config(['app.proxy.username' => env('PROXY_USERNAME', null)]);
-        config(['app.proxy.password' => env('PROXY_PASSWORD', null)]);
-        config(['app.proxy.method' => env('PROXY_METHOD', null)]);
-
         $httpClient = new HttpClient();
         $this->app->instance('httpClient', $httpClient);
 

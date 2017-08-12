@@ -22,14 +22,14 @@ class HttpClient
     {
         $config = [];
 
-        if (config('app.proxy.enabled')) {
-            $proxy = config('app.proxy.method').'://';
+        if (env('PROXY_ENABLE', false)) {
+            $proxy = env('PROXY_METHOD', null).'://';
 
-            if (! empty(config('app.proxy.username')) && ! empty(config('app.proxy.password'))) {
-                $proxy .= config('app.proxy.username').':'.config('app.proxy.password').'@';
+            if (! empty(env('PROXY_USERNAME', null)) && ! empty(env('PROXY_PASSWORD', null))) {
+                $proxy .= env('PROXY_USERNAME', null).':'.env('PROXY_PASSWORD', null).'@';
             }
 
-            $proxy .= config('app.proxy.ip').':'.config('app.proxy.port');
+            $proxy .= env('PROXY_IP', null).':'.env('PROXY_PORT', null);
             $config = ['proxy' => $proxy];
         }
 

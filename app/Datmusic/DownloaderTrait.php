@@ -296,13 +296,13 @@ trait DownloaderTrait
         curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, config('app.downloading.timeout.connection'));
         curl_setopt($curl, CURLOPT_TIMEOUT, config('app.downloading.timeout.execution'));
 
-        if (config('app.proxy.enabled')) {
-            curl_setopt($curl, CURLOPT_PROXY, config('app.proxy.ip'));
-            curl_setopt($curl, CURLOPT_PROXYPORT, config('app.proxy.port'));
-            curl_setopt($curl, CURLOPT_PROXYTYPE, config('app.proxy.method'));
+        if (env('PROXY_ENABLE', false)) {
+            curl_setopt($curl, CURLOPT_PROXY, env('PROXY_IP', null));
+            curl_setopt($curl, CURLOPT_PROXYPORT, env('PROXY_PORT', null));
+            curl_setopt($curl, CURLOPT_PROXYTYPE, env('PROXY_METHOD', null));
 
-            if (! empty(config('app.proxy.username')) && ! empty(config('app.proxy.password'))) {
-                curl_setopt($curl, CURLOPT_PROXYUSERPWD, config('app.proxy.username').':'.config('app.proxy.password'));
+            if (! empty(env('PROXY_USERNAME', null)) && ! empty(env('PROXY_PASSWORD', null))) {
+                curl_setopt($curl, CURLOPT_PROXYUSERPWD, env('PROXY_USERNAME', null).':'.env('PROXY_PASSWORD', null));
             }
         }
 
