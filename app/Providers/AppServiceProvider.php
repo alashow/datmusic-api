@@ -51,6 +51,6 @@ class AppServiceProvider extends ServiceProvider
             } else {
                 Log::critical(sprintf("Mp3 folder doesn't exist and couldn't create it %s", $mp3s));
             }
-        };
+        }
     }
 }
