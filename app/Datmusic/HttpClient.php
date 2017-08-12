@@ -23,13 +23,13 @@ class HttpClient
         $config = [];
 
         if (env('PROXY_ENABLE', false)) {
-            $proxy = env('PROXY_METHOD', null).'://';
+            $proxy = sprintf('%s://', env('PROXY_METHOD'));
 
-            if (! empty(env('PROXY_USERNAME', null)) && ! empty(env('PROXY_PASSWORD', null))) {
-                $proxy .= env('PROXY_USERNAME', null).':'.env('PROXY_PASSWORD', null).'@';
+            if (! empty(env('PROXY_USERNAME')) && ! empty(env('PROXY_PASSWORD'))) {
+                $proxy .= sprintf('%s:%s@', env('PROXY_USERNAME'), env('PROXY_PASSWORD'));
             }
 
-            $proxy .= env('PROXY_IP', null).':'.env('PROXY_PORT', null);
+            $proxy .= sprintf('%s:%s', env('PROXY_IP'), env('PROXY_PORT'));
             $config = ['proxy' => $proxy];
         }
 

@@ -297,12 +297,12 @@ trait DownloaderTrait
         curl_setopt($curl, CURLOPT_TIMEOUT, config('app.downloading.timeout.execution'));
 
         if (env('PROXY_ENABLE', false)) {
-            curl_setopt($curl, CURLOPT_PROXY, env('PROXY_IP', null));
-            curl_setopt($curl, CURLOPT_PROXYPORT, env('PROXY_PORT', null));
-            curl_setopt($curl, CURLOPT_PROXYTYPE, env('PROXY_METHOD', null));
+            curl_setopt($curl, CURLOPT_PROXY, env('PROXY_IP'));
+            curl_setopt($curl, CURLOPT_PROXYPORT, env('PROXY_PORT'));
+            curl_setopt($curl, CURLOPT_PROXYTYPE, env('PROXY_METHOD'));
 
-            if (! empty(env('PROXY_USERNAME', null)) && ! empty(env('PROXY_PASSWORD', null))) {
-                curl_setopt($curl, CURLOPT_PROXYUSERPWD, env('PROXY_USERNAME', null).':'.env('PROXY_PASSWORD', null));
+            if (! empty(env('PROXY_USERNAME')) && ! empty(env('PROXY_PASSWORD'))) {
+                curl_setopt($curl, CURLOPT_PROXYUSERPWD, sprintf('%s:%s', env('PROXY_USERNAME'), env('PROXY_PASSWORD')));
             }
         }
 
