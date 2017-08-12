@@ -23,13 +23,13 @@ class HttpClient
         $config = [];
 
         if (config('app.proxy.enabled')) {
-            $proxy = config('app.proxy.method') . '://';
+            $proxy = config('app.proxy.method').'://';
 
-            if (!empty(config('app.proxy.username')) && !empty(config('app.proxy.password'))) {
-                $proxy .= config('app.proxy.username') . ':' . config('app.proxy.password') . '@';
+            if (! empty(config('app.proxy.username')) && ! empty(config('app.proxy.password'))) {
+                $proxy .= config('app.proxy.username').':'.config('app.proxy.password') . '@';
             }
 
-            $proxy .= config('app.proxy.ip') . ':' . config('app.proxy.port');
+            $proxy .= config('app.proxy.ip').':'.config('app.proxy.port');
             $config = ['proxy' => $proxy];
         }
 

@@ -58,18 +58,6 @@ return [
         'ffmpeg_path'    => 'ffmpeg',
     ],
 
-    'proxy' => [
-        'enabled' => false,
-
-        'ip' => '',
-        'port' => '',
-
-        'username' => '',
-        'password' => '',
-
-        'method' => 'http',
-    ],
-
     'aws' => [
         'enabled' => false,
 
