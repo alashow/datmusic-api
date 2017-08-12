@@ -26,7 +26,7 @@ class HttpClient
             $proxy = config('app.proxy.method').'://';
 
             if (! empty(config('app.proxy.username')) && ! empty(config('app.proxy.password'))) {
-                $proxy .= config('app.proxy.username').':'.config('app.proxy.password') . '@';
+                $proxy .= config('app.proxy.username').':'.config('app.proxy.password').'@';
             }
 
             $proxy .= config('app.proxy.ip').':'.config('app.proxy.port');

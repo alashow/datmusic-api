@@ -302,7 +302,7 @@ trait DownloaderTrait
             curl_setopt($curl, CURLOPT_PROXYTYPE, config('app.proxy.method'));
 
             if (! empty(config('app.proxy.username')) && ! empty(config('app.proxy.password'))) {
-                curl_setopt($curl, CURLOPT_PROXYUSERPWD, config('app.proxy.username') . ':' . config('app.proxy.password'));
+                curl_setopt($curl, CURLOPT_PROXYUSERPWD, config('app.proxy.username').':'.config('app.proxy.password'));
             }
         }
 
