@@ -106,13 +106,13 @@ trait DownloaderTrait
         }
 
         // filename including extension
-        $filePath = sprintf('%s.mp3', hash(config('app.hash.mp3'), $id));
+        $fileName = sprintf('%s.mp3', hash(config('app.hash.mp3'), $id));
         // used for bitrate converting when using s3
-        $localPath = sprintf('%s/%s', config('app.paths.mp3'), $filePath);
+        $localPath = sprintf('%s/%s', config('app.paths.mp3'), $fileName);
 
         // build full path from file path
         if ($this->isS3) {
-            $s3PathWithFolder = sprintf(config('app.aws.paths.mp3'), $filePath);
+            $s3PathWithFolder = sprintf(config('app.aws.paths.mp3'), $fileName);
             $path = sprintf('s3://%s/%s', config('app.aws.bucket'), $s3PathWithFolder);
         } else {
             $path = $localPath;
@@ -122,7 +122,7 @@ trait DownloaderTrait
         if ($this->isS3 && @file_exists($this->formatPathWithBitrate($path, $bitrate))) {
             logger()->log('S3.Cache', $path, $bitrate);
 
-            return redirect($this->buildS3Url($this->formatPathWithBitrate($filePath, $bitrate)));
+            return redirect($this->buildS3Url($this->formatPathWithBitrate($fileName, $bitrate)));
         } elseif (@file_exists($path)) {
             $item = $this->getAudioCache($id);
             // try looking in search cache if not found
@@ -131,9 +131,9 @@ trait DownloaderTrait
             }
             $name = ! is_null($item) ? $this->getFormattedName($item) : "$id.mp3";
 
-            $this->tryToConvert($bitrate, $path, $localPath, $filePath, $name);
+            $this->tryToConvert($bitrate, $path, $localPath, $fileName, $name);
 
-            return $this->downloadLocal($path, $filePath, $key, $id, $name, $stream, true);
+            return $this->downloadLocal($path, $fileName, $key, $id, $name, $stream, true);
         }
 
         $item = $this->getAudio($key, $id);
@@ -144,12 +144,12 @@ trait DownloaderTrait
         }
 
         if ($this->downloadFile($item['mp3'], $path)) {
-            $this->tryToConvert($bitrate, $path, $localPath, $filePath, $name);
+            $this->tryToConvert($bitrate, $path, $localPath, $fileName, $name);
 
             if ($this->isS3) {
-                return redirect($this->buildS3Url($filePath));
+                return redirect($this->buildS3Url($fileName));
             } else {
-                return $this->downloadLocal($path, $filePath, $key, $id, $name, $stream, false);
+                return $this->downloadLocal($path, $fileName, $key, $id, $name, $stream, false);
             }
         } else {
             abort(404);
@@ -162,7 +162,7 @@ trait DownloaderTrait
      * Download/Stream local file.
      *
      * @param $path string full path
-     * @param $filePath string file name
+     * @param $fileName string file name
      * @param $key string search key
      * @param $id string audio id
      * @param $name string download response name
@@ -171,13 +171,13 @@ trait DownloaderTrait
      *
      * @return \Illuminate\Http\RedirectResponse|\Laravel\Lumen\Http\Redirector|BinaryFileResponse
      */
-    private function downloadLocal($path, $filePath, $key, $id, $name, $stream, $cache)
+    private function downloadLocal($path, $fileName, $key, $id, $name, $stream, $cache)
     {
         if ($stream) {
             $this->checkIsBadMp3($path);
             logger()->stream($cache, $key, $id);
 
-            return redirect("mp3/$filePath");
+            return redirect("mp3/$fileName");
         } else {
             logger()->download($cache, $key, $id);
 
@@ -191,15 +191,15 @@ trait DownloaderTrait
      * @param $bitrate int bitrate
      * @param $path string path
      * @param $localPath string local file path
-     * @param $filePath string file path
+     * @param $fileName string file name
      * @param $name string file name (logging)
      */
-    private function tryToConvert($bitrate, &$path, $localPath, &$filePath, &$name)
+    private function tryToConvert($bitrate, &$path, $localPath, &$fileName, &$name)
     {
-        $convertResult = $this->bitrateConvert($bitrate, $path, $localPath, $filePath);
+        $convertResult = $this->bitrateConvert($bitrate, $path, $localPath, $fileName);
 
         if ($convertResult != false) {
-            list($filePath, $path) = $convertResult;
+            list($fileName, $path) = $convertResult;
             logger()->convert($name, $bitrate);
             $name = str_replace('.mp3', " ($bitrate).mp3", $name);
         }
@@ -209,24 +209,24 @@ trait DownloaderTrait
      * @param $bitrate
      * @param $path
      * @param $localPath
-     * @param $filePath
+     * @param $fileName
      *
      * @return array|bool
      */
-    private function bitrateConvert($bitrate, $path, $localPath, $filePath)
+    private function bitrateConvert($bitrate, $path, $localPath, $fileName)
     {
         if ($bitrate > 0) {
             // Download to local if s3 mode and upload converted one to s3
             // Change path only if already converted or conversion function returns true
 
             $pathConverted = $this->formatPathWithBitrate($localPath, $bitrate);
-            $filePathConverted = $this->formatPathWithBitrate($filePath, $bitrate);
+            $fileNameConverted = $this->formatPathWithBitrate($fileName, $bitrate);
 
             // s3 mode
             if ($this->isS3) {
                 // download file from s3 to local
                 // continue only if download succeeds
-                $convertable = $this->downloadFile($this->buildS3Url($filePath), $localPath);
+                $convertable = $this->downloadFile($this->buildS3Url($fileName), $localPath);
             } else {
                 $convertable = true;
             }
@@ -243,10 +243,10 @@ trait DownloaderTrait
 
                         // if upload succeeds
                         if (stream_copy_to_stream($converted, $s3Stream) != false) {
-                            $convertedPaths = [$filePathConverted, $path];
+                            $convertedPaths = [$fileNameConverted, $path];
                         }
                     } else {
-                        $convertedPaths = [$filePathConverted, $pathConverted];
+                        $convertedPaths = [$fileNameConverted, $pathConverted];
                     }
                 }
             }
