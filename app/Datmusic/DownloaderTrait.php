@@ -105,10 +105,8 @@ trait DownloaderTrait
             $bitrate = -1;
         }
 
-        // filename including extension
-        $fileName = sprintf('%s.mp3', hash(config('app.hash.mp3'), $id));
-        // used for bitrate converting when using s3
-        $localPath = sprintf('%s/%s', config('app.paths.mp3'), $fileName);
+        // filename including extension and local file path
+        list($fileName, $localPath) = $this->buildFilePathsForId($id);
 
         // build full path from file path
         if ($this->isS3) {
@@ -123,17 +121,19 @@ trait DownloaderTrait
             logger()->log('S3.Cache', $path, $bitrate);
 
             return redirect($this->buildS3Url($this->formatPathWithBitrate($fileName, $bitrate)));
-        } elseif (@file_exists($path)) {
-            $item = $this->getAudioCache($id);
-            // try looking in search cache if not found
-            if (is_null($item)) {
-                $item = $this->getAudio($key, $id, false);
+        } else {
+            if (@file_exists($path)) {
+                $item = $this->getAudioCache($id);
+                // try looking in search cache if not found
+                if (is_null($item)) {
+                    $item = $this->getAudio($key, $id, false);
+                }
+                $name = ! is_null($item) ? $this->getFormattedName($item) : "$id.mp3";
+
+                $this->tryToConvert($bitrate, $path, $localPath, $fileName, $name);
+
+                return $this->downloadLocal($path, $fileName, $key, $id, $name, $stream, true);
             }
-            $name = ! is_null($item) ? $this->getFormattedName($item) : "$id.mp3";
-
-            $this->tryToConvert($bitrate, $path, $localPath, $fileName, $name);
-
-            return $this->downloadLocal($path, $fileName, $key, $id, $name, $stream, true);
         }
 
         $item = $this->getAudio($key, $id);
@@ -161,13 +161,13 @@ trait DownloaderTrait
     /**
      * Download/Stream local file.
      *
-     * @param $path string full path
+     * @param $path     string full path
      * @param $fileName string file name
-     * @param $key string search key
-     * @param $id string audio id
-     * @param $name string download response name
-     * @param $stream boolean  is stream
-     * @param $cache boolean is cache
+     * @param $key      string search key
+     * @param $id       string audio id
+     * @param $name     string download response name
+     * @param $stream   boolean  is stream
+     * @param $cache    boolean is cache
      *
      * @return \Illuminate\Http\RedirectResponse|\Laravel\Lumen\Http\Redirector|BinaryFileResponse
      */
@@ -188,11 +188,11 @@ trait DownloaderTrait
     /**
      * Try to convert mp3 if possible, alters given path and file path if succeeds.
      *
-     * @param $bitrate int bitrate
-     * @param $path string path
+     * @param $bitrate   int bitrate
+     * @param $path      string path
      * @param $localPath string local file path
-     * @param $fileName string file name
-     * @param $name string file name (logging)
+     * @param $fileName  string file name
+     * @param $name      string file name (logging)
      */
     private function tryToConvert($bitrate, &$path, $localPath, &$fileName, &$name)
     {
@@ -273,6 +273,35 @@ trait DownloaderTrait
     }
 
     /**
+     * Build file name and full path for given audio id.
+     *
+     * @param string $id audio id
+     *
+     * @return array 0 - file name, 1 - full path
+     */
+    public function buildFilePathsForId($id)
+    {
+        $name = sprintf('%s.mp3', hash(config('app.hash.mp3'), $id));
+        $path = sprintf('%s/%s', config('app.paths.mp3'), $name);
+        return [$name, $path];
+    }
+
+    /**
+     * @param string $path    path to mp3
+     * @param int    $bitrate bitrate
+     *
+     * @return string path_bitrate.mp3 formatted path
+     */
+    private function formatPathWithBitrate($path, $bitrate)
+    {
+        if ($bitrate > 0) {
+            return str_replace('.mp3', "_$bitrate.mp3", $path);
+        } else {
+            return $path;
+        }
+    }
+
+    /**
      * Download given file url to given path.
      *
      * @param string   $url
@@ -350,7 +379,11 @@ trait DownloaderTrait
         $checks = [$mime, $nativeCheck()];
 
         // md5 hash blacklist of bad mp3's
-        $badMp3Hashes = ['9d6ddee7a36a6b1b638c2ca1e26ad46e', '8efd23e1cf7989a537a8bf0fb3ed7f62', '21a9fef2f321de657d7b54985be55888'];
+        $badMp3Hashes = [
+            '9d6ddee7a36a6b1b638c2ca1e26ad46e',
+            '8efd23e1cf7989a537a8bf0fb3ed7f62',
+            '21a9fef2f321de657d7b54985be55888',
+        ];
         $badMp3 = in_array(md5_file($path), $badMp3Hashes);
 
         // if the file is corrupted (mime is wrong) or md5 file is one of the bad mp3s,
@@ -393,8 +426,8 @@ trait DownloaderTrait
      * Executes ffmpeg command synchronously for converting given file to given bitrate.
      *
      * @param $bitrate integer, one of $config["allowed_bitrates"]
-     * @param $input string input mp3 file full path
-     * @param $output string output mp3 file full path
+     * @param $input   string input mp3 file full path
+     * @param $output  string output mp3 file full path
      *
      * @return bool is success
      */
@@ -408,21 +441,6 @@ trait DownloaderTrait
             $result);
 
         return $result == 0;
-    }
-
-    /**
-     * @param string $path    path to mp3
-     * @param int    $bitrate bitrate
-     *
-     * @return string path_bitrate.mp3 formatted path
-     */
-    private function formatPathWithBitrate($path, $bitrate)
-    {
-        if ($bitrate > 0) {
-            return str_replace('.mp3', "_$bitrate.mp3", $path);
-        } else {
-            return $path;
-        }
     }
 
     // s3 utils
