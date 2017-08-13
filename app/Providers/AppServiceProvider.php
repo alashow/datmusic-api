@@ -26,12 +26,20 @@ class AppServiceProvider extends ServiceProvider
             Log::info('Using accounts from .env');
 
             $accounts = explode(',', $accounts);
-
             $accounts = array_map(function ($item) {
                 return explode(':', $item);
             }, $accounts);
 
             config(['app.accounts' => $accounts]);
+        }
+
+        // override CORS
+        $origins = env('CORS_ALLOWED_ORIGINS', null);
+        if ($origins != null && strlen($origins) > 1) {
+            Log::info('Using CORS domains from .env');
+
+            $origins = explode(',', $origins);
+            config(['cors.allowedOrigins' => $origins]);
         }
 
         // register singletons
