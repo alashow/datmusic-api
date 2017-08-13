@@ -18,7 +18,7 @@ trait DownloaderTrait
      */
     protected $s3Client;
     /**
-     * @var resource S3 atream context resource
+     * @var resource S3 stream context resource
      */
     protected $s3StreamContext;
     /**
@@ -54,6 +54,11 @@ trait DownloaderTrait
 
         // get from cache or store in cache and return value
         return Cache::rememberForever($cacheKey, function () use ($key, $id) {
+            $path = $this->buildFilePathsForId($id)[2];
+            if (@file_exists($path)) {
+                return filesize($path);
+            }
+
             $item = $this->getAudio($key, $id);
 
             $response = httpClient()->head($item['mp3']);
@@ -105,16 +110,7 @@ trait DownloaderTrait
             $bitrate = -1;
         }
 
-        // filename including extension and local file path
-        list($fileName, $localPath) = $this->buildFilePathsForId($id);
-
-        // build full path from file path
-        if ($this->isS3) {
-            $s3PathWithFolder = sprintf(config('app.aws.paths.mp3'), $fileName);
-            $path = sprintf('s3://%s/%s', config('app.aws.bucket'), $s3PathWithFolder);
-        } else {
-            $path = $localPath;
-        }
+        list($fileName, $localPath, $path) = $this->buildFilePathsForId($id);
 
         // check bucket for file and redirect if exists
         if ($this->isS3 && @file_exists($this->formatPathWithBitrate($path, $bitrate))) {
@@ -277,13 +273,20 @@ trait DownloaderTrait
      *
      * @param string $id audio id
      *
-     * @return array 0 - file name, 1 - full path
+     * @return array 0 - file name, 1 - full local path, 2 - full local path or s3 path
      */
     public function buildFilePathsForId($id)
     {
-        $name = sprintf('%s.mp3', hash(config('app.hash.mp3'), $id));
-        $path = sprintf('%s/%s', config('app.paths.mp3'), $name);
-        return [$name, $path];
+        $fileName = sprintf('%s.mp3', hash(config('app.hash.mp3'), $id));
+        $localPath = sprintf('%s/%s', config('app.paths.mp3'), $fileName);
+        $path = $localPath;
+
+        if ($this->isS3) {
+            $s3PathWithFolder = sprintf(config('app.aws.paths.mp3'), $fileName);
+            $path = sprintf('s3://%s/%s', config('app.aws.bucket'), $s3PathWithFolder);
+        }
+
+        return [$fileName, $localPath, $path];
     }
 
     /**
@@ -304,9 +307,8 @@ trait DownloaderTrait
     /**
      * Download given file url to given path.
      *
-     * @param string   $url
-     * @param string   $path
-     * @param resource $context stream context options when opening $path
+     * @param string $url
+     * @param string $path
      *
      * @return bool true if succeeds
      */
