@@ -8,9 +8,11 @@ use Aws\Credentials\CredentialProvider;
 return [
 
     'paths' => [
-        'cookie' => storage_path('app/cookies/%s.json'),
-        'mp3'    => storage_path('app/public/mp3'),
-        'log'    => storage_path('logs/datmusic.log'),
+        'cookie'    => storage_path('app/cookies/%s.json'),
+        'mp3'       => storage_path('app/public/mp3'),
+        'log'       => storage_path('logs/datmusic.log'),
+        'nodejs'    => env('NODEJS_PATH', 'nodejs'),
+        'decode-js' => resource_path('js/decode.js'),
     ],
 
     // hashing algorithms
