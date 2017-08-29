@@ -34,13 +34,7 @@ trait ParserTrait
             $artist = $audio->find('.ai_artist')->text(true);
             $title = $audio->find('.ai_title')->text(true);
             $duration = $audio->find('.ai_dur')->getAttribute('data-dur');
-
-            if (env('DATMUSIC_MP3_URL_DECODER', false)) {
-                $decoder = new VkMp3Decoder($audio->find('input[type=hidden]')->value);
-                $mp3 = $decoder->decodeMp3Url();
-            } else {
-                $mp3 = $audio->find('input[type=hidden]')->value;
-            }
+            $mp3 = $audio->find('input[type=hidden]')->value;
 
             $hash = hash(config('app.hash.id'), $id);
 

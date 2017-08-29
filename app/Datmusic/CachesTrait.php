@@ -69,7 +69,7 @@ trait CachesTrait
                 abort(404);
             }
 
-            return;
+            return null;
         }
 
         // search audio by audio id/hash
@@ -80,11 +80,15 @@ trait CachesTrait
                 abort(404);
             }
 
-            return;
+            return null;
         }
 
         $item = $data[$key];
         $this->cacheAudioItem($id, $item);
+
+        if (env('DATMUSIC_MP3_URL_DECODER', false)) {
+            $item['mp3'] = decodeVkMp3Url($item['mp3']);
+        }
 
         return $item;
     }

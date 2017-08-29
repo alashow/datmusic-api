@@ -17,6 +17,26 @@ function logger()
 }
 
 /**
+ * Decodes VK's audio mp3 url with their js code using nodejs.
+ * @param $encoded
+ *
+ * @return string
+ */
+function decodeVkMp3Url($encoded)
+{
+    if (empty($encoded)) {
+        logger()->log('Decoder.Empty');
+
+        return '';
+    }
+
+    $nodejs = config('app.paths.nodejs');
+    $js = config('app.paths.decode-js');
+
+    return exec("{$nodejs} {$js} {$encoded}");
+}
+
+/**
  * Function: sanitize (from Laravel)
  * Returns a sanitized string, typically for URLs.
  *
