@@ -172,6 +172,7 @@ trait SearchesTrait
             // remove mp3 link and id from array
             unset($item['mp3']);
             unset($item['id']);
+            unset($item['userId']);
 
             $result = array_merge($item, [
                 'download' => $downloadUrl,

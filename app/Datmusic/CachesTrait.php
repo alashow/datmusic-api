@@ -87,7 +87,7 @@ trait CachesTrait
         $this->cacheAudioItem($id, $item);
 
         if (env('DATMUSIC_MP3_URL_DECODER', false)) {
-            $item['mp3'] = decodeVkMp3Url($item['mp3']);
+            $item['mp3'] = decodeVkMp3Url($item['mp3'], $item['userId']);
         }
 
         return $item;

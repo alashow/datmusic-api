@@ -18,11 +18,13 @@ function logger()
 
 /**
  * Decodes VK's audio mp3 url with their js code using nodejs.
- * @param $encoded
+ *
+ * @param string $encoded encoded url
+ * @param int    $userId  id of vk account
  *
  * @return string
  */
-function decodeVkMp3Url($encoded)
+function decodeVkMp3Url($encoded, $userId)
 {
     if (empty($encoded)) {
         logger()->log('Decoder.Empty');
@@ -33,7 +35,7 @@ function decodeVkMp3Url($encoded)
     $nodejs = config('app.paths.nodejs');
     $js = config('app.paths.decode-js');
 
-    return exec("{$nodejs} {$js} {$encoded}");
+    return exec("{$nodejs} {$js} {$encoded} {$userId}");
 }
 
 /**

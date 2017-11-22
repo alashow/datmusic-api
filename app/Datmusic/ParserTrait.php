@@ -23,6 +23,10 @@ trait ParserTrait
         $dom = new Dom();
         $dom->load((string) $response->getBody());
 
+        // find user id from body
+        preg_match('/vk_id=\d{1,20}/', $response->getBody(), $userIdMatch);
+        $userId = explode('vk_id=', $userIdMatch[0])[1];
+
         $items = $dom->find('.audio_item');
         $data = [];
 
@@ -40,6 +44,7 @@ trait ParserTrait
 
             array_push($data, [
                 'id'       => $hash,
+                'userId'   => $userId,
                 'artist'   => trim(html_entity_decode($artist, ENT_QUOTES)),
                 'title'    => trim(html_entity_decode($title, ENT_QUOTES)),
                 'duration' => (int) $duration,
