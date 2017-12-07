@@ -6,6 +6,7 @@
 
 namespace App\Datmusic;
 
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Psr\Http\Message\ResponseInterface;
@@ -27,7 +28,7 @@ trait SearchesTrait
      *
      * @param Request $request
      *
-     * @return array
+     * @return JsonResponse
      */
     public function search(Request $request)
     {
@@ -224,7 +225,7 @@ trait SearchesTrait
      *
      * @param $string
      *
-     * @return mixed
+     * @return string clean string
      */
     private function cleanBadWords($string)
     {

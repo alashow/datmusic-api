@@ -33,7 +33,7 @@ class AppServiceProvider extends ServiceProvider
             config(['app.accounts' => $accounts]);
         }
 
-        // override CORS
+        // override CORs
         $origins = env('CORS_ALLOWED_ORIGINS', null);
         if ($origins != null && strlen($origins) > 1) {
             Log::info('Using CORS domains from .env');

@@ -72,7 +72,7 @@ trait AuthenticatorTrait
      *
      * @param ResponseInterface $response
      *
-     * @return array
+     * @return bool
      */
     private function checkIsSecurityCheck($response)
     {
@@ -145,7 +145,7 @@ trait AuthenticatorTrait
                 ],
             ]);
         } else {
-            abort(403);
+            abort(503);
         }
     }
 

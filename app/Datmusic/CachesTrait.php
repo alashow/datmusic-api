@@ -8,6 +8,7 @@ namespace App\Datmusic;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 trait CachesTrait
 {
@@ -54,9 +55,10 @@ trait CachesTrait
      *
      * @param string $key
      * @param string $id
-     * @param $abort boolean aborts with 404 if not found, otherwise returns null
+     * @param bool   $abort boolean aborts with 404 if not found, otherwise returns null
      *
-     * @return mixed
+     * @return array|null
+     * @throws HttpException
      */
     public function getAudio($key, $id, $abort = true)
     {
@@ -96,7 +98,7 @@ trait CachesTrait
     /**
      * Save audio item in cache.
      *
-     * @param $id string audio id
+     * @param $id   string audio id
      * @param $item array audio item
      */
     public function cacheAudioItem($id, $item)

@@ -7,9 +7,11 @@
 namespace App\Datmusic;
 
 use Aws\S3\S3Client;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Cache;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 trait DownloaderTrait
 {
@@ -44,7 +46,7 @@ trait DownloaderTrait
      * @param $key
      * @param $id
      *
-     * @return mixed
+     * @return int
      */
     public function bytes($key, $id)
     {
@@ -73,7 +75,7 @@ trait DownloaderTrait
      * @param string $key
      * @param string $id
      *
-     * @return mixed
+     * @return RedirectResponse
      */
     public function stream($key, $id)
     {
@@ -87,7 +89,7 @@ trait DownloaderTrait
      * @param string $id
      * @param int    $bitrate
      *
-     * @return mixed
+     * @return BinaryFileResponse|RedirectResponse
      */
     public function bitrateDownload($key, $id, $bitrate)
     {
@@ -102,7 +104,7 @@ trait DownloaderTrait
      * @param bool   $stream
      * @param int    $bitrate
      *
-     * @return mixed
+     * @return BinaryFileResponse|RedirectResponse
      */
     public function download($key, $id, $stream = false, $bitrate = -1)
     {
@@ -150,8 +152,6 @@ trait DownloaderTrait
         } else {
             abort(404);
         }
-
-        return 0;
     }
 
     /**
@@ -165,7 +165,7 @@ trait DownloaderTrait
      * @param $stream   boolean  is stream
      * @param $cache    boolean is cache
      *
-     * @return \Illuminate\Http\RedirectResponse|\Laravel\Lumen\Http\Redirector|BinaryFileResponse
+     * @return BinaryFileResponse|RedirectResponse
      */
     private function downloadLocal($path, $fileName, $key, $id, $name, $stream, $cache)
     {
@@ -357,9 +357,11 @@ trait DownloaderTrait
     }
 
     /**
-     * Checks given files mime type and abort with 404 if file is not an mp3 file.
+     * Checks given files mime type and aborts with 404 if file is not an mp3 file.
      *
      * @param string $path full path of mp3
+     *
+     * @throws HttpException
      */
     public function checkIsBadMp3($path)
     {
