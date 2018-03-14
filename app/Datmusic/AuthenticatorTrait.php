@@ -153,7 +153,7 @@ trait AuthenticatorTrait
                 ],
             ]);
         } else {
-            abort(503);
+            abort(503, "Cannot authenticate to VK because of security questions for account {$this->authPhone}");
         }
     }
 

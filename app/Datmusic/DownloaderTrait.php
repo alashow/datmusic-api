@@ -7,8 +7,8 @@
 namespace App\Datmusic;
 
 use Aws\S3\S3Client;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Str;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Cache;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpKernel\Exception\HttpException;
@@ -396,7 +396,7 @@ trait DownloaderTrait
             logger()->log('Download.Bad.'.($badMp3 ? 'Mp3' : 'Mime'), $path, implode(' ', $checks));
 
             @unlink($path);
-            abort(404);
+            abort(404, "VK returned dummy 'API Unavailable' mp3 file, decoding of real mp3 url must have failed");
         }
     }
 

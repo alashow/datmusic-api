@@ -6,8 +6,8 @@
 
 namespace App\Datmusic;
 
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Cache;
 use Psr\Http\Message\ResponseInterface;
 
@@ -68,7 +68,7 @@ trait SearchesTrait
             // we need to get out of the loop. maybe something is wrong with authentication.
             if ($this->authRetries >= 3) {
                 logger()->log('Auth.TooMany', $this->authRetries);
-                abort(403);
+                abort(503, "Couldn't authenticate to VK");
             }
             $this->auth();
 
