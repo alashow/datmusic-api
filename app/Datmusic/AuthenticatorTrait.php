@@ -6,6 +6,7 @@
 
 namespace App\Datmusic;
 
+use Log;
 use PHPHtmlParser\Dom;
 use Illuminate\Support\Str;
 use GuzzleHttp\Cookie\FileCookieJar;
@@ -47,10 +48,17 @@ trait AuthenticatorTrait
 
         $this->authPhone = $account[0];
         $this->authPassword = $account[1];
-
         $this->cookieFile = sprintf(config('app.paths.cookie'), md5($this->authPhone));
+
+        try {
+            $this->jar = new FileCookieJar($this->cookieFile);
+        } catch (\InvalidArgumentException $e) {
+            // delete old cookie as it's somehow broken now
+            Log::info("Deleting broken cookie file {$this->cookieFile}");
+            @unlink($this->cookieFile);
+            $this->jar = new FileCookieJar($this->cookieFile);
+        }
         $this->authenticated = file_exists($this->cookieFile);
-        $this->jar = new FileCookieJar($this->cookieFile);
     }
 
     /**
