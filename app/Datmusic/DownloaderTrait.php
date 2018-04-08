@@ -6,6 +6,9 @@
 
 namespace App\Datmusic;
 
+use Log;
+use getID3;
+use getid3_writetags;
 use Aws\S3\S3Client;
 use Illuminate\Support\Str;
 use Illuminate\Http\RedirectResponse;
@@ -142,6 +145,7 @@ trait DownloaderTrait
         }
 
         if ($this->downloadFile($item['mp3'], $path)) {
+            $this->writeAudioTags($item, $path);
             $this->tryToConvert($bitrate, $path, $localPath, $fileName, $name);
 
             if ($this->isS3) {
@@ -424,6 +428,35 @@ trait DownloaderTrait
             $name,
             $headers
         );
+    }
+
+    /**
+     * Try to write mp3 id3 tags.
+     *
+     * @param $audio array an array with fields title and artist
+     * @param $path  string full path to file
+     */
+    private function writeAudioTags($audio, $path)
+    {
+        try {
+            $encoding = 'UTF-8';
+            $getID3 = new getID3;
+            $getID3->setOption(['encoding' => $encoding]);
+            $writer = new getid3_writetags;
+            $writer->filename = $path;
+            $writer->tagformats = ['id3v1', 'id3v2.3'];
+            $writer->remove_other_tags = false;
+            $writer->tag_encoding = $encoding;
+            $tags = [
+                'title'   => [$audio['title']],
+                'artist'  => [$audio['artist']],
+                'comment' => [config('app.downloading.id3.comment')],
+            ];
+            $writer->tag_data = $tags;
+            $writer->WriteTags();
+        } catch (\getid3_exception $e) {
+            Log::error("Exception while writing id3 tags", [$audio, $path, $e]);
+        }
     }
 
     /**

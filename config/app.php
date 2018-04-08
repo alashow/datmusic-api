@@ -51,6 +51,10 @@ return [
             'connection' => 2, // connection timeout
             'execution'  => 60, // downloading timeout
         ],
+
+        'id3' => [
+            'comment' => 'Downloaded via https://datmusic.xyz'
+        ],
     ],
 
     'conversion' => [
