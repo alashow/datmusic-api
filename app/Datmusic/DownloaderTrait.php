@@ -8,8 +8,8 @@ namespace App\Datmusic;
 
 use Log;
 use getID3;
-use getid3_writetags;
 use Aws\S3\S3Client;
+use getid3_writetags;
 use Illuminate\Support\Str;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Cache;
@@ -262,7 +262,7 @@ trait DownloaderTrait
      *
      * @return string formatted name
      */
-    public function getFormattedName($item)
+    private function getFormattedName($item)
     {
         $name = sprintf('%s - %s', $item['artist'], $item['title']);
         $name = Str::ascii($name);
@@ -279,7 +279,7 @@ trait DownloaderTrait
      *
      * @return array 0 - file name, 1 - full local path, 2 - full local path or s3 path
      */
-    public function buildFilePathsForId($id)
+    private function buildFilePathsForId($id)
     {
         $fileName = sprintf('%s.mp3', hash(config('app.hash.mp3'), $id));
         $localPath = sprintf('%s/%s', config('app.paths.mp3'), $fileName);
@@ -316,7 +316,7 @@ trait DownloaderTrait
      *
      * @return bool true if succeeds
      */
-    public function downloadFile($url, $path)
+    private function downloadFile($url, $path)
     {
         if ($this->s3StreamContext == null) {
             $handle = fopen($path, 'w');
@@ -367,7 +367,7 @@ trait DownloaderTrait
      *
      * @throws HttpException
      */
-    public function checkIsBadMp3($path)
+    private function checkIsBadMp3($path)
     {
         if (! file_exists($path)) {
             logger()->log('Download.Bad.NotFound');
@@ -412,7 +412,7 @@ trait DownloaderTrait
      *
      * @return BinaryFileResponse
      */
-    public function downloadResponse($path, $name)
+    private function downloadResponse($path, $name)
     {
         $this->checkIsBadMp3($path);
 
@@ -455,7 +455,7 @@ trait DownloaderTrait
             $writer->tag_data = $tags;
             $writer->WriteTags();
         } catch (\getid3_exception $e) {
-            Log::error("Exception while writing id3 tags", [$audio, $path, $e]);
+            Log::error('Exception while writing id3 tags', [$audio, $path, $e]);
         }
     }
 
@@ -468,7 +468,7 @@ trait DownloaderTrait
      *
      * @return bool is success
      */
-    public function convertMp3Bitrate($bitrate, $input, $output)
+    private function convertMp3Bitrate($bitrate, $input, $output)
     {
         $bitrateString = config('app.conversion.allowed_ffmpeg')[array_search($bitrate,
             config('app.conversion.allowed'))];

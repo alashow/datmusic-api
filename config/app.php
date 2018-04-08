@@ -53,7 +53,7 @@ return [
         ],
 
         'id3' => [
-            'comment' => 'Downloaded via https://datmusic.xyz'
+            'comment' => 'Downloaded via https://datmusic.xyz',
         ],
     ],
 
