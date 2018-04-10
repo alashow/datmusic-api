@@ -6,49 +6,44 @@
 
 namespace App\Datmusic;
 
-use PHPHtmlParser\Dom;
-use Psr\Http\Message\ResponseInterface;
-
 trait ParserTrait
 {
     /**
-     * Parses response html for audio items, saves it in cache and returns parsed array.
+     * Maps response to audio items.
      *
-     * @param ResponseInterface $response
+     * @param \stdClass $response
      *
      * @return array
      */
-    public static function getAudioItems($response)
+    public function getAudioItems($response)
     {
-        $dom = new Dom();
-        $dom->load((string) $response->getBody());
+        $audios = $response->response->items;
 
-        // find user id from body
-        preg_match('/vk_id=\d{1,20}/', $response->getBody(), $userIdMatch);
-        $userId = explode('vk_id=', $userIdMatch[0])[1];
-
-        $items = $dom->find('.audio_item');
         $data = [];
+        foreach ($audios as $item) {
+            $id = $item->id;
+            $userId = $item->owner_id;
+            $sourceId = sprintf('%s_%s', $userId, $id);
+            $genreId = $item->track_genre_id;
+            $artist = $item->artist;
+            $title = $item->title;
+            $duration = $item->duration;
+            $date = $item->date;
+            $hq = $item->is_hq;
+            $mp3 = $item->url;
 
-        foreach ($items as $item) {
-            $audio = new Dom();
-            $audio->load($item->innerHtml);
-
-            $id = explode('_search', $item->getAttribute('data-id'))[0];
-            $artist = $audio->find('.ai_artist')->text(true);
-            $title = $audio->find('.ai_title')->text(true);
-            $duration = $audio->find('.ai_dur')->getAttribute('data-dur');
-            $mp3 = $audio->find('input[type=hidden]')->value;
-
-            $hash = hash(config('app.hash.id'), $id);
+            $hash = hash(config('app.hash.id'), $sourceId);
 
             array_push($data, [
-                'id'       => $hash,
-                'userId'   => $userId,
-                'artist'   => trim(html_entity_decode($artist, ENT_QUOTES)),
-                'title'    => trim(html_entity_decode($title, ENT_QUOTES)),
-                'duration' => (int) $duration,
-                'mp3'      => $mp3,
+                'id'         => $hash,
+                'source_id'  => $sourceId,
+                'artist'     => trim(html_entity_decode($artist, ENT_QUOTES)),
+                'title'      => trim(html_entity_decode($title, ENT_QUOTES)),
+                'duration'   => (int) $duration,
+                'hq'         => $hq,
+                'date'       => $date,
+                'genre_id'   => $genreId,
+                'mp3'        => $mp3,
             ]);
         }
 

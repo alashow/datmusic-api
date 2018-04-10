@@ -7,6 +7,10 @@
 namespace App\Datmusic;
 
 use GuzzleHttp\Client;
+use GuzzleHttp\Psr7\Uri;
+use GuzzleHttp\Middleware;
+use GuzzleHttp\HandlerStack;
+use Psr\Http\Message\RequestInterface;
 
 class HttpClient
 {
@@ -32,14 +36,18 @@ class HttpClient
             $proxy .= sprintf('%s:%s', env('PROXY_IP'), env('PROXY_PORT'));
             $config = ['proxy' => $proxy];
         }
+        $handler = HandlerStack::create();
+        $handler->push(Middleware::mapRequest(function (RequestInterface $request) {
+            return $request->withUri(Uri::withQueryValue($request->getUri(), 'v', '5.71'));
+        }));
 
         $this->httpClient = new Client([
-            'base_uri' => 'https://m.vk.com',
-            'cookies'  => true,
-            'headers'  => [
-                'User-Agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.95 Safari/537.36',
-            ],
-        ] + $config);
+                'base_uri' => 'https://api.vk.com',
+                'headers'  => [
+                    'User-Agent' => 'KateMobileAndroid/48.2 lite-433 (Android 8.1.0; SDK 27; arm64-v8a; Google Pixel 2 XL; en)',
+                ],
+                'handler'  => $handler,
+            ] + $config);
     }
 
     public function getClient()

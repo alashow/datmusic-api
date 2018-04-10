@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright (c) 2017  Alashov Berkeli
+ * Copyright (c) 2018  Alashov Berkeli
  * It is licensed under GNU GPL v. 2 or later. For full terms see the file LICENSE.
  */
 

@@ -1,5 +1,7 @@
 <?php
 
+use Psr\Http\Message\ResponseInterface;
+
 /**
  * @return GuzzleHttp\Client Guzzle http client
  */
@@ -17,43 +19,24 @@ function logger()
 }
 
 /**
- * Decodes VK's audio mp3 url with their js code using nodejs.
- *
- * @param string $encoded encoded url
- * @param int    $userId  id of vk account
- *
- * @return string
- */
-function decodeVkMp3Url($encoded, $userId)
-{
-    if (empty($encoded)) {
-        logger()->log('Decoder.Empty');
-
-        return '';
-    }
-
-    $nodejs = config('app.paths.nodejs');
-    $js = config('app.paths.decode-js');
-
-    return exec("{$nodejs} {$js} {$encoded} {$userId}");
-}
-
-/**
  * Function: sanitize (from Laravel)
  * Returns a sanitized string, typically for URLs.
+ * Parameters:.
  *
- * Parameters:
- *
- * @param $string - The string to sanitize.
+ * @param $string          - The string to sanitize.
  * @param $force_lowercase - Force the string to lowercase?
- * @param $anal - If set to *true*, will remove all non-alphanumeric characters.
- * @param $trunc - Number of characters to truncate to (default 100, 0 to disable).
+ * @param $anal            - If set to *true*, will remove all non-alphanumeric characters.
+ * @param $trunc           - Number of characters to truncate to (default 100, 0 to disable).
  *
  * @return string sanitized string
  */
 function sanitize($string, $force_lowercase = true, $anal = false, $trunc = 100)
 {
-    $strip = ['~', '`', '!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '_', '=', '+', '[', '{', ']', '}', '\\', '|', ';', ':', '"', "'", '&#8216;', '&#8217;', '&#8220;', '&#8221;', '&#8211;', '&#8212;', '—', '–', ',', '<', '>', '/', '?'];
+    $strip = [
+        '~', '`', '!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '_', '=', '+', '[', '{', ']',
+        '}', '\\', '|', ';', ':', '"', "'", '&#8216;', '&#8217;', '&#8220;', '&#8221;', '&#8211;',
+        '&#8212;', '—', '–', ',', '<', '>', '/', '?',
+    ];
     $clean = trim(str_replace($strip, '', strip_tags($string)));
     // $clean = preg_replace('/\s+/', "-", $clean);
     $clean = ($anal ? preg_replace('/[^a-zA-Z0-9]/', '', $clean) : $clean);
@@ -75,20 +58,6 @@ function fullUrl($path)
 }
 
 /**
- * Extracts integers from given string.
- *
- * @param $string
- *
- * @return mixed
- */
-function getIntegers($string)
-{
-    preg_match_all('!\d+!', $string, $matches);
-
-    return $matches[0][0];
-}
-
-/**
  * @return string random artist name
  */
 function randomArtist()
@@ -97,4 +66,14 @@ function randomArtist()
     $randomIndex = array_rand($randomArray);
 
     return $randomArray[$randomIndex];
+}
+
+/**
+ * @param ResponseInterface $response
+ *
+ * @return stdClass
+ */
+function as_json($response)
+{
+    return json_decode((string) $response->getBody());
 }

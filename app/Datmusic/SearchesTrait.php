@@ -8,19 +8,21 @@ namespace App\Datmusic;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Cache;
-use Psr\Http\Message\ResponseInterface;
 
 trait SearchesTrait
 {
-    use CachesTrait, AuthenticatorTrait, ParserTrait;
+    use CachesTrait, ParserTrait;
+
+    private $count = 200;
+
+    private $accessTokenIndex = 0;
 
     /**
      * SearchesTrait constructor.
      */
     public function bootSearches()
     {
-        $this->bootAuthenticator();
+        $this->accessTokenIndex = array_rand(config('app.auth.tokens'));
     }
 
     /**
@@ -34,7 +36,7 @@ trait SearchesTrait
     {
         // get inputs
         $query = trim($request->get('q'));
-        $offset = abs(intval($request->get('page'))) * 50; // calculate offset from page index
+        $offset = abs(intval($request->get('page'))) * $this->count; // calculate offset from page index
 
         $cacheKey = $this->getCacheKey($request);
 
@@ -43,54 +45,18 @@ trait SearchesTrait
         if (! is_null($cachedResult)) {
             logger()->searchCache($query, $offset);
 
-            return $this->ok(
-                $this->transformSearchResponse(
-                    $request,
-                    $cachedResult
-                )
-            );
-        }
-
-        // if the cookie file doesn't exist, we need to authenticate first
-        if (! $this->authenticated) {
-            $this->auth();
-            $this->authenticated = true;
+            return $this->ok($this->transformSearchResponse($request, $cachedResult));
         }
 
         // send request
-        $response = $this->getSearchResults($query, $offset);
+        $response = $this->getSearchResults($request, $query, $offset);
 
-        // check for security checks
-        $this->authSecurityCheck($response);
-
-        // if not authenticated, authenticate then retry the search
-        if (! $this->checkIsAuthenticated($response)) {
-            // we need to get out of the loop. maybe something is wrong with authentication.
-            if ($this->authRetries >= 3) {
-                logger()->log('Auth.TooMany', $this->authRetries);
-                abort(503, "Couldn't authenticate to VK");
-            }
-            $this->auth();
-
-            return $this->search($request);
+        $error = $this->checkForErrors($response);
+        if ($error) {
+            return $error;
         }
 
         $result = $this->getAudioItems($response);
-
-        // get more pages if needed
-        for ($i = 1; $i < config('app.search.pageMultiplier'); $i++) {
-            // increment offset
-            $offset += 50;
-            // get result and parse it
-            $resultData = $this->getAudioItems($this->getSearchResults($query, $offset));
-
-            //  we can't request more pages if result is empty, break the loop
-            if (empty($resultData)) {
-                break;
-            }
-
-            $result = array_merge($result, $resultData);
-        }
 
         // store in cache
         $this->cacheSearchResult($cacheKey, $result);
@@ -107,42 +73,68 @@ trait SearchesTrait
     /**
      * Request search page.
      *
-     * @param $query
-     * @param $offset
+     * @param Request $request
+     * @param string  $query
+     * @param int     $offset
      *
-     * @return ResponseInterface
+     * @return \stdClass
      */
-    private function getSearchResults($query, $offset)
+    private function getSearchResults($request, $query, $offset)
     {
         if (empty($query)) {
-            if (config('app.popularSearchEnabled')) {
-                return $this->getPopular($offset);
-            } else {
-                $query = randomArtist();
-            }
+            $query = randomArtist();
         }
 
         $query = urlencode($query);
 
-        return httpClient()->get(
-            "audio?act=search&q=$query&offset=$offset",
-            ['cookies' => $this->jar]
-        );
+        $captchaParams = [];
+        if ($request->has('captcha_key')) {
+            $captchaParams = [
+                'captcha_sid' => $request->get('captcha_id'),
+                'captcha_key' => $request->get('captcha_key'),
+            ];
+            $this->accessTokenIndex = min(intval($request->get('captcha_index', 0)), $this->accessTokenIndex);
+        }
+
+        $params = [
+            'access_token' => config('app.auth.tokens')[$this->accessTokenIndex],
+            'q'            => $query,
+            'offset'       => $offset,
+            'sort'         => 2,
+            'count'        => $this->count,
+        ];
+
+        return as_json(httpClient()->get('method/audio.search', [
+                'query' => $params + $captchaParams,
+            ]
+        ));
     }
 
     /**
-     * Request popular page.
+     * @param \stdClass $response
      *
-     * @param $offset
-     *
-     * @return ResponseInterface
+     * @return bool|JsonResponse
      */
-    private function getPopular($offset)
+    private function checkForErrors($response)
     {
-        return httpClient()->get(
-            "audio?act=popular&offset=$offset",
-            ['cookies' => $this->jar]
-        );
+        if (property_exists($response, 'error')) {
+            $error = $response->error;
+            if ($error->error_code == 14) {
+                return $this->error([
+                    'message'       => 'Captcha!',
+                    'captcha_index' => $this->accessTokenIndex,
+                    'captcha_id'    => intval($error->captcha_sid),
+                    'captcha_img'   => $error->captcha_img,
+                ]);
+            } else {
+                return $this->error([
+                    'message' => $error->error_msg,
+                    'code'    => $error->error_code,
+                ]);
+            }
+        } else {
+            return false;
+        }
     }
 
     /**
@@ -173,7 +165,6 @@ trait SearchesTrait
             // remove mp3 link and id from array
             unset($item['mp3']);
             unset($item['id']);
-            unset($item['userId']);
 
             $result = array_merge($item, [
                 'download' => $downloadUrl,

@@ -20,24 +20,15 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        // setup accounts
-        $accounts = env('ACCOUNTS', null);
-        if ($accounts != null && strlen($accounts) > 1) {
-            Log::info('Using accounts from .env');
-
-            $accounts = explode(',', $accounts);
-            $accounts = array_map(function ($item) {
-                return explode(':', $item);
-            }, $accounts);
-
-            config(['app.accounts' => $accounts]);
+        $tokens = env('AUTH_ACCESS_TOKENS', null);
+        if ($tokens != null && strlen($tokens) > 1) {
+            $tokens = explode(',', $tokens);
+            config(['app.auth.tokens' => $tokens]);
         }
 
         // override CORs
         $origins = env('CORS_ALLOWED_ORIGINS', null);
         if ($origins != null && strlen($origins) > 1) {
-            Log::info('Using CORS domains from .env');
-
             $origins = explode(',', $origins);
             config(['cors.allowedOrigins' => $origins]);
         }

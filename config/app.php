@@ -8,11 +8,9 @@ use Aws\Credentials\CredentialProvider;
 return [
 
     'paths' => [
-        'cookie'    => storage_path('app/cookies/%s.json'),
-        'mp3'       => storage_path('app/public/mp3'),
-        'log'       => storage_path('logs/datmusic.log'),
-        'nodejs'    => env('NODEJS_PATH', 'nodejs'),
-        'decode-js' => resource_path('js/decode.js'),
+        'cookie' => storage_path('app/cookies/%s.json'),
+        'mp3'    => storage_path('app/public/mp3'),
+        'log'    => storage_path('logs/datmusic.log'),
     ],
 
     // hashing algorithms
@@ -23,11 +21,6 @@ return [
     ],
 
     'search' => [
-        // how many pages need to get for each page.
-        // ex: if value is 2, two pages will be requested for each query.
-        // flush the cache after changing this value
-        'pageMultiplier' => 2,
-
         // moves song to end if matches
         'sortRegex' => '/[ \[\],.:\)\(\-_](bass ?boost(ed)?|dub sound|remake|low bass|cover|(re)?mix|dj|bootleg|edit|aco?ustic|instrumental|karaoke|tribute|vs|rework|mash|rmx|(night|day|slow)core|remode|ringtone?|рингтон|РИНГТОН|Рингтон|звонок|минус)([ ,.:\[\]\)\(\-_].*)?$/i',
 
@@ -39,10 +32,9 @@ return [
         'duration' => 24 * 60, // in minutes
     ],
 
-    // account credentials, 0. phone number (without plus). 1. plain password
-    // environment variable ACCOUNTS can override this
-    'accounts' => [
-        ['phone_number', 'password'],
+    'auth' => [
+        // environment variable AUTH_ACCESS_TOKENS can override this
+        'tokens' => env('AUTH_ACCESS_TOKENS'),
     ],
 
     'downloading' => [

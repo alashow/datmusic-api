@@ -1,20 +1,63 @@
-# datmusic-api
+# datmusic-api vk-api
 
-This is new api for datmusic which uses directly m.vk.com (not api) to get audio data.
+This branch contains a wrapper for VK API.
 
-I made this because VK disabled their public Audio API access.
+VK's private audio API's can be used only with tokens from official apps or special third party apps (for ex. Kate mobile).
+User agent of that app must be used when talking to VK when using such tokens.
  
 # How it works
 It's written using [Lumen](https://lumen.laravel.com), micro web framework by [Laravel](https://laravel.com)
   
-The app logins to site using credentials from [.env](.env.example) or [config file](config/app.php#L20) (multiple accounts supported) and saves cookies in cache for re-using.
-Then it searches songs with given query in vk website (currently from mobile version, m.vk.com) and parses it to an array. It will save parsed data in cache and will return JSON.
+The wrapper searches via API, caches the results. Tries to recover from captchas.
+Everything else is same as in original datmusic-api.
+
+# How to get tokens
+This is how I was able to get tokens using Kate Mobile app:
+1. Use proxy to intercept HTTPS requests made by [Kate Mobile](https://play.google.com/store/apps/details?id=com.perm.kate_new_6) app.
+
+    Example apps: [mitmproxy](https://mitmproxy.org/), [Fiddler](https://www.telerik.com/fiddler), [Charles proxy](https://www.charlesproxy.com/), or [Wireshark](https://www.wireshark.org/)
+    
+    Personal recommendation: mitmproxy with web module. Easy installation, simple ui, easy SSL root certificate installation etc.
+
+2. Listen for requests to get `refreshToken`
+
+    After Kate's login, VK will give an access token: this token won't work with Audio API's ("Token confirmation required").
+    
+    Open Audios screen from the app, and you will see in your network interceptor that Kate will get `Token confirmation required` from VK.
+    After which Kate will register something in Google Cloud Messaging to generate `receipt` field which will it use to get `refreshToken` by sending it to private API `auth.refreshToken` along with current token.
+    After all, `auth.refreshToken` will return a new token. This is the token you need to save to be able to use it in this branch.
+    
+    ![refresh token](https://i.imgur.com/jI06pQ8.jpg)
+    
+Note: Try to use same IP's while doing it all. 
 
 # Search
 
 Search results are cached for 24 hours by default.
 
 `https://example.com/search?q={query}&page={page}`
+
+In vk-api branch, you can get errors in search responses.
+Captchas are the only recoverable errors.
+Example captcha error response:
+```json
+{
+  "status": "error",
+  "error": {
+    "message": "Captcha!",
+    "captcha_index": 1,
+    "captcha_id": 123456789,
+    "captcha_img": "https://url-to-captcha"
+  }
+}
+```
+
+Client app will need to show `captcha_img` to user, and then retry search request with 3 additional queries:
+1. `captcha_index` returned captcha index.
+2. `captcha_id` returned captcha id.
+3. `captcha_key` user's answer to shown `captcha_img` captcha.
+
+`https://example.com/search?q={query}&page={page}&captcha_index={captcha index}&captcha_id={captcha id}&captcha_key={captcha answer}`
 
 # Downloads & Streams
 
@@ -35,10 +78,8 @@ You need to install `ffmpeg` to your server to make it work and change path to b
 # Hashing
 
 Search hash calculated by request params (query and page).
-Audio hash calculated by audio id.
-Default hashing algorithm is [`crc32`](https://en.wikipedia.org/wiki/Cyclic_redundancy_check). I chose this because of speed, short length, and I didn't need cryptographic hashing. You can change it in config if you want.
-
-In web version of VK, there is no page similar to [audio.get](https://vk.com/dev/audio.get), so we can only serve and stream mp3 files that are shown by search function (it searches from cache). But if using S3 as for caching mp3 files, it will search from there. 
+Audio hash calculated by audio id and owner id.
+Default hashing algorithm is [`crc32`](https://en.wikipedia.org/wiki/Cyclic_redundancy_check). I chose this because of speed, short length, and I didn't need cryptographic hashing. You can change it in config if you want. 
  
 # Cache
 
