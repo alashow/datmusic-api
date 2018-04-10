@@ -8,19 +8,18 @@ namespace App\Datmusic;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Cache;
 use Psr\Http\Message\ResponseInterface;
 
 trait SearchesTrait
 {
-    use CachesTrait, AuthenticatorTrait, ParserTrait;
+    use CachesTrait, ParserTrait;
 
     /**
      * SearchesTrait constructor.
      */
     public function bootSearches()
     {
-        $this->bootAuthenticator();
+        //no-op
     }
 
     /**
@@ -43,54 +42,13 @@ trait SearchesTrait
         if (! is_null($cachedResult)) {
             logger()->searchCache($query, $offset);
 
-            return $this->ok(
-                $this->transformSearchResponse(
-                    $request,
-                    $cachedResult
-                )
-            );
-        }
-
-        // if the cookie file doesn't exist, we need to authenticate first
-        if (! $this->authenticated) {
-            $this->auth();
-            $this->authenticated = true;
+            return $this->ok($this->transformSearchResponse($request, $cachedResult));
         }
 
         // send request
         $response = $this->getSearchResults($query, $offset);
 
-        // check for security checks
-        $this->authSecurityCheck($response);
-
-        // if not authenticated, authenticate then retry the search
-        if (! $this->checkIsAuthenticated($response)) {
-            // we need to get out of the loop. maybe something is wrong with authentication.
-            if ($this->authRetries >= 3) {
-                logger()->log('Auth.TooMany', $this->authRetries);
-                abort(503, "Couldn't authenticate to VK");
-            }
-            $this->auth();
-
-            return $this->search($request);
-        }
-
         $result = $this->getAudioItems($response);
-
-        // get more pages if needed
-        for ($i = 1; $i < config('app.search.pageMultiplier'); $i++) {
-            // increment offset
-            $offset += 50;
-            // get result and parse it
-            $resultData = $this->getAudioItems($this->getSearchResults($query, $offset));
-
-            //  we can't request more pages if result is empty, break the loop
-            if (empty($resultData)) {
-                break;
-            }
-
-            $result = array_merge($result, $resultData);
-        }
 
         // store in cache
         $this->cacheSearchResult($cacheKey, $result);
@@ -115,33 +73,19 @@ trait SearchesTrait
     private function getSearchResults($query, $offset)
     {
         if (empty($query)) {
-            if (config('app.popularSearchEnabled')) {
-                return $this->getPopular($offset);
-            } else {
-                $query = randomArtist();
-            }
+            $query = randomArtist();
         }
 
         $query = urlencode($query);
 
-        return httpClient()->get(
-            "audio?act=search&q=$query&offset=$offset",
-            ['cookies' => $this->jar]
-        );
-    }
-
-    /**
-     * Request popular page.
-     *
-     * @param $offset
-     *
-     * @return ResponseInterface
-     */
-    private function getPopular($offset)
-    {
-        return httpClient()->get(
-            "audio?act=popular&offset=$offset",
-            ['cookies' => $this->jar]
+        return httpClient()->get('api.php', [
+                'query' => [
+                    'key'    => config('app.auth.ya_key'),
+                    'method' => 'search',
+                    'q'      => $query,
+                    'offset' => $offset,
+                ],
+            ]
         );
     }
 
@@ -173,7 +117,6 @@ trait SearchesTrait
             // remove mp3 link and id from array
             unset($item['mp3']);
             unset($item['id']);
-            unset($item['userId']);
 
             $result = array_merge($item, [
                 'download' => $downloadUrl,

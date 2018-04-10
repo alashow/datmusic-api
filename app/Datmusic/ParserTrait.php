@@ -6,52 +6,91 @@
 
 namespace App\Datmusic;
 
-use PHPHtmlParser\Dom;
 use Psr\Http\Message\ResponseInterface;
 
 trait ParserTrait
 {
+    private $AUDIO_ITEM_INDEX_ID = 0;
+    private $AUDIO_ITEM_INDEX_OWNER_ID = 1;
+    private $AUDIO_ITEM_INDEX_URL = 2;
+    private $AUDIO_ITEM_INDEX_TITLE = 3;
+    private $AUDIO_ITEM_INDEX_PERFORMER = 4;
+    private $AUDIO_ITEM_INDEX_DURATION = 5;
+
+    private $getAudiosLimit = 10;
+
     /**
-     * Parses response html for audio items, saves it in cache and returns parsed array.
+     * Maps response to audio items.
      *
      * @param ResponseInterface $response
      *
      * @return array
      */
-    public static function getAudioItems($response)
+    public function getAudioItems($response)
     {
-        $dom = new Dom();
-        $dom->load((string) $response->getBody());
+        $audios = json_decode((string) $response->getBody())->list;
 
-        // find user id from body
-        preg_match('/vk_id=\d{1,20}/', $response->getBody(), $userIdMatch);
-        $userId = explode('vk_id=', $userIdMatch[0])[1];
-
-        $items = $dom->find('.audio_item');
         $data = [];
+        foreach ($audios as $item) {
+            $id = $item[$this->AUDIO_ITEM_INDEX_ID];
+            $userId = $item[$this->AUDIO_ITEM_INDEX_OWNER_ID];
+            $artist = $item[$this->AUDIO_ITEM_INDEX_PERFORMER];
+            $title = $item[$this->AUDIO_ITEM_INDEX_TITLE];
+            $duration = $item[$this->AUDIO_ITEM_INDEX_DURATION];
+            $sourceId = sprintf('%s_%s', $userId, $id);
 
-        foreach ($items as $item) {
-            $audio = new Dom();
-            $audio->load($item->innerHtml);
-
-            $id = explode('_search', $item->getAttribute('data-id'))[0];
-            $artist = $audio->find('.ai_artist')->text(true);
-            $title = $audio->find('.ai_title')->text(true);
-            $duration = $audio->find('.ai_dur')->getAttribute('data-dur');
-            $mp3 = $audio->find('input[type=hidden]')->value;
-
-            $hash = hash(config('app.hash.id'), $id);
+            $hash = hash(config('app.hash.id'), $sourceId);
 
             array_push($data, [
-                'id'       => $hash,
-                'userId'   => $userId,
-                'artist'   => trim(html_entity_decode($artist, ENT_QUOTES)),
-                'title'    => trim(html_entity_decode($title, ENT_QUOTES)),
-                'duration' => (int) $duration,
-                'mp3'      => $mp3,
+                'id'        => $hash,
+                'source_id' => $sourceId,
+                'artist'    => trim(html_entity_decode($artist, ENT_QUOTES)),
+                'title'     => trim(html_entity_decode($title, ENT_QUOTES)),
+                'duration'  => (int) $duration,
             ]);
         }
 
         return $data;
+    }
+
+    /**
+     * @param array $audios , max {@link #$getAudiosLimit}
+     *
+     * @return array with mp3 urls
+     */
+    public function getUrlsForAudios(...$audios)
+    {
+        if (count($audios) > $this->getAudiosLimit) {
+            throw new \RuntimeException("Audios count must not be more than {$this->getAudiosLimit}");
+        }
+
+        $ids = array_map(function ($item) use ($audios) {
+            return $item['source_id'];
+        }, $audios);
+        $ids = implode(',', $ids);
+        $response = httpClient()->get('api.php', [
+                'query' => [
+                    'key'    => config('app.auth.ya_key'),
+                    'method' => 'get.audio',
+                    'ids'    => $ids,
+                ],
+            ]
+        );
+
+        $audios = json_decode((string) $response->getBody());
+
+        return array_map(function ($item) {
+            return $item[$this->AUDIO_ITEM_INDEX_URL];
+        }, $audios);
+    }
+
+    /**
+     * @param $audio
+     *
+     * @return string mp3 url
+     */
+    public function getUrlForAudio($audio)
+    {
+        return $this->getUrlsForAudios($audio)[0];
     }
 }

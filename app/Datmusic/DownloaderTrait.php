@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright (c) 2017  Alashov Berkeli
+ * Copyright (c) 2018  Alashov Berkeli
  * It is licensed under GNU GPL v. 2 or later. For full terms see the file LICENSE.
  */
 
@@ -139,6 +139,7 @@ trait DownloaderTrait
 
         $item = $this->getAudio($key, $id);
         $name = $this->getFormattedName($item);
+        $item['mp3'] = $this->getUrlForAudio($item);
 
         if ($this->isS3) {
             $this->s3StreamContext = $this->buildS3StreamContextOptions($name);
@@ -369,6 +370,9 @@ trait DownloaderTrait
      */
     private function checkIsBadMp3($path)
     {
+        // no need to check with ya-api
+        return;
+
         if (! file_exists($path)) {
             logger()->log('Download.Bad.NotFound');
 

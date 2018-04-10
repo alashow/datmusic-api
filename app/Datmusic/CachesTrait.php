@@ -88,10 +88,6 @@ trait CachesTrait
         $item = $data[$key];
         $this->cacheAudioItem($id, $item);
 
-        if (env('DATMUSIC_MP3_URL_DECODER', false)) {
-            $item['mp3'] = decodeVkMp3Url($item['mp3'], $item['userId']);
-        }
-
         return $item;
     }
 
@@ -100,6 +96,8 @@ trait CachesTrait
      *
      * @param $id   string audio id
      * @param $item array audio item
+     *
+     * @return array
      */
     public function cacheAudioItem($id, $item)
     {
@@ -113,6 +111,8 @@ trait CachesTrait
      * Get audio item from cache.
      *
      * @param $id string audio id
+     *
+     * @return array
      */
     public function getAudioCache($id)
     {
