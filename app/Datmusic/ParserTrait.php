@@ -46,7 +46,8 @@ trait ParserTrait
                 'id'       => $hash,
                 'userId'   => $userId,
                 'artist'   => trim(html_entity_decode($artist, ENT_QUOTES)),
-                'title'    => trim(html_entity_decode($title, ENT_QUOTES)),
+                'title'    => trim(html_entity_decode($title, ENT_QUOTES)),,
+				'doc'      => 'audio'.explode('_', $item->getAttribute('data-id'))[0].'_'.explode('_', $item->getAttribute('data-id'))[1],
                 'duration' => (int) $duration,
                 'mp3'      => $mp3,
             ]);
