@@ -1,14 +1,12 @@
-# datmusic-api
+# datmusic-api ya-api
 
-This is new api for datmusic which uses directly m.vk.com (not api) to get audio data.
+This branch contains a wrapper for api.я.ws (which is itself a wrapper for VK Audio API :)).
 
-I made this because VK disabled their public Audio API access.
- 
-# How it works
-It's written using [Lumen](https://lumen.laravel.com), micro web framework by [Laravel](https://laravel.com)
-  
-The app logins to site using credentials from [.env](.env.example) or [config file](config/app.php#L20) (multiple accounts supported) and saves cookies in cache for re-using.
-Then it searches songs with given query in vk website (currently from mobile version, m.vk.com) and parses it to an array. It will save parsed data in cache and will return JSON.
+It works just as datmusic-api from master branch, but used api.я.ws to get audios.
+
+# Setup
+
+Set your ya-api key in `.env` file.
 
 # Search
 
@@ -36,9 +34,7 @@ You need to install `ffmpeg` to your server to make it work and change path to b
 
 Search hash calculated by request params (query and page).
 Audio hash calculated by audio id.
-Default hashing algorithm is [`crc32`](https://en.wikipedia.org/wiki/Cyclic_redundancy_check). I chose this because of speed, short length, and I didn't need cryptographic hashing. You can change it in config if you want.
-
-In web version of VK, there is no page similar to [audio.get](https://vk.com/dev/audio.get), so we can only serve and stream mp3 files that are shown by search function (it searches from cache). But if using S3 as for caching mp3 files, it will search from there. 
+Default hashing algorithm is [`crc32`](https://en.wikipedia.org/wiki/Cyclic_redundancy_check). I chose this because of speed, short length, and I didn't need cryptographic hashing. You can change it in config if you want. 
  
 # Cache
 
