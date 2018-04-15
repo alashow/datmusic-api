@@ -139,7 +139,11 @@ trait DownloaderTrait
 
         $item = $this->getAudio($key, $id);
         $name = $this->getFormattedName($item);
-        $item['mp3'] = $this->getUrlForAudio($item);
+
+        // fetch url if not prefetched
+        if (! isset($item['mp3'])) {
+            $item['mp3'] = $this->getUrlForAudio($item);
+        }
 
         if ($this->isS3) {
             $this->s3StreamContext = $this->buildS3StreamContextOptions($name);

@@ -50,6 +50,15 @@ trait ParserTrait
             ]);
         }
 
+        // prefetch mp3 urls of first 2 batches of audios
+        $limit = $this->getAudiosLimit;
+        for ($i = 0; $i < min(count($data), $limit * 2); $i += $limit) {
+            $urls = $this->getUrlsForAudios(array_slice($data, $i, $limit));
+            for ($j = 0; $j < $limit; $j++) {
+                $data[$j + $i]['mp3'] = $urls[$j];
+            }
+        }
+
         return $data;
     }
 
@@ -58,7 +67,7 @@ trait ParserTrait
      *
      * @return array with mp3 urls
      */
-    public function getUrlsForAudios(...$audios)
+    public function getUrlsForAudios($audios)
     {
         if (count($audios) > $this->getAudiosLimit) {
             throw new \RuntimeException("Audios count must not be more than {$this->getAudiosLimit}");
@@ -91,6 +100,6 @@ trait ParserTrait
      */
     public function getUrlForAudio($audio)
     {
-        return $this->getUrlsForAudios($audio)[0];
+        return $this->getUrlsForAudios([$audio])[0];
     }
 }
