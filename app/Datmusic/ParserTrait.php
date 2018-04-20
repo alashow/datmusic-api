@@ -13,6 +13,7 @@ trait ParserTrait
     private $AUDIO_ITEM_INDEX_ID = 0;
     private $AUDIO_ITEM_INDEX_OWNER_ID = 1;
     private $AUDIO_ITEM_INDEX_URL = 2;
+    private $AUDIO_ITEM_INDEX_EXTRAS = 12;
     private $AUDIO_ITEM_INDEX_TITLE = 3;
     private $AUDIO_ITEM_INDEX_PERFORMER = 4;
     private $AUDIO_ITEM_INDEX_DURATION = 5;
@@ -89,7 +90,7 @@ trait ParserTrait
         $audios = json_decode((string) $response->getBody());
 
         return array_map(function ($item) {
-            return $item[$this->AUDIO_ITEM_INDEX_URL];
+            return [$item[$this->AUDIO_ITEM_INDEX_URL], $item[$this->AUDIO_ITEM_INDEX_EXTRAS]];
         }, $audios);
     }
 

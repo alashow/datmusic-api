@@ -323,6 +323,14 @@ trait DownloaderTrait
      */
     private function downloadFile($url, $path)
     {
+        if (is_array($url)) {
+            try {
+                $url = get_headers($url[1], 1)['Location'][2];
+            } catch (\Exception $e) {
+                $url = $url[0];
+            }
+        }
+
         if ($this->s3StreamContext == null) {
             $handle = fopen($path, 'w');
         } else {
