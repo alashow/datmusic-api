@@ -103,4 +103,25 @@ trait ParserTrait
     {
         return $this->getUrlsForAudios([$audio])[0];
     }
+
+    /**
+     * Verifies audio item contains url, fetches it if it doesn't.
+     * Also tries to get cdn-ed url.
+     *
+     * @param $item
+     */
+    public function verifyMp3Url(&$item)
+    {
+        // fetch url if not pre-fetched
+        if (! isset($item['mp3'])) {
+            $item['mp3'] = $this->getUrlForAudio($item);
+        }
+        if (is_array($item['mp3'])) {
+            try {
+                $item['mp3'] = get_headers($item['mp3'][1], 1)['Location'][2];
+            } catch (\Exception $e) {
+                $item['mp3'] = $item['mp3'][0];
+            }
+        }
+    }
 }

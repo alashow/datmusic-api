@@ -65,6 +65,7 @@ trait DownloaderTrait
             }
 
             $item = $this->getAudio($key, $id);
+            $this->verifyMp3Url($item);
 
             $response = httpClient()->head($item['mp3']);
 
@@ -138,12 +139,8 @@ trait DownloaderTrait
         }
 
         $item = $this->getAudio($key, $id);
+        $this->verifyMp3Url($item);
         $name = $this->getFormattedName($item);
-
-        // fetch url if not prefetched
-        if (! isset($item['mp3'])) {
-            $item['mp3'] = $this->getUrlForAudio($item);
-        }
 
         if ($this->isS3) {
             $this->s3StreamContext = $this->buildS3StreamContextOptions($name);
@@ -323,14 +320,6 @@ trait DownloaderTrait
      */
     private function downloadFile($url, $path)
     {
-        if (is_array($url)) {
-            try {
-                $url = get_headers($url[1], 1)['Location'][2];
-            } catch (\Exception $e) {
-                $url = $url[0];
-            }
-        }
-
         if ($this->s3StreamContext == null) {
             $handle = fopen($path, 'w');
         } else {
