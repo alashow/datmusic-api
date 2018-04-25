@@ -119,18 +119,18 @@ trait SearchesTrait
     {
         if (property_exists($response, 'error')) {
             $error = $response->error;
+            $errorData = [
+                'message' => $error->error_msg,
+                'code'    => $error->error_code,
+            ];
             if ($error->error_code == 14) {
-                return $this->error([
-                    'message'       => 'Captcha!',
-                    'captcha_index' => $this->accessTokenIndex,
-                    'captcha_id'    => intval($error->captcha_sid),
-                    'captcha_img'   => $error->captcha_img,
-                ]);
+                return $this->error($errorData + [
+                        'captcha_index' => $this->accessTokenIndex,
+                        'captcha_id'    => intval($error->captcha_sid),
+                        'captcha_img'   => $error->captcha_img,
+                    ]);
             } else {
-                return $this->error([
-                    'message' => $error->error_msg,
-                    'code'    => $error->error_code,
-                ]);
+                return $this->error($errorData);
             }
         } else {
             return false;
