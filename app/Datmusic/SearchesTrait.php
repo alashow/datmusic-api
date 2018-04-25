@@ -85,8 +85,6 @@ trait SearchesTrait
             $query = randomArtist();
         }
 
-        $query = urlencode($query);
-
         $captchaParams = [];
         if ($request->has('captcha_key')) {
             $captchaParams = [
