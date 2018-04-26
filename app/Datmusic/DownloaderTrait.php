@@ -14,7 +14,6 @@ use Illuminate\Support\Str;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Cache;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
-use Symfony\Component\HttpKernel\Exception\HttpException;
 
 trait DownloaderTrait
 {
@@ -65,6 +64,7 @@ trait DownloaderTrait
             }
 
             $item = $this->getAudio($key, $id);
+            $this->optimizeMp3Url($item);
 
             $response = httpClient()->head($item['mp3']);
 
@@ -138,6 +138,7 @@ trait DownloaderTrait
         }
 
         $item = $this->getAudio($key, $id);
+        $this->optimizeMp3Url($item);
         $name = $this->getFormattedName($item);
 
         if ($this->isS3) {
@@ -154,7 +155,7 @@ trait DownloaderTrait
                 return $this->downloadLocal($path, $fileName, $key, $id, $name, $stream, false);
             }
         } else {
-            abort(404);
+            return abort(404);
         }
     }
 
