@@ -29,7 +29,6 @@ trait ParserTrait
             $title = $item->title;
             $duration = $item->duration;
             $date = $item->date;
-            $hq = $item->is_hq;
             $mp3 = $item->url;
 
             $hash = hash(config('app.hash.id'), $sourceId);
@@ -40,7 +39,6 @@ trait ParserTrait
                 'artist'     => trim(html_entity_decode($artist, ENT_QUOTES)),
                 'title'      => trim(html_entity_decode($title, ENT_QUOTES)),
                 'duration'   => (int) $duration,
-                'hq'         => $hq,
                 'date'       => $date,
                 'genre_id'   => $genreId,
                 'mp3'        => $mp3,

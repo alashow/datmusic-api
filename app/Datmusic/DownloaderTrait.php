@@ -174,7 +174,6 @@ trait DownloaderTrait
     private function downloadLocal($path, $fileName, $key, $id, $name, $stream, $cache)
     {
         if ($stream) {
-            $this->checkIsBadMp3($path);
             logger()->stream($cache, $key, $id);
 
             return redirect("mp3/$fileName");
@@ -361,50 +360,6 @@ trait DownloaderTrait
     }
 
     /**
-     * Checks given files mime type and aborts with 404 if file is not an mp3 file.
-     *
-     * @param string $path full path of mp3
-     *
-     * @throws HttpException
-     */
-    private function checkIsBadMp3($path)
-    {
-        if (! file_exists($path)) {
-            logger()->log('Download.Bad.NotFound');
-
-            abort(404);
-        }
-
-        // valid mimes
-        $validMimes = ['audio/mpeg', 'audio/mp3', 'application/octet-stream'];
-
-        $mime = finfo_file(finfo_open(FILEINFO_MIME_TYPE), $path);
-        // checks mime-type with unix file command
-        $nativeCheck = function () use ($path) {
-            return exec("file -b --mime-type $path");
-        };
-
-        $checks = [$mime, $nativeCheck()];
-
-        // md5 hash blacklist of bad mp3's
-        $badMp3Hashes = [
-            '9d6ddee7a36a6b1b638c2ca1e26ad46e',
-            '8efd23e1cf7989a537a8bf0fb3ed7f62',
-            '21a9fef2f321de657d7b54985be55888',
-        ];
-        $badMp3 = in_array(md5_file($path), $badMp3Hashes);
-
-        // if the file is corrupted (mime is wrong) or md5 file is one of the bad mp3s,
-        // delete it from storage and return 404
-        if ($badMp3 || ! count(array_intersect($checks, $validMimes))) { // if arrays don't have any common values, mp3 is broken.
-            logger()->log('Download.Bad.'.($badMp3 ? 'Mp3' : 'Mime'), $path, implode(' ', $checks));
-
-            @unlink($path);
-            abort(404, "VK returned dummy 'API Unavailable' mp3 file, decoding of real mp3 url must have failed");
-        }
-    }
-
-    /**
      * Force download given file with given name.
      *
      * @param $path string path of the file
@@ -414,8 +369,6 @@ trait DownloaderTrait
      */
     private function downloadResponse($path, $name)
     {
-        $this->checkIsBadMp3($path);
-
         $headers = [
             'Cache-Control'     => 'private',
             'Cache-Description' => 'File Transfer',
