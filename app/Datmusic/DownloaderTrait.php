@@ -64,7 +64,9 @@ trait DownloaderTrait
             }
 
             $item = $this->getAudio($key, $id);
-            $this->optimizeMp3Url($item);
+            if ($this->optimizeMp3Url($item)) {
+                return get_headers($item['mp3'], 1)['Content-Length'];
+            }
 
             $response = httpClient()->head($item['mp3']);
 
@@ -138,14 +140,14 @@ trait DownloaderTrait
         }
 
         $item = $this->getAudio($key, $id);
-        $this->optimizeMp3Url($item);
+        $proxy = ! $this->optimizeMp3Url($item);
         $name = $this->getFormattedName($item);
 
         if ($this->isS3) {
             $this->s3StreamContext = $this->buildS3StreamContextOptions($name);
         }
 
-        if ($this->downloadFile($item['mp3'], $path)) {
+        if ($this->downloadFile($item['mp3'], $path, $proxy)) {
             $this->writeAudioTags($item, $path);
             $this->tryToConvert($bitrate, $path, $localPath, $fileName, $name);
 
@@ -313,10 +315,11 @@ trait DownloaderTrait
      *
      * @param string $url
      * @param string $path
+     * @param bool   $proxy
      *
      * @return bool true if succeeds
      */
-    private function downloadFile($url, $path)
+    private function downloadFile($url, $path, $proxy = true)
     {
         if ($this->s3StreamContext == null) {
             $handle = fopen($path, 'w');
@@ -331,7 +334,7 @@ trait DownloaderTrait
         curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, config('app.downloading.timeout.connection'));
         curl_setopt($curl, CURLOPT_TIMEOUT, config('app.downloading.timeout.execution'));
 
-        if (env('PROXY_ENABLE', false)) {
+        if ($proxy && env('PROXY_ENABLE', false)) {
             curl_setopt($curl, CURLOPT_PROXY, env('PROXY_IP'));
             curl_setopt($curl, CURLOPT_PROXYPORT, env('PROXY_PORT'));
             curl_setopt($curl, CURLOPT_PROXYTYPE, env('PROXY_METHOD'));

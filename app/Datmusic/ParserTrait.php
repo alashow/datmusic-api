@@ -49,22 +49,33 @@ trait ParserTrait
     }
 
     /**
-     * Tries to get non-IP bounded mp3 url if proxy enabled, to avoid downloading mp3 via proxy.
-     * Uses VK's bug/hack which leaks non-IP bounded mp3 url.
+     * Tries to get mp3 url bounded to this machines IP when proxy enabled, to avoid downloading mp3 via proxy.
+     * Uses VK's bug/hack which leaks new mp3 url for requester's IP.
      *
-     * @param $item
+     * @param array $item audio item
+     *
+     * @return bool has been optimized or not
      */
     public function optimizeMp3Url(&$item)
     {
         if (! env('PROXY_ENABLE', false)) {
-            return;
+            return false;
         }
 
         try {
             $locations = get_headers($item['mp3'], 1)['Location'];
-            $item['mp3'] = array_last($locations);
+            $url = array_last($locations);
+            if (starts_with($url, 'https://vk.com/err404.php')) {
+                return false;
+            } else {
+                $item['mp3'] = $url;
+
+                return true;
+            }
         } catch (\Exception $e) {
             \Log::error('Exception while trying to optimize url', [$item, $e]);
+
+            return false;
         }
     }
 }
