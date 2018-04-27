@@ -21,6 +21,11 @@ trait ParserTrait
 
         $data = [];
         foreach ($audios as $item) {
+            if (isset($item->content_restricted) && empty($item->url)) {
+                \Log::notice('Audio item restricted, skipping it', [$item]);
+                continue;
+            }
+
             $id = $item->id;
             $userId = $item->owner_id;
             $sourceId = sprintf('%s_%s', $userId, $id);
