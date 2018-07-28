@@ -10,6 +10,7 @@ return [
     'paths' => [
         'cookie' => storage_path('app/cookies/%s.json'),
         'mp3'    => storage_path('app/public/mp3'),
+        'links'  => storage_path('app/public/links'),
         'log'    => storage_path('logs/datmusic.log'),
     ],
 

@@ -40,15 +40,24 @@ class AppServiceProvider extends ServiceProvider
         $logger = new Logger();
         $this->app->instance('logger', $logger);
 
-        // Create mp3s folder if it doesn't exist
-        $mp3s = config('app.paths.mp3');
-        if (! @file_exists($mp3s)) {
-            $created = mkdir($mp3s, 0777, true);
+        // Create mp3s folders if they doesn't exist
+        $this->createFolder(config('app.paths.mp3'));
+        $this->createFolder(config('app.paths.links'));
+    }
 
+    /**
+     * Creates given folder safely.
+     *
+     * @param $folder
+     */
+    private function createFolder($folder)
+    {
+        if (! @file_exists($folder)) {
+            $created = mkdir($folder, 0777, true);
             if ($created) {
-                Log::info(sprintf("Created mp3s folder '%s'", $mp3s));
+                Log::info(sprintf("Created folder '%s'", $folder));
             } else {
-                Log::critical(sprintf("Mp3 folder doesn't exist and couldn't create it %s", $mp3s));
+                Log::critical(sprintf("Folder doesn't exist and couldn't create it %s", $folder));
             }
         }
     }
