@@ -12,24 +12,8 @@ The wrapper searches via API, caches the results. Tries to recover from captchas
 Everything else is same as in original datmusic-api.
 
 # How to get tokens
-This is how I was able to get tokens using Kate Mobile app:
-1. Use proxy to intercept HTTPS requests made by [Kate Mobile](https://play.google.com/store/apps/details?id=com.perm.kate_new_6) app.
 
-    Example apps: [mitmproxy](https://mitmproxy.org/), [Fiddler](https://www.telerik.com/fiddler), [Charles proxy](https://www.charlesproxy.com/), or [Wireshark](https://www.wireshark.org/)
-    
-    Personal recommendation: mitmproxy with web module. Easy installation, simple ui, easy SSL root certificate installation etc.
-
-2. Listen for requests to get `refreshToken`
-
-    After Kate's login, VK will give an access token: this token won't work with Audio API's ("Token confirmation required").
-    
-    Open Audios screen from the app, and you will see in your network interceptor that Kate will get `Token confirmation required` from VK.
-    After which Kate will register something in Google Cloud Messaging to generate `receipt` field which will it use to get `refreshToken` by sending it to private API `auth.refreshToken` along with current token.
-    After all, `auth.refreshToken` will return a new token. This is the token you need to save to be able to use it in this branch.
-    
-    ![refresh token](https://i.imgur.com/jI06pQ8.jpg)
-    
-Note: Try to use same IP's while doing it all. 
+See https://github.com/vodka2/vk-audio-token 
 
 # Search
 
