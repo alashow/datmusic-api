@@ -21,7 +21,7 @@ trait CachesTrait
      */
     private function getCacheKey($request)
     {
-        $q = strtolower($request->get('q'));
+        $q = strtolower(getPossibleKeys($request, 'q', 'query'));
         $page = abs(intval($request->get('page')));
 
         $q = empty($q) ? md5('popular') : $q;

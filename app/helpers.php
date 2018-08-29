@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Http\Request;
 use Psr\Http\Message\ResponseInterface;
 
 /**
@@ -76,4 +77,20 @@ function randomArtist()
 function as_json($response)
 {
     return json_decode((string) $response->getBody());
+}
+
+/**
+ * Get param from the given request for given possible keys.
+ *
+ * @param Request $request
+ * @param mixed   ...$keys
+ *
+ * @return mixed|null
+ */
+function getPossibleKeys(Request $request, ...$keys)
+{
+    foreach ($keys as $key) {
+        if ($request->has($key)) return $request->get($key);
+    }
+    return null;
 }

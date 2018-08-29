@@ -35,7 +35,7 @@ trait SearchesTrait
     public function search(Request $request)
     {
         // get inputs
-        $query = trim($request->get('q'));
+        $query = trim(getPossibleKeys($request, 'q', 'query'));
         $offset = abs(intval($request->get('page'))) * $this->count; // calculate offset from page index
 
         $cacheKey = $this->getCacheKey($request);
