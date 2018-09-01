@@ -90,7 +90,10 @@ function as_json($response)
 function getPossibleKeys(Request $request, ...$keys)
 {
     foreach ($keys as $key) {
-        if ($request->has($key)) return $request->get($key);
+        if ($request->has($key)) {
+            return $request->get($key);
+        }
     }
+
     return null;
 }
