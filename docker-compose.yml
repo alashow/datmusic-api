@@ -1,0 +1,21 @@
+version: '3.2'
+services:
+  php:
+    build: .
+    image: alashow/datmusic-api
+    restart: always
+    env_file: .env
+    volumes:
+      - datmusic-storage:/usr/src/datmusic/storage
+  web:
+    image: nginx:latest
+    ports:
+      - "3002:80"
+    volumes:
+      # Using the same path here to correctly resolve absolute symlinks
+      # TODO create symlink in links with relative path in storage
+      - datmusic-storage:/usr/src/datmusic/storage:ro
+      - ./docker-config/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+volumes:
+  datmusic-storage:
+    driver: local

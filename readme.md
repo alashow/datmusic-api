@@ -91,6 +91,21 @@ Please browse code or open an issue to understand more.
 
 Open an issue or contact me at me@alashov.com for help with deployment.
 
+# Deployment with Docker
+
+1. Run `git clone https://github.com/alashow/datmusic-api.git`
+1. Run `cd datmusic-api`
+1. Edit `docker-compose.yml` to tweak exposed port by default 3002 is
+   used. A volume is created for storage persistence.
+1. Copy the config `cp .env.example .env`
+1. Edit the config in `.env`
+1. Run `docker-compose build`
+1. Run `docker-compose up`
+
+You can used docker image alone, you will need a web server for frontend
+like nginx or apache. The nginx docker config is in
+`docker-config/nginx.conf`.
+
 ## License
 
     Copyright (C) 2017  Alashov Berkeli
