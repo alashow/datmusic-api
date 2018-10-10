@@ -12,7 +12,7 @@ function httpClient()
 }
 
 /**
- * @return \App\Datmusic\Logger logger instance
+ * @return \App\Util\Logger logger instance
  */
 function logger()
 {

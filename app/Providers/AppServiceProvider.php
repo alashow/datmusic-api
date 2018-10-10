@@ -7,8 +7,8 @@
 namespace App\Providers;
 
 use Log;
-use App\Datmusic\Logger;
-use App\Datmusic\HttpClient;
+use App\Util\Logger;
+use App\Util\HttpClient;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
