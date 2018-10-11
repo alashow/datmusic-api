@@ -156,6 +156,7 @@ trait SearchesTrait
         $mapped = array_map(function ($item) use (&$cacheKey, &$badMatches, &$sortable) {
             $downloadUrl = fullUrl(sprintf('dl/%s/%s', $cacheKey, $item['id']));
             $streamUrl = fullUrl(sprintf('stream/%s/%s', $cacheKey, $item['id']));
+            $coverUrl = fullUrl(sprintf('cover/%s/%s', $cacheKey, $item['id']));
 
             $item['artist'] = $this->cleanBadWords($item['artist']);
             $item['title'] = $this->cleanBadWords($item['title']);
@@ -167,6 +168,7 @@ trait SearchesTrait
             $result = array_merge($item, [
                 'download' => $downloadUrl,
                 'stream'   => $streamUrl,
+                'cover'    => $coverUrl,
             ]);
 
             // is audio name bad match

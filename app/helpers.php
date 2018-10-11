@@ -12,6 +12,14 @@ function httpClient()
 }
 
 /**
+ * @return \App\Util\CoverArtClient
+ */
+function covers()
+{
+    return app('coverArtClient');
+}
+
+/**
  * @return \App\Util\Logger logger instance
  */
 function logger()

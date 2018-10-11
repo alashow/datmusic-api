@@ -13,7 +13,8 @@
         "illuminate/redis": "^5.3",
         "barryvdh/laravel-cors": "^0.8.2",
         "aws/aws-sdk-php": "^3.20",
-        "james-heinrich/getid3": "dev-master#4d295e706cb7ff62ef93d1e695d48b59be351e60"
+        "james-heinrich/getid3": "dev-master#4d295e706cb7ff62ef93d1e695d48b59be351e60",
+        "rtheunissen/guzzle-rate-limiter": "^2.0"
     },
     "require-dev": {
         "fzaninotto/faker": "~1.4",

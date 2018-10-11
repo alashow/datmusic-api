@@ -9,6 +9,7 @@ namespace App\Providers;
 use Log;
 use App\Util\Logger;
 use App\Util\HttpClient;
+use App\Util\CoverArtClient;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -36,6 +37,9 @@ class AppServiceProvider extends ServiceProvider
         // register singletons
         $httpClient = new HttpClient();
         $this->app->instance('httpClient', $httpClient);
+
+        $coverArtClient = new CoverArtClient();
+        $this->app->instance('coverArtClient', $coverArtClient);
 
         $logger = new Logger();
         $this->app->instance('logger', $logger);

@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "9833d7f1b735b72f988c9b4150adc470",
+    "content-hash": "b06cab990e1357cb74ede0902fe93b65",
     "packages": [
         {
             "name": "aws/aws-sdk-php",
@@ -2179,6 +2179,56 @@
                 "psr-3"
             ],
             "time": "2016-10-10T12:19:37+00:00"
+        },
+        {
+            "name": "rtheunissen/guzzle-rate-limiter",
+            "version": "v2.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/rtheunissen/guzzle-rate-limiter.git",
+                "reference": "25343e26c0d780cea93eac0594a9d622077e82c8"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/rtheunissen/guzzle-rate-limiter/zipball/25343e26c0d780cea93eac0594a9d622077e82c8",
+                "reference": "25343e26c0d780cea93eac0594a9d622077e82c8",
+                "shasum": ""
+            },
+            "require": {
+                "guzzlehttp/guzzle": "~6.0",
+                "php": ">=5.5",
+                "psr/log": "~1.0"
+            },
+            "require-dev": {
+                "mockery/mockery": "~0.9",
+                "phpunit/phpunit": "~4.6"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Concat\\Http\\Middleware\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Rudi Theunissen",
+                    "email": "rudolf.theunissen@gmail.com"
+                }
+            ],
+            "description": "Guzzle 6 middleware used to delay requests dynamically",
+            "keywords": [
+                "Guzzle",
+                "Rate",
+                "http",
+                "middleware",
+                "psr7",
+                "throttle"
+            ],
+            "time": "2018-07-04T20:04:33+00:00"
         },
         {
             "name": "symfony/console",

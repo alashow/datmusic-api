@@ -407,6 +407,23 @@ trait DownloaderTrait
                 'artist'  => [$audio['artist']],
                 'comment' => [config('app.downloading.id3.comment')],
             ];
+            if (config('app.downloading.id3.download_covers')) {
+                if ($coverImage = covers()->getImageFile($audio)) {
+                    if ($coverImageFile = file_get_contents($coverImage)) {
+                        if ($coverImageExif = exif_imagetype($coverImage)) {
+                            $tags['attached_picture'][0]['data'] = $coverImageFile;
+                            $tags['attached_picture'][0]['mime'] = image_type_to_mime_type($coverImageExif);
+                            $tags['attached_picture'][0]['picturetypeid'] = 0x03;
+                            $tags['attached_picture'][0]['description'] = 'cover';
+                        } else {
+                            Log::error('Unable to read cover image exif while trying to write to mp3', [$coverImage]);
+                        }
+                    } else {
+                        Log::error('Unable to read cover image file while trying to write to mp3', [$coverImage]);
+                    }
+                    @unlink($coverImage);
+                }
+            }
             $writer->tag_data = $tags;
             $writer->WriteTags();
         } catch (\getid3_exception $e) {

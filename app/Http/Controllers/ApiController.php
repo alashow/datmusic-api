@@ -8,6 +8,7 @@ namespace App\Http\Controllers;
 
 use App\Datmusic\SearchesTrait;
 use App\Datmusic\DownloaderTrait;
+use Illuminate\Http\JsonResponse;
 
 class ApiController extends Controller
 {
@@ -37,11 +38,21 @@ class ApiController extends Controller
      * @param int   $status
      * @param array $headers
      *
-     * @return array
+     * @return JsonResponse
      */
-    private function ok($data = null, $status = 200, $headers = [])
+    protected function ok($data = null, $status = 200, $headers = [])
     {
         return $this->response('ok', $data, null, $status, $headers);
+    }
+
+    /**
+     * @param string $message
+     *
+     * @return JsonResponse
+     */
+    protected function notFound($message = 'Not found')
+    {
+        return $this->error(['message' => $message], 404);
     }
 
     /**
@@ -49,14 +60,23 @@ class ApiController extends Controller
      * @param int   $status
      * @param array $headers
      *
-     * @return array
+     * @return JsonResponse
      */
-    private function error($error = null, $status = 200, $headers = [])
+    protected function error($error = null, $status = 200, $headers = [])
     {
         return $this->response('error', null, $error, $status, $headers);
     }
 
-    private function response($status = 'ok', $data = null, $error = null, $httpStatus, $headers = [])
+    /**
+     * @param string $status
+     * @param array   $data
+     * @param array   $error
+     * @param int    $httpStatus
+     * @param array  $headers
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+    protected function response($status = 'ok', $data = null, $error = null, $httpStatus = 200, $headers = [])
     {
         $result = ['status' => $status];
         if (! is_null($data)) {

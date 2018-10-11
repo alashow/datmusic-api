@@ -19,6 +19,7 @@ return [
         'cache' => 'crc32',
         'id'    => 'crc32',
         'mp3'   => 'md5',
+        'cover' => 'md5',
     ],
 
     'search' => [
@@ -47,6 +48,8 @@ return [
 
         'id3' => [
             'comment' => 'Downloaded via https://datmusic.xyz',
+
+            'download_covers' => env('DOWNLOADING_ID3_COVERS', true),
         ],
     ],
 
@@ -55,6 +58,10 @@ return [
         'allowed'        => [64, 128, 192],
         'allowed_ffmpeg' => ['-q:a 9', '-q:a 5', '-q:a 2'],
         'ffmpeg_path'    => 'ffmpeg',
+    ],
+
+    'covers' => [
+        'user-agent' => env('COVERS_USER_AGENT', sprintf('DatmusicApi/1.0.0 (+https://github.com/alashow/datmusic-api,%s)', fullUrl('/'))),
     ],
 
     'aws' => [
@@ -76,10 +83,6 @@ return [
         ],
     ],
 
-    // vk has bug, they don't have mp3 urls in audio items. even their site doesn't work
-    // you might want to disable it until they fix it
-    'popularSearchEnabled' => false,
-
     // random artist search
     'artists' => [
         '2 Cellos', 'Agnes Obel', 'Aloe Black', 'Andrew Belle', 'Angus Stone', 'Aquilo', 'Arctic Monkeys',
@@ -87,7 +90,7 @@ return [
         'Calvin Harris', 'Charlotte OC', 'City of The Sun', 'Civil Twilight', 'Clint Mansel', 'Coldplay',
         'Daft Punk', 'Damien Rice', 'Daniela Andrade', 'Daughter', "David O'Dowda", 'Dawn Golden', 'Dirk Maassen',
         'Ed Sheeran', 'Eminem', 'Fabrizio Paterlini', 'Fink', 'Fleurie', 'Florence and The Machine', 'Gem club',
-        'Glass Animals', 'Greg Haines', 'Greg Maroney', 'Groen Land', 'Halsey', 'Hans Zimmer', 'Hozier',
+        'Glass Animals', 'Greg Haines', 'Greg Maroney', 'Halsey', 'Hans Zimmer', 'Hozier',
         'Imagine Dragons', 'Ingrid Michaelson', 'Jamie XX', 'Jarryd James', 'Jasmin Thompson', 'Jaymes Young',
         'Jessie J', 'Josef Salvat', 'Julia Kent', 'Kai Engel', 'Keaton Henson', 'Kendra Logozar', 'Kina Grannis',
         'Kodaline', 'Kygo', 'Kyle Landry', 'Lana Del Rey', 'Lera Lynn', 'Lights & Motion', 'Linus Young', 'Lo-Fang',

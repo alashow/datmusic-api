@@ -20,7 +20,7 @@ class HttpClient
     private $httpClient;
 
     /**
-     * HttpClientTrait constructor.
+     * HttpClient constructor.
      */
     public function __construct()
     {
