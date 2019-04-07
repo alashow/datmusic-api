@@ -11,6 +11,8 @@ services:
     image: nginx:latest
     ports:
       - "3002:80"
+    depends_on:
+      - php
     volumes:
       # Using the same path here to correctly resolve absolute symlinks
       # TODO create symlink in links with relative path in storage
