@@ -98,7 +98,6 @@ trait SearchesTrait
             'access_token' => config('app.auth.tokens')[$this->accessTokenIndex],
             'q'            => $query,
             'offset'       => $offset,
-            'sort'         => 2,
             'count'        => $this->count,
         ];
 
