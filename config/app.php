@@ -3,7 +3,6 @@
  * Copyright (c) 2017  Alashov Berkeli
  * It is licensed under GNU GPL v. 2 or later. For full terms see the file LICENSE.
  */
-use Aws\Credentials\CredentialProvider;
 
 return [
 
@@ -62,25 +61,6 @@ return [
 
     'covers' => [
         'user-agent' => env('COVERS_USER_AGENT', sprintf('DatmusicApi/1.0.0 (+https://github.com/alashow/datmusic-api,%s)', fullUrl('/'))),
-    ],
-
-    'aws' => [
-        'enabled' => false,
-
-        'config' => [
-            'version' => 'latest',
-            'region'  => 'eu-central-1',
-
-            //http://docs.aws.amazon.com/aws-sdk-php/v3/guide/guide/credentials.html#env-provider
-            'credentials' => CredentialProvider::env(),
-        ],
-
-        'bucket' => 'datmusic',
-
-        'paths' => [
-            // will be formatted with mp3 file name
-            'mp3' => 'mp3/%s',
-        ],
     ],
 
     // random artist search

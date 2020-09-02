@@ -67,20 +67,10 @@ Default hashing algorithm is [`crc32`](https://en.wikipedia.org/wiki/Cyclic_redu
  
 # Cache
 
-As far as I know, mp3 urls of VK songs are valid only for 24 hours. So we can cache search results only for 24 hours.
-
-By default, when using S3 as storage, mp3 files can be cached forever (as long as mp3 file is present in bucket). 
+As far as I know, mp3 urls of VK songs are valid only for 24 hours. So we can cache search results only for 24 hours. 
 
 Default caching driver is `files`. Thanks to [Laravel Cache](https://laravel.com/docs/5.3/cache) system, it can be easily configured to different cache drivers.
 Redis cache driver is configured. Just change driver and set credentials in .env.
- 
-# Using with S3 Storage
- 
-You can enable or disable S3 storage option in [config file](config/app.php) (enabled by default).
-
-When it's enabled, mp3 files will be downloaded to s3 bucket instead of local disk.
-
-Download/stream links will be redirected to S3 servers.
 
 # Deployment
 

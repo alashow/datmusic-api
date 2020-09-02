@@ -8,7 +8,6 @@ namespace App\Datmusic;
 
 use Log;
 use getID3;
-use Aws\S3\S3Client;
 use getid3_writetags;
 use Illuminate\Support\Str;
 use Illuminate\Http\RedirectResponse;
@@ -17,28 +16,10 @@ use Illuminate\Support\Facades\Cache;
 trait DownloaderTrait
 {
     /**
-     * @var S3Client
-     */
-    protected $s3Client;
-    /**
-     * @var resource S3 stream context resource
-     */
-    protected $s3StreamContext;
-    /**
-     * @var bool is using s3 as storage
-     */
-    protected $isS3 = false;
-
-    /**
      * DownloaderTrait constructor.
      */
     public function bootDownloader()
     {
-        if (config('app.aws.enabled')) {
-            $this->s3Client = new S3Client(config('app.aws.config'));
-            $this->s3Client->registerStreamWrapper();
-            $this->isS3 = true;
-        }
     }
 
     /**
@@ -118,43 +99,30 @@ trait DownloaderTrait
 
         list($fileName, $localPath, $path) = $this->buildFilePathsForId($id);
 
-        // check bucket for file and redirect if exists
-        if ($this->isS3 && @file_exists($this->formatPathWithBitrate($path, $bitrate))) {
-            logger()->log('S3.Cache', $path, $bitrate);
 
-            return redirect($this->buildS3Url($this->formatPathWithBitrate($fileName, $bitrate)));
-        } else {
-            if (@file_exists($path)) {
-                $item = $this->getAudioCache($id);
-                // try looking in search cache if not found
-                if (is_null($item)) {
-                    $item = $this->getAudio($key, $id, false);
-                }
-                $name = ! is_null($item) ? $this->getFormattedName($item) : "$id.mp3";
-
-                $this->tryToConvert($bitrate, $path, $localPath, $fileName, $name);
-
-                return $this->downloadLocal($path, $fileName, $key, $id, $name, $stream, true);
+        if (@file_exists($path)) {
+            $item = $this->getAudioCache($id);
+            // try looking in search cache if not found
+            if (is_null($item)) {
+                $item = $this->getAudio($key, $id, false);
             }
+            $name = ! is_null($item) ? $this->getFormattedName($item) : "$id.mp3";
+
+            $this->tryToConvert($bitrate, $path, $localPath, $fileName, $name);
+
+            return $this->downloadLocal($path, $fileName, $key, $id, $name, $stream, true);
         }
 
         $item = $this->getAudio($key, $id);
         $proxy = ! $this->optimizeMp3Url($item);
         $name = $this->getFormattedName($item);
 
-        if ($this->isS3) {
-            $this->s3StreamContext = $this->buildS3StreamContextOptions($name);
-        }
-
         if ($this->downloadFile($item['mp3'], $path, $proxy)) {
             $this->writeAudioTags($item, $path);
             $this->tryToConvert($bitrate, $path, $localPath, $fileName, $name);
 
-            if ($this->isS3) {
-                return redirect($this->buildS3Url($fileName));
-            } else {
-                return $this->downloadLocal($path, $fileName, $key, $id, $name, $stream, false);
-            }
+
+            return $this->downloadLocal($path, $fileName, $key, $id, $name, $stream, false);
         } else {
             return abort(404);
         }
@@ -217,39 +185,12 @@ trait DownloaderTrait
     private function bitrateConvert($bitrate, $path, $localPath, $fileName)
     {
         if ($bitrate > 0) {
-            // Download to local if s3 mode and upload converted one to s3
             // Change path only if already converted or conversion function returns true
-
             $pathConverted = $this->formatPathWithBitrate($localPath, $bitrate);
             $fileNameConverted = $this->formatPathWithBitrate($fileName, $bitrate);
 
-            // s3 mode
-            if ($this->isS3) {
-                // download file from s3 to local
-                // continue only if download succeeds
-                $convertable = $this->downloadFile($this->buildS3Url($fileName), $localPath);
-            } else {
-                $convertable = true;
-            }
-
-            if ($convertable) {
-                if (file_exists($pathConverted)
-                    || $this->convertMp3Bitrate($bitrate, $localPath, $pathConverted)
-                ) {
-                    // upload converted file
-                    if ($this->isS3) {
-                        $converted = fopen($pathConverted, 'r');
-                        $s3ConvertedPath = $this->formatPathWithBitrate($path, $bitrate);
-                        $s3Stream = fopen($s3ConvertedPath, 'w', false, $this->s3StreamContext);
-
-                        // if upload succeeds
-                        if (stream_copy_to_stream($converted, $s3Stream) != false) {
-                            $convertedPaths = [$fileNameConverted, $path];
-                        }
-                    } else {
-                        $convertedPaths = [$fileNameConverted, $pathConverted];
-                    }
-                }
+            if (file_exists($pathConverted) || $this->convertMp3Bitrate($bitrate, $localPath, $pathConverted)) {
+                $convertedPaths = [$fileNameConverted, $pathConverted];
             }
         }
 
@@ -278,17 +219,18 @@ trait DownloaderTrait
      *
      * @param string $id audio id
      *
-     * @return array 0 - file name, 1 - full local path, 2 - full local path or s3 path
+     * @return array 0 - file name, 1 - full local path, 2 - full local path
      */
     private function buildFilePathsForId($id)
     {
+        $hash = hash(config('app.hash.mp3'), $id);
+        $subPath = sprintf('%s/%s/%s', config('app.paths.mp3'), substr($hash, 0, 2), substr($hash, 2, 2));
         $fileName = sprintf('%s.mp3', hash(config('app.hash.mp3'), $id));
-        $localPath = sprintf('%s/%s', config('app.paths.mp3'), $fileName);
+        $localPath = sprintf('%s/%s', $subPath, $fileName);
         $path = $localPath;
 
-        if ($this->isS3) {
-            $s3PathWithFolder = sprintf(config('app.aws.paths.mp3'), $fileName);
-            $path = sprintf('s3://%s/%s', config('app.aws.bucket'), $s3PathWithFolder);
+        if (! is_dir($subPath)) {
+            @mkdir($subPath, 0755, true);
         }
 
         return [$fileName, $localPath, $path];
@@ -320,11 +262,7 @@ trait DownloaderTrait
      */
     private function downloadFile($url, $path, $proxy = true)
     {
-        if ($this->s3StreamContext == null) {
-            $handle = fopen($path, 'w');
-        } else {
-            $handle = fopen($path, 'w', false, $this->s3StreamContext);
-        }
+        $handle = fopen($path, 'w');
 
         $curl = curl_init($url);
         curl_setopt($curl, CURLOPT_FILE, $handle);
@@ -450,47 +388,5 @@ trait DownloaderTrait
             $result);
 
         return $result == 0;
-    }
-
-    // s3 utils
-
-    /**
-     * Builds url with region and bucket name from config.
-     *
-     * @param string $fileName path to file
-     *
-     * @return string full url
-     */
-    private function buildS3Url($fileName)
-    {
-        if (env('CDN_ROOT_URL', null) !== null) {
-            return sprintf('%s%s', env('CDN_ROOT_URL'), $fileName);
-        }
-
-        $region = config('app.aws.config.region');
-        $bucket = config('app.aws.bucket');
-        $path = sprintf(config('app.aws.paths.mp3'), $fileName);
-
-        return "https://s3-$region.amazonaws.com/$bucket/$path";
-    }
-
-    /**
-     * Builds S3 schema stream context options
-     * All options available at http://docs.aws.amazon.com/aws-sdk-php/v3/api/api-s3-2006-03-01.html#putobject.
-     *
-     * @param string $name Force download file name
-     *
-     * @return resource
-     */
-    private function buildS3StreamContextOptions($name)
-    {
-        return stream_context_create([
-            's3' => [
-                'ACL'                => 'public-read',
-                'ContentType'        => 'audio/mpeg',
-                'ContentDisposition' => "attachment; filename=\"$name\"",
-                'StorageClass'       => 'STANDARD_IA',
-            ],
-        ]);
     }
 }
