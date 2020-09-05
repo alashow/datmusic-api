@@ -12,9 +12,10 @@
         "paquettg/php-html-parser": "^1.7",
         "illuminate/redis": "^5.3",
         "barryvdh/laravel-cors": "^0.8.2",
-        "james-heinrich/getid3": "dev-master#4d295e706cb7ff62ef93d1e695d48b59be351e60",
+        "james-heinrich/getid3": "^v2.0.0-beta3",
         "rtheunissen/guzzle-rate-limiter": "^2.0",
-        "ext-curl": "*"
+        "ext-curl": "*",
+        "mlntn/lumen-artisan-serve": "~1"
     },
     "require-dev": {
         "fzaninotto/faker": "~1.4",

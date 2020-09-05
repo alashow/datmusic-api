@@ -140,10 +140,19 @@ class CoverArtClient
     public function getImageFile(array $audio)
     {
         try {
-            $imageUrl = $this->getImage($audio);
+            if (array_key_exists('cover_url', $audio)) {
+                $imageUrl = $audio['cover_url'];
+                $client = httpClient();
+            } elseif (config('app.downloading.id3.download_covers_external')){
+                $imageUrl = $this->getImage($audio);
+                $client = $this->archiveClient;
+            } else {
+                return false;
+            }
+
             if ($imageUrl) {
                 $imagePath = tempnam('/tmp', 'datmusic_cover_');
-                $response = $this->archiveClient->get($imageUrl, [
+                $response = $client->get($imageUrl, [
                     'sink' => $imagePath,
                 ]);
 

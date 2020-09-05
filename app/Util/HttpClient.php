@@ -38,13 +38,13 @@ class HttpClient
         }
         $handler = HandlerStack::create();
         $handler->push(Middleware::mapRequest(function (RequestInterface $request) {
-            return $request->withUri(Uri::withQueryValue($request->getUri(), 'v', '5.71'));
+            return $request->withUri(Uri::withQueryValue($request->getUri(), 'v', '5.119'));
         }));
 
         $this->httpClient = new Client([
                 'base_uri' => 'https://api.vk.com',
                 'headers'  => [
-                    'User-Agent' => 'KateMobileAndroid/48.2 lite-433 (Android 8.1.0; SDK 27; arm64-v8a; Google Pixel 2 XL; en)',
+                    'User-Agent' => 'VKAndroidApp/4.38-849 (Android 6.0; SDK 23; x86; Google Nexus 5X; ru)',
                 ],
                 'handler'  => $handler,
             ] + $config);

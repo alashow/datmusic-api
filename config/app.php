@@ -46,9 +46,11 @@ return [
         ],
 
         'id3' => [
+            'enable' => env('DOWNLOADING_ID3_TAGS_ENABLED', true),
             'comment' => 'Downloaded via https://datmusic.xyz',
 
             'download_covers' => env('DOWNLOADING_ID3_COVERS', true),
+            'download_covers_external' => env('DOWNLOADING_ID3_COVERS_EXTERNAL', false),
         ],
     ],
 

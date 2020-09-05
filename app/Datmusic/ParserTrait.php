@@ -29,27 +29,40 @@ trait ParserTrait
             $id = $item->id;
             $userId = $item->owner_id;
             $sourceId = sprintf('%s_%s', $userId, $id);
-            $genreId = $item->track_genre_id;
             $artist = $item->artist;
             $title = $item->title;
             $duration = $item->duration;
             $date = $item->date;
             $mp3 = $item->url;
 
+            $hlsReg = '/(\/[a-zA-Z0-9]{1,30})(\/audios)?\/([a-zA-Z0-9]{1,30})(\/index\.m3u8)/';
+            preg_match($hlsReg, $mp3, $matches);
+            if (array_key_exists(4, $matches)){
+                $mp3 = str_replace($matches[1], '', $mp3);
+                $mp3 = str_replace($matches[4], '.mp3', $mp3);
+            }
+
             $hash = hash(config('app.hash.id'), $sourceId);
 
-            array_push($data, [
+            $itemData = [
                 'id'        => $hash,
                 'source_id' => $sourceId,
                 'artist'    => trim(html_entity_decode($artist, ENT_QUOTES)),
                 'title'     => trim(html_entity_decode($title, ENT_QUOTES)),
                 'duration'  => (int) $duration,
                 'date'      => $date,
-                'genre_id'  => $genreId,
                 'mp3'       => $mp3,
-            ]);
-        }
+            ];
 
+            if (isset($item->album)) {
+                $itemData = array_merge($itemData, [
+                    'album' => $item->album->title,
+                    'cover_url' => $item->album->thumb->photo_600
+                ]);
+            }
+
+            array_push($data, $itemData);
+        }
         return $data;
     }
 
@@ -74,7 +87,6 @@ trait ParserTrait
                 return false;
             } else {
                 $item['mp3'] = $url;
-
                 return true;
             }
         } catch (\Exception $e) {

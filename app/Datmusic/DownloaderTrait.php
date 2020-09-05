@@ -7,8 +7,8 @@
 namespace App\Datmusic;
 
 use Log;
-use getID3;
-use getid3_writetags;
+use JamesHeinrich\GetID3\GetID3;
+use JamesHeinrich\GetID3\WriteTags;
 use Illuminate\Support\Str;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Cache;
@@ -99,7 +99,6 @@ trait DownloaderTrait
 
         list($fileName, $localPath, $path) = $this->buildFilePathsForId($id);
 
-
         if (@file_exists($path)) {
             $item = $this->getAudioCache($id);
             // try looking in search cache if not found
@@ -121,10 +120,9 @@ trait DownloaderTrait
             $this->writeAudioTags($item, $path);
             $this->tryToConvert($bitrate, $path, $localPath, $fileName, $name);
 
-
             return $this->downloadLocal($path, $fileName, $key, $id, $name, $stream, false);
         } else {
-            return abort(404);
+            abort(500);
         }
     }
 
@@ -333,18 +331,24 @@ trait DownloaderTrait
     {
         try {
             $encoding = 'UTF-8';
-            $getID3 = new getID3;
+            $getID3 = new GetID3();
             $getID3->setOption(['encoding' => $encoding]);
-            $writer = new getid3_writetags;
+            $writer = new WriteTags();
             $writer->filename = $path;
             $writer->tagformats = ['id3v1', 'id3v2.3'];
             $writer->remove_other_tags = false;
             $writer->tag_encoding = $encoding;
+
             $tags = [
                 'title'   => [$audio['title']],
                 'artist'  => [$audio['artist']],
                 'comment' => [config('app.downloading.id3.comment')],
             ];
+            if (array_key_exists('album', $audio)) {
+                $tags = array_merge($tags, [
+                    'album' => [$audio['album']],
+                ]);
+            }
             if (config('app.downloading.id3.download_covers')) {
                 if ($coverImage = covers()->getImageFile($audio)) {
                     if ($coverImageFile = file_get_contents($coverImage)) {
