@@ -7,9 +7,9 @@
 namespace App\Util;
 
 use GuzzleHttp\Client;
-use GuzzleHttp\Psr7\Uri;
-use GuzzleHttp\Middleware;
 use GuzzleHttp\HandlerStack;
+use GuzzleHttp\Middleware;
+use GuzzleHttp\Psr7\Uri;
 use Psr\Http\Message\RequestInterface;
 
 class HttpClient
@@ -42,11 +42,11 @@ class HttpClient
         }));
 
         $this->httpClient = new Client([
-                'base_uri' => 'https://api.vk.com',
-                'headers'  => [
-                    'User-Agent' => 'VKAndroidApp/4.38-849 (Android 6.0; SDK 23; x86; Google Nexus 5X; ru)',
-                ],
-                'handler'  => $handler,
+            'base_uri' => 'https://api.vk.com',
+            'headers'  => [
+                'User-Agent' => 'VKAndroidApp/4.38-849 (Android 6.0; SDK 23; x86; Google Nexus 5X; ru)',
+            ],
+            'handler'  => $handler,
             ] + $config);
     }
 

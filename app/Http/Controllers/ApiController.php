@@ -6,8 +6,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Datmusic\SearchesTrait;
 use App\Datmusic\DownloaderTrait;
+use App\Datmusic\SearchesTrait;
 use Illuminate\Http\JsonResponse;
 
 class ApiController extends Controller

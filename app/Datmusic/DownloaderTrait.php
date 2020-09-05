@@ -6,12 +6,12 @@
 
 namespace App\Datmusic;
 
-use Log;
-use JamesHeinrich\GetID3\GetID3;
-use JamesHeinrich\GetID3\WriteTags;
-use Illuminate\Support\Str;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Str;
+use JamesHeinrich\GetID3\GetID3;
+use JamesHeinrich\GetID3\WriteTags;
+use Log;
 
 trait DownloaderTrait
 {
@@ -97,7 +97,7 @@ trait DownloaderTrait
             $bitrate = -1;
         }
 
-        list($fileName, $localPath, $path) = $this->buildFilePathsForId($id);
+        [$fileName, $localPath, $path] = $this->buildFilePathsForId($id);
 
         if (@file_exists($path)) {
             $item = $this->getAudioCache($id);
@@ -166,7 +166,7 @@ trait DownloaderTrait
         $convertResult = $this->bitrateConvert($bitrate, $path, $localPath, $fileName);
 
         if ($convertResult != false) {
-            list($fileName, $path) = $convertResult;
+            [$fileName, $path] = $convertResult;
             logger()->convert($name, $bitrate);
             $name = str_replace('.mp3', " ($bitrate).mp3", $name);
         }

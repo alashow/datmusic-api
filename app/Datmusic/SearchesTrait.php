@@ -6,8 +6,8 @@
 
 namespace App\Datmusic;
 
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 trait SearchesTrait
 {
@@ -102,8 +102,8 @@ trait SearchesTrait
         ];
 
         return as_json(httpClient()->get('method/audio.search', [
-                'query' => $params + $captchaParams,
-            ]
+            'query' => $params + $captchaParams,
+        ]
         ));
     }
 
@@ -122,10 +122,10 @@ trait SearchesTrait
             ];
             if ($error->error_code == 14) {
                 return $this->error($errorData + [
-                        'captcha_index' => $this->accessTokenIndex,
-                        'captcha_id'    => intval($error->captcha_sid),
-                        'captcha_img'   => $error->captcha_img,
-                    ]);
+                    'captcha_index' => $this->accessTokenIndex,
+                    'captcha_id'    => intval($error->captcha_sid),
+                    'captcha_img'   => $error->captcha_img,
+                ]);
             } else {
                 return $this->error($errorData);
             }

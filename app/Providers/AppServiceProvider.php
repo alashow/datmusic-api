@@ -6,11 +6,11 @@
 
 namespace App\Providers;
 
-use Log;
-use App\Util\Logger;
-use App\Util\HttpClient;
 use App\Util\CoverArtClient;
+use App\Util\HttpClient;
+use App\Util\Logger;
 use Illuminate\Support\ServiceProvider;
+use Log;
 
 class AppServiceProvider extends ServiceProvider
 {

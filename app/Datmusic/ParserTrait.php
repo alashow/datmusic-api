@@ -37,7 +37,7 @@ trait ParserTrait
 
             $hlsReg = '/(\/[a-zA-Z0-9]{1,30})(\/audios)?\/([a-zA-Z0-9]{1,30})(\/index\.m3u8)/';
             preg_match($hlsReg, $mp3, $matches);
-            if (array_key_exists(4, $matches)){
+            if (array_key_exists(4, $matches)) {
                 $mp3 = str_replace($matches[1], '', $mp3);
                 $mp3 = str_replace($matches[4], '.mp3', $mp3);
             }
@@ -57,12 +57,13 @@ trait ParserTrait
             if (isset($item->album)) {
                 $itemData = array_merge($itemData, [
                     'album' => $item->album->title,
-                    'cover_url' => $item->album->thumb->photo_600
+                    'cover_url' => $item->album->thumb->photo_600,
                 ]);
             }
 
             array_push($data, $itemData);
         }
+
         return $data;
     }
 
@@ -87,6 +88,7 @@ trait ParserTrait
                 return false;
             } else {
                 $item['mp3'] = $url;
+
                 return true;
             }
         } catch (\Exception $e) {

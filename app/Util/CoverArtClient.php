@@ -7,11 +7,11 @@
 namespace App\Util;
 
 use Carbon\Carbon;
+use Concat\Http\Middleware\RateLimiter;
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\HandlerStack;
 use Illuminate\Support\Facades\Cache;
-use Concat\Http\Middleware\RateLimiter;
-use GuzzleHttp\Exception\ClientException;
 
 class CoverArtClient
 {
@@ -143,7 +143,7 @@ class CoverArtClient
             if (array_key_exists('cover_url', $audio)) {
                 $imageUrl = $audio['cover_url'];
                 $client = httpClient();
-            } elseif (config('app.downloading.id3.download_covers_external')){
+            } elseif (config('app.downloading.id3.download_covers_external')) {
                 $imageUrl = $this->getImage($audio);
                 $client = $this->archiveClient;
             } else {
