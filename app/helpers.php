@@ -105,3 +105,8 @@ function getPossibleKeys(Request $request, ...$keys)
 
     return null;
 }
+
+function subPathForHash($hash)
+{
+    return sprintf('%s/%s', substr($hash, 0, 2), substr($hash, 2, 2));
+}

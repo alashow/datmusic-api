@@ -97,7 +97,7 @@ trait DownloaderTrait
             $bitrate = -1;
         }
 
-        [$fileName, $localPath, $path] = $this->buildFilePathsForId($id);
+        [$fileName, $subPath, $path] = $this->buildFilePathsForId($id);
 
         if (@file_exists($path)) {
             $item = $this->getAudioCache($id);
@@ -107,9 +107,9 @@ trait DownloaderTrait
             }
             $name = ! is_null($item) ? $this->getFormattedName($item) : "$id.mp3";
 
-            $this->tryToConvert($bitrate, $path, $localPath, $fileName, $name);
+            $this->tryToConvert($bitrate, $path, $fileName, $name);
 
-            return $this->downloadLocal($path, $fileName, $key, $id, $name, $stream, true);
+            return $this->downloadLocal($path, $subPath, $fileName, $key, $id, $name, $stream, true);
         }
 
         $item = $this->getAudio($key, $id);
@@ -118,9 +118,9 @@ trait DownloaderTrait
 
         if ($this->downloadFile($item['mp3'], $path, $proxy)) {
             $this->writeAudioTags($item, $path);
-            $this->tryToConvert($bitrate, $path, $localPath, $fileName, $name);
+            $this->tryToConvert($bitrate, $path, $fileName, $name);
 
-            return $this->downloadLocal($path, $fileName, $key, $id, $name, $stream, false);
+            return $this->downloadLocal($path, $subPath, $fileName, $key, $id, $name, $stream, false);
         } else {
             abort(500);
         }
@@ -130,6 +130,7 @@ trait DownloaderTrait
      * Download/Stream local file.
      *
      * @param $path     string full path
+     * @param $subPath  string sub path
      * @param $fileName string file name
      * @param $key      string search key
      * @param $id       string audio id
@@ -139,12 +140,12 @@ trait DownloaderTrait
      *
      * @return RedirectResponse
      */
-    private function downloadLocal($path, $fileName, $key, $id, $name, $stream, $cache)
+    private function downloadLocal(string $path, string $subPath, string $fileName, string $key, string $id, string $name, bool $stream, bool $cache)
     {
         if ($stream) {
             logger()->stream($cache, $key, $id);
 
-            return redirect("mp3/$fileName");
+            return redirect("mp3/$subPath/$fileName");
         } else {
             logger()->download($cache, $key, $id);
 
@@ -157,13 +158,12 @@ trait DownloaderTrait
      *
      * @param $bitrate   int bitrate
      * @param $path      string path
-     * @param $localPath string local file path
      * @param $fileName  string file name
      * @param $name      string file name (logging)
      */
-    private function tryToConvert($bitrate, &$path, $localPath, &$fileName, &$name)
+    private function tryToConvert($bitrate, &$path, &$fileName, &$name)
     {
-        $convertResult = $this->bitrateConvert($bitrate, $path, $localPath, $fileName);
+        $convertResult = $this->bitrateConvert($bitrate, $path, $fileName);
 
         if ($convertResult != false) {
             [$fileName, $path] = $convertResult;
@@ -175,19 +175,18 @@ trait DownloaderTrait
     /**
      * @param $bitrate
      * @param $path
-     * @param $localPath
      * @param $fileName
      *
      * @return array|bool
      */
-    private function bitrateConvert($bitrate, $path, $localPath, $fileName)
+    private function bitrateConvert($bitrate, $path, $fileName)
     {
         if ($bitrate > 0) {
             // Change path only if already converted or conversion function returns true
-            $pathConverted = $this->formatPathWithBitrate($localPath, $bitrate);
+            $pathConverted = $this->formatPathWithBitrate($path, $bitrate);
             $fileNameConverted = $this->formatPathWithBitrate($fileName, $bitrate);
 
-            if (file_exists($pathConverted) || $this->convertMp3Bitrate($bitrate, $localPath, $pathConverted)) {
+            if (file_exists($pathConverted) || $this->convertMp3Bitrate($bitrate, $path, $pathConverted)) {
                 $convertedPaths = [$fileNameConverted, $pathConverted];
             }
         }
@@ -217,21 +216,22 @@ trait DownloaderTrait
      *
      * @param string $id audio id
      *
-     * @return array 0 - file name, 1 - full local path, 2 - full local path
+     * @return array 0 - file name, 1 - sub path, 2 - full local path
      */
-    private function buildFilePathsForId($id)
+    private function buildFilePathsForId(string $id)
     {
         $hash = hash(config('app.hash.mp3'), $id);
-        $subPath = sprintf('%s/%s/%s', config('app.paths.mp3'), substr($hash, 0, 2), substr($hash, 2, 2));
+        $subPath = subPathForHash($hash);
         $fileName = sprintf('%s.mp3', hash(config('app.hash.mp3'), $id));
-        $localPath = sprintf('%s/%s', $subPath, $fileName);
-        $path = $localPath;
+        $path = sprintf('%s/%s', config('app.paths.mp3'), $subPath);
 
         if (! is_dir($subPath)) {
-            @mkdir($subPath, 0755, true);
+            @mkdir($path, 0755, true);
         }
 
-        return [$fileName, $localPath, $path];
+        $path = sprintf('%s/%s', $path, $fileName);
+
+        return [$fileName, $subPath, $path];
     }
 
     /**
@@ -299,7 +299,7 @@ trait DownloaderTrait
     }
 
     /**
-     * Creates symlink to original mp3 file with given file name at /links/{mp3_hash}/{name}.
+     * Creates symlink to original mp3 file with given file name at /links/{sub_path}/{mp3_hash}/{name}.
      * For now, we are getting mp3 hash from file name of given path.
      *
      * @param $path string path of the file
@@ -309,13 +309,14 @@ trait DownloaderTrait
      */
     private function downloadResponse($path, $name)
     {
-        $fileName = basename($path, '.mp3');
-        $filePath = sprintf('%s/%s', $fileName, $name);
-        $linkFolderPath = sprintf('%s/%s', config('app.paths.links'), $fileName);
+        $hash = basename($path, '.mp3');
+        $subPath = subPathForHash($hash);
+        $filePath = sprintf('%s/%s', $hash, $name);
+        $linkFolderPath = sprintf('%s/%s/%s', config('app.paths.links'), $subPath, $hash);
         $linkPath = sprintf('%s/%s', $linkFolderPath, $name);
 
-        if (file_exists($linkPath) || ((file_exists($linkFolderPath) || mkdir($linkFolderPath, 0777)) && symlink($path, $linkPath))) {
-            return redirect("links/$filePath");
+        if (file_exists($linkPath) || ((file_exists($linkFolderPath) || mkdir($linkFolderPath, 0777, true)) && symlink($path, $linkPath))) {
+            return redirect("links/$subPath/$filePath");
         }
 
         abort(500, "Couldn't create symlink for downloading");
