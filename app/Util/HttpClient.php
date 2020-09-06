@@ -44,7 +44,7 @@ class HttpClient
         $this->httpClient = new Client([
             'base_uri' => 'https://api.vk.com',
             'headers'  => [
-                'User-Agent' => 'VKAndroidApp/4.38-849 (Android 6.0; SDK 23; x86; Google Nexus 5X; ru)',
+                'User-Agent' => 'VKAndroidApp/5.52-4543 (Android 5.1.1; SDK 22; x86_64; unknown Android SDK built for x86_64; en; 320x240)',
             ],
             'handler'  => $handler,
             ] + $config);
