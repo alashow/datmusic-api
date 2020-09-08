@@ -6,6 +6,9 @@
 
 namespace App\Datmusic;
 
+use Illuminate\Support\Arr;
+use Illuminate\Support\Str;
+
 trait ParserTrait
 {
     /**
@@ -22,7 +25,7 @@ trait ParserTrait
         $data = [];
         foreach ($audios as $item) {
             if (isset($item->content_restricted) && empty($item->url)) {
-                \Log::notice('Audio item restricted, skipping it', [$item]);
+                \Log::info('Audio item restricted, skipping it', [$item]);
                 continue;
             }
 
@@ -57,8 +60,12 @@ trait ParserTrait
             if (isset($item->album)) {
                 $itemData = array_merge($itemData, [
                     'album' => $item->album->title,
-                    'cover_url' => $item->album->thumb->photo_600,
                 ]);
+                if (isset($item->album->thumb)) {
+                    $itemData = array_merge($itemData, [
+                        'cover_url' => $item->album->thumb->photo_1200,
+                    ]);
+                }
             }
 
             array_push($data, $itemData);
@@ -83,12 +90,11 @@ trait ParserTrait
 
         try {
             $locations = get_headers($item['mp3'], 1)['Location'];
-            $url = array_last($locations);
-            if (starts_with($url, 'https://vk.com/err404.php')) {
+            $url = Arr::last($locations);
+            if (Str::startsWith($url, 'https://vk.com/err404.php')) {
                 return false;
             } else {
                 $item['mp3'] = $url;
-
                 return true;
             }
         } catch (\Exception $e) {

@@ -31,7 +31,7 @@ class AppServiceProvider extends ServiceProvider
         $origins = env('CORS_ALLOWED_ORIGINS', null);
         if ($origins != null && strlen($origins) > 1) {
             $origins = explode(',', $origins);
-            config(['cors.allowedOrigins' => $origins]);
+            config(['cors.allowed_origins' => $origins]);
         }
 
         // register singletons

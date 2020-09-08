@@ -5,11 +5,9 @@
  */
 require_once __DIR__.'/../vendor/autoload.php';
 
-try {
-    (new Dotenv\Dotenv(__DIR__.'/../'))->load();
-} catch (Dotenv\Exception\InvalidPathException $e) {
-    //
-}
+(new Laravel\Lumen\Bootstrap\LoadEnvironmentVariables(
+    dirname(__DIR__)
+))->bootstrap();
 
 /*
 |--------------------------------------------------------------------------
@@ -73,7 +71,7 @@ $app->singleton('logger', function ($app) {
 */
 
 $app->middleware([
-    \Barryvdh\Cors\HandleCors::class,
+    \Fruitcake\Cors\HandleCors::class,
 ]);
 
 $app->routeMiddleware([
@@ -93,7 +91,7 @@ $app->routeMiddleware([
 
 $app->register(App\Providers\AppServiceProvider::class);
 $app->register(Illuminate\Redis\RedisServiceProvider::class);
-$app->register(Barryvdh\Cors\LumenServiceProvider::class);
+$app->register(Fruitcake\Cors\CorsServiceProvider::class);
 
 /*
 |--------------------------------------------------------------------------
@@ -106,10 +104,10 @@ $app->register(Barryvdh\Cors\LumenServiceProvider::class);
 |
 */
 
-$app->group([
-    'namespace'  => 'App\Http\Controllers',
+$app->router->group([
+    'namespace' => 'App\Http\Controllers',
     'middleware' => 'auth.basic',
-], function ($app) {
+], function ($router) {
     require __DIR__.'/../routes/api.php';
 });
 

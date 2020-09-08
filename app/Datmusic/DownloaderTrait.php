@@ -12,6 +12,7 @@ use Illuminate\Support\Str;
 use JamesHeinrich\GetID3\GetID3;
 use JamesHeinrich\GetID3\WriteTags;
 use Log;
+use PHP_Timer;
 
 trait DownloaderTrait
 {
@@ -350,8 +351,11 @@ trait DownloaderTrait
                     'album' => [$audio['album']],
                 ]);
             }
-            if (config('app.downloading.id3.download_covers')) {
+            $downloadCovers = config('app.downloading.id3.download_covers');
+            if ($downloadCovers) {
+                PHP_Timer::start();
                 if ($coverImage = covers()->getImageFile($audio)) {
+                    Log::notice(sprintf("Downloaded cover image in: %f", PHP_Timer::stop()));
                     if ($coverImageFile = file_get_contents($coverImage)) {
                         if ($coverImageExif = exif_imagetype($coverImage)) {
                             $tags['attached_picture'][0]['data'] = $coverImageFile;

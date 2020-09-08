@@ -18,7 +18,7 @@ return [
     */
 
     'redis' => [
-        'client'  => 'phpredis',
+        'client'  => 'predis',
         'cluster' => false,
 
         'default' => [
