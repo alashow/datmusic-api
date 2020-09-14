@@ -12,7 +12,6 @@ use Illuminate\Support\Str;
 use JamesHeinrich\GetID3\GetID3;
 use JamesHeinrich\GetID3\WriteTags;
 use Log;
-use PHP_Timer;
 
 trait DownloaderTrait
 {
@@ -31,7 +30,7 @@ trait DownloaderTrait
      *
      * @return int
      */
-    public function bytes($key, $id)
+    public function bytes(string $key, string $id)
     {
         logger()->log('Bytes', $key, $id);
 
@@ -63,7 +62,7 @@ trait DownloaderTrait
      *
      * @return RedirectResponse
      */
-    public function stream($key, $id)
+    public function stream(string $key, string $id)
     {
         return $this->download($key, $id, true);
     }
@@ -77,7 +76,7 @@ trait DownloaderTrait
      *
      * @return RedirectResponse
      */
-    public function bitrateDownload($key, $id, $bitrate)
+    public function bitrateDownload(string $key, string $id, int $bitrate)
     {
         return $this->download($key, $id, false, $bitrate);
     }
@@ -162,7 +161,7 @@ trait DownloaderTrait
      * @param $fileName  string file name
      * @param $name      string file name (logging)
      */
-    private function tryToConvert($bitrate, &$path, &$fileName, &$name)
+    private function tryToConvert(int $bitrate, string &$path, string &$fileName, string &$name)
     {
         $convertResult = $this->bitrateConvert($bitrate, $path, $fileName);
 
@@ -174,13 +173,13 @@ trait DownloaderTrait
     }
 
     /**
-     * @param $bitrate
-     * @param $path
-     * @param $fileName
+     * @param int    $bitrate
+     * @param string $path
+     * @param string $fileName
      *
      * @return array|bool
      */
-    private function bitrateConvert($bitrate, $path, $fileName)
+    private function bitrateConvert(int $bitrate, string $path, string $fileName)
     {
         if ($bitrate > 0) {
             // Change path only if already converted or conversion function returns true
@@ -198,13 +197,13 @@ trait DownloaderTrait
     /**
      * Formats name, appends mp3, ascii-fy and remove bad characters.
      *
-     * @param array $item
+     * @param array $audio
      *
      * @return string formatted name
      */
-    private function getFormattedName($item)
+    private function getFormattedName(array $audio)
     {
-        $name = sprintf('%s - %s', $item['artist'], $item['title']);
+        $name = sprintf('%s - %s', $audio['artist'], $audio['title']);
         $name = Str::ascii($name);
         $name = sanitize($name, false, false);
         $name = sprintf('%s.mp3', $name);
@@ -241,7 +240,7 @@ trait DownloaderTrait
      *
      * @return string path_bitrate.mp3 formatted path
      */
-    private function formatPathWithBitrate($path, $bitrate)
+    private function formatPathWithBitrate(string $path, int $bitrate)
     {
         if ($bitrate > 0) {
             return str_replace('.mp3', "_$bitrate.mp3", $path);
@@ -259,7 +258,7 @@ trait DownloaderTrait
      *
      * @return bool true if succeeds
      */
-    private function downloadFile($url, $path, $proxy = true)
+    private function downloadFile(string $url, string $path, bool $proxy = true)
     {
         $handle = fopen($path, 'w');
 
@@ -308,7 +307,7 @@ trait DownloaderTrait
      *
      * @return RedirectResponse
      */
-    private function downloadResponse($path, $name)
+    private function downloadResponse(string $path, string $name)
     {
         $hash = basename($path, '.mp3');
         $subPath = subPathForHash($hash);
@@ -329,7 +328,7 @@ trait DownloaderTrait
      * @param $audio array an array with fields title and artist
      * @param $path  string full path to file
      */
-    private function writeAudioTags($audio, $path)
+    private function writeAudioTags(array $audio, string $path)
     {
         try {
             $encoding = 'UTF-8';
@@ -353,9 +352,7 @@ trait DownloaderTrait
             }
             $downloadCovers = config('app.downloading.id3.download_covers');
             if ($downloadCovers) {
-                PHP_Timer::start();
                 if ($coverImage = covers()->getImageFile($audio)) {
-                    Log::notice(sprintf("Downloaded cover image in: %f", PHP_Timer::stop()));
                     if ($coverImageFile = file_get_contents($coverImage)) {
                         if ($coverImageExif = exif_imagetype($coverImage)) {
                             $tags['attached_picture'][0]['data'] = $coverImageFile;
@@ -387,7 +384,7 @@ trait DownloaderTrait
      *
      * @return bool is success
      */
-    private function convertMp3Bitrate($bitrate, $input, $output)
+    private function convertMp3Bitrate(int $bitrate, string $input, string $output)
     {
         $bitrateString = config('app.conversion.allowed_ffmpeg')[array_search($bitrate,
             config('app.conversion.allowed'))];

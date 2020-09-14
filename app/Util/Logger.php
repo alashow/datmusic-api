@@ -6,6 +6,7 @@
 
 namespace App\Util;
 
+use App\Http\Middleware\ResponseTimeMiddleware;
 use Illuminate\Http\Request;
 
 class Logger
@@ -23,7 +24,7 @@ class Logger
     /**
      * Writes log to file with given type and arguments array.
      *
-     * @param $type
+     * @param       $type
      * @param array $args
      *
      * @return int|bool bytes written count or false on failure
@@ -32,7 +33,8 @@ class Logger
     {
         $log = implode(' ', $args);
         $ip = Request::capture()->ip();
-        $text = sprintf("%s, %s, %s, %s\n", $type, $this->getTime(), $log, $ip);
+        $elapsed = ResponseTimeMiddleware::secondsSinceRequest();
+        $text = sprintf("%s, %s, %s, %s, %s\n", $type, $this->getTime(), $log, $ip, $elapsed);
 
         return file_put_contents(config('app.paths.log'), $text, FILE_APPEND);
     }
@@ -45,6 +47,36 @@ class Logger
     public function search(...$args)
     {
         return $this->writeLog('Search', $args);
+    }
+
+    public function searchBy($type, ...$args)
+    {
+        return $this->writeLog('Search.'.ucfirst($type), $args);
+    }
+
+    public function searchByCache($type, ...$args)
+    {
+        return $this->writeLog(sprintf('Search.%s.Cache', ucfirst($type)), $args);
+    }
+
+    public function getAlbumById(...$args)
+    {
+        return $this->writeLog('Get.AlbumById', $args);
+    }
+
+    public function getAlbumByIdCache(...$args)
+    {
+        return $this->writeLog('Get.AlbumById.Cache', $args);
+    }
+
+    public function getArtistItems($type, ...$args)
+    {
+        return $this->writeLog('Get.'.ucfirst($type), $args);
+    }
+
+    public function getArtistItemsCache($type, ...$args)
+    {
+        return $this->writeLog(sprintf('Get.%s.Cache', ucfirst($type)), $args);
     }
 
     public function searchCache(...$args)

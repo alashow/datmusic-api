@@ -14,7 +14,7 @@ return [
     ],
 
     // hashing algorithms
-    'hash' => [
+    'hash'  => [
         'cache' => 'crc32',
         'id'    => 'crc32',
         'mp3'   => 'md5',
@@ -30,7 +30,11 @@ return [
     ],
 
     'cache' => [
-        'duration' => 24 * 60, // in minutes
+        // in minutes
+        'duration' => 24 * 60,
+        'duration_audio' => 24 * 60,
+        'duration_artists' => 24 * 60 * 7,
+        'duration_albums' => 24 * 60 * 7,
     ],
 
     'auth' => [
@@ -46,10 +50,10 @@ return [
         ],
 
         'id3' => [
-            'enable' => env('DOWNLOADING_ID3_TAGS_ENABLED', true),
+            'enable'  => env('DOWNLOADING_ID3_TAGS_ENABLED', true),
             'comment' => 'Downloaded via https://datmusic.xyz',
 
-            'download_covers' => env('DOWNLOADING_ID3_COVERS', true),
+            'download_covers'          => env('DOWNLOADING_ID3_COVERS', true),
             'download_covers_external' => env('DOWNLOADING_ID3_COVERS_EXTERNAL', false),
         ],
     ],
@@ -61,7 +65,7 @@ return [
         'ffmpeg_path'    => 'ffmpeg',
     ],
 
-    'covers' => [
+    'covers'  => [
         'user-agent' => env('COVERS_USER_AGENT', sprintf('DatmusicApi/1.0.0 (+https://github.com/alashow/datmusic-api,%s)', fullUrl('/'))),
     ],
 

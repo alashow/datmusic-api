@@ -14,7 +14,7 @@
 | is ready to receive HTTP / Console requests from the environment.
 |
 */
-
+define('LUMEN_START', microtime(true));
 $app = require __DIR__.'/../bootstrap/app.php';
 
 /*

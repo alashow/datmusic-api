@@ -19,7 +19,7 @@ trait CachesTrait
      *
      * @return string
      */
-    private function getCacheKey($request)
+    private function getCacheKey(Request $request)
     {
         $q = strtolower(getPossibleKeys($request, 'q', 'query'));
         $page = abs(intval($request->get('page')));
@@ -29,25 +29,41 @@ trait CachesTrait
         return hash(config('app.hash.cache'), ($q.$page));
     }
 
+    private function getCacheKeyForId(Request $request, string $id)
+    {
+        $page = abs(intval($request->get('page')));
+
+        return hash(config('app.hash.cache'), ($id.$page));
+    }
+
     /**
      * Save search result in cache.
      *
      * @param string $cacheKey cache key
      * @param array  $result   audio array
+     * @param string $type     cache type. from: blank for audio search type, albums, artists
      */
-    private function cacheSearchResult($cacheKey, $result)
+    private function cacheResult(string $cacheKey, array $result, string $type = '')
     {
-        Cache::put('query.'.$cacheKey, $result, config('app.cache.duration'));
+        if (! blank($type)) {
+            $type = "_$type";
+        } // prefix with underscore if type is specified
+        Cache::put("query$type.".$cacheKey, $result, config("app.cache.duration$type"));
     }
 
     /**
-     * @param $request
+     * @param string $cacheKey
+     * @param string $type cache type. from: blank for audio search type, albums, artists
      *
      * @return array|null audio array or null if not cached
      */
-    private function getSearchResult($request)
+    private function getCache(string $cacheKey, string $type = '')
     {
-        return Cache::get('query.'.$this->getCacheKey($request));
+        if (! blank($type)) {
+            $type = "_$type";
+        } // prefix with underscore if type is specified
+
+        return Cache::get("query$type.".$cacheKey);
     }
 
     /**
@@ -60,10 +76,11 @@ trait CachesTrait
      * @return array|null
      * @throws HttpException
      */
-    public function getAudio($key, $id, $abort = true)
+    public function getAudio(string $key, string $id, bool $abort = true)
     {
-        // get search cache instance
-        $data = Cache::get('query.'.$key);
+        $isAudio = $key == $this->audioKeyId;
+        // get from audio cache or search cache
+        $data = $isAudio ? $this->getAudioCache($id) : Cache::get('query.'.$key);
 
         if (is_null($data)) {
             logger()->log('Cache.NoAudio', $key, $id);
@@ -72,6 +89,10 @@ trait CachesTrait
             }
 
             return null;
+        }
+
+        if ($isAudio) {
+            return $data;
         }
 
         // search audio by audio id/hash
@@ -94,17 +115,22 @@ trait CachesTrait
     /**
      * Save audio item in cache.
      *
-     * @param $id   string audio id
-     * @param $item array audio item
+     * @param $id         string audio id
+     * @param $item       array audio item
+     * @param $expire     bool whether to save mp3 url
      *
-     * @return array
+     * @return bool
      */
-    public function cacheAudioItem($id, $item)
+    public function cacheAudioItem(string $id, array $item, bool $expire = false)
     {
-        // we don't need to cache audios url, it's gonna expire anyways.
-        unset($item['mp3']);
+        if (! $expire) {
+            // we don't need to cache audios url, it's gonna expire anyways.
+            unset($item['mp3']);
 
-        return Cache::forever("audio.$id", $item);
+            return Cache::forever("audio.$id", $item);
+        } else {
+            return Cache::put("audio.$id", $item, config('app.cache.duration_audio'));
+        }
     }
 
     /**

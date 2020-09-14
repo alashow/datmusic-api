@@ -11,10 +11,10 @@ use Illuminate\Http\Request;
 
 trait SearchesTrait
 {
-    use CachesTrait, ParserTrait;
+    use CachesTrait, ParserTrait, AlbumArtistSearchesTrait;
 
+    protected $audioKeyId = 'audio';
     private $count = 200;
-
     private $accessTokenIndex = 0;
 
     /**
@@ -41,33 +41,26 @@ trait SearchesTrait
         $cacheKey = $this->getCacheKey($request);
 
         // return immediately if has in cache
-        $cachedResult = $this->getSearchResult($request);
+        $cachedResult = $this->getCache($cacheKey);
         if (! is_null($cachedResult)) {
             logger()->searchCache($query, $offset);
 
-            return $this->ok($this->transformSearchResponse($request, $cachedResult));
+            return $this->ok($this->transformAudioResponse($request, $cacheKey, $cachedResult));
         }
 
-        // send request
         $response = $this->getSearchResults($request, $query, $offset);
-
         $error = $this->checkForErrors($response);
         if ($error) {
             return $error;
         }
 
-        $result = $this->getAudioItems($response);
-
-        // store in cache
-        $this->cacheSearchResult($cacheKey, $result);
-
+        // parse then store in cache
+        $result = $this->parseAudioItems($response);
+        $this->cacheResult($cacheKey, $result);
         logger()->search($query, $offset);
 
         // parse data, save in cache, and response
-        return $this->ok($this->transformSearchResponse(
-            $request,
-            $result
-        ));
+        return $this->ok($this->transformAudioResponse($request, $cacheKey, $result));
     }
 
     /**
@@ -79,21 +72,13 @@ trait SearchesTrait
      *
      * @return \stdClass
      */
-    private function getSearchResults($request, $query, $offset)
+    private function getSearchResults(Request $request, string $query, int $offset)
     {
         if (empty($query)) {
             $query = randomArtist();
         }
 
-        $captchaParams = [];
-        if ($request->has('captcha_key')) {
-            $captchaParams = [
-                'captcha_sid' => $request->get('captcha_id'),
-                'captcha_key' => $request->get('captcha_key'),
-            ];
-            $this->accessTokenIndex = min(intval($request->get('captcha_index', 0)), $this->accessTokenIndex);
-        }
-
+        $captchaParams = $this->getCaptchaParams($request);
         $params = [
             'access_token' => config('app.auth.tokens')[$this->accessTokenIndex],
             'q'            => $query,
@@ -108,11 +93,31 @@ trait SearchesTrait
     }
 
     /**
+     * Get captcha inputs from given request.
+     *
+     * @param Request $request
+     */
+    protected function getCaptchaParams(Request $request)
+    {
+        if ($request->has('captcha_key')) {
+            $captchaParams = [
+                'captcha_sid' => $request->get('captcha_id'),
+                'captcha_key' => $request->get('captcha_key'),
+            ];
+            $this->accessTokenIndex = min(intval($request->get('captcha_index', 0)), $this->accessTokenIndex);
+
+            return $captchaParams;
+        } else {
+            return [];
+        }
+    }
+
+    /**
      * @param \stdClass $response
      *
      * @return bool|JsonResponse
      */
-    private function checkForErrors($response)
+    protected function checkForErrors(\stdClass $response)
     {
         if (property_exists($response, 'error')) {
             $error = $response->error;
@@ -138,20 +143,21 @@ trait SearchesTrait
      * Cleanup data for response.
      *
      * @param Request $request
+     * @param string  $cacheKey
      * @param array   $data
+     * @param bool    $sort
      *
      * @return array
      */
-    private function transformSearchResponse($request, $data)
+    private function transformAudioResponse(Request $request, string $cacheKey, array $data, bool $sort = true)
     {
         // if query matches sort regex, we shouldn't sort
         $query = $request->get('q');
-        $sortable = $this->isBadMatch([$query]) == false;
+        $sortable = $sort && $this->isBadMatch([$query]) == false;
 
         // items that needs to sorted to the end of response list if matches the regex
         $badMatches = [];
 
-        $cacheKey = $this->getCacheKey($request);
         $mapped = array_map(function ($item) use (&$cacheKey, &$badMatches, &$sortable) {
             $downloadUrl = fullUrl(sprintf('dl/%s/%s', $cacheKey, $item['id']));
             $streamUrl = fullUrl(sprintf('stream/%s/%s', $cacheKey, $item['id']));
@@ -213,12 +219,32 @@ trait SearchesTrait
     /**
      * Replace bad words with empty string.
      *
-     * @param $string
+     * @param string $text
      *
-     * @return string clean string
+     * @return string sanitized string
      */
-    private function cleanBadWords($string)
+    private function cleanBadWords(string $text)
     {
-        return preg_replace(config('app.search.badWordsRegex'), '', $string);
+        return preg_replace(config('app.search.badWordsRegex'), '', $text);
+    }
+
+    /**
+     * Standard audio response with optional caching for each audio item.
+     *
+     * @param Request $request
+     * @param array   $data
+     * @param bool    $cache
+     *
+     * @return JsonResponse
+     */
+    protected function audiosResponse(Request $request, array $data, bool $cache = true)
+    {
+        if ($cache) {
+            foreach ($data as $audio) {
+                $this->cacheAudioItem($audio['id'], $audio, true);
+            }
+        }
+
+        return $this->ok($this->transformAudioResponse($request, $this->audioKeyId, $data, false));
     }
 }

@@ -25,6 +25,8 @@ class AppServiceProvider extends ServiceProvider
         if ($tokens != null && strlen($tokens) > 1) {
             $tokens = explode(',', $tokens);
             config(['app.auth.tokens' => $tokens]);
+        } else {
+            throw new \Exception('No tokens found. Set tokens in .env to continue');
         }
 
         // override CORs

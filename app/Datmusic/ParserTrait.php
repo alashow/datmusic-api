@@ -18,14 +18,14 @@ trait ParserTrait
      *
      * @return array
      */
-    public function getAudioItems($response)
+    public function parseAudioItems($response)
     {
         $audios = $response->response->items;
 
         $data = [];
         foreach ($audios as $item) {
             if (isset($item->content_restricted) && empty($item->url)) {
-                \Log::info('Audio item restricted, skipping it', [$item]);
+                \Log::debug('Audio item restricted, skipping it', [$item]);
                 continue;
             }
 
@@ -95,6 +95,7 @@ trait ParserTrait
                 return false;
             } else {
                 $item['mp3'] = $url;
+
                 return true;
             }
         } catch (\Exception $e) {
