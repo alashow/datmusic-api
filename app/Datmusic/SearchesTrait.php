@@ -163,14 +163,13 @@ trait SearchesTrait
             $streamUrl = fullUrl(sprintf('stream/%s/%s', $cacheKey, $item['id']));
             $coverUrl = fullUrl(sprintf('cover/%s/%s', $cacheKey, $item['id']));
 
-            $item['artist'] = $this->cleanBadWords($item['artist']);
-            $item['title'] = $this->cleanBadWords($item['title']);
-
-            // remove mp3 link and id from array
+            // we don't wanna share original mp3 urls
             unset($item['mp3']);
-            unset($item['id']);
 
             $result = array_merge($item, [
+                'key'      => $cacheKey,
+                'artist'   => $this->cleanBadWords($item['artist']),
+                'title'    => $this->cleanBadWords($item['title']),
                 'download' => $downloadUrl,
                 'stream'   => $streamUrl,
                 'cover'    => $coverUrl,

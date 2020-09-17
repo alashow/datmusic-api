@@ -63,7 +63,9 @@ trait ParserTrait
                 ]);
                 if (isset($item->album->thumb)) {
                     $itemData = array_merge($itemData, [
-                        'cover_url' => $item->album->thumb->photo_1200,
+                        'cover_url_small'  => $item->album->thumb->photo_300,
+                        'cover_url_medium' => $item->album->thumb->photo_600,
+                        'cover_url'        => $item->album->thumb->photo_1200,
                     ]);
                 }
             }

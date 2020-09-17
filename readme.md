@@ -32,7 +32,7 @@ By default, audio and album/artist search results are cached for 24 hours and a 
 ### Albums
 This endpoint will require extra parameters returned by albums search, `owner_id` and `access_key`. 
 
-Get audios by album - `https://example.com/albums/{album_id}&owner_id={owner_id}&access_key={access_key}`
+Get audios by album - `https://example.com/albums/{album_id}?owner_id={owner_id}&access_key={access_key}`
 
 # Downloads & Streams
 
