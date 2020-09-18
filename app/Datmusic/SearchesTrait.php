@@ -8,6 +8,7 @@ namespace App\Datmusic;
 
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 trait SearchesTrait
 {
@@ -37,6 +38,20 @@ trait SearchesTrait
         // get inputs
         $query = trim(getPossibleKeys($request, 'q', 'query'));
         $offset = abs(intval($request->get('page'))) * $this->count; // calculate offset from page index
+
+        if (Str::startsWith($query, $this->artistsSearchPrefix)) {
+            $response = $this->audiosByArtistName($request, $query);
+        }
+        if (Str::startsWith($query, $this->albumSearchPrefix)) {
+            $response = $this->audiosByAlbumName($request, $query);
+        }
+        if (Str::startsWith($query, $this->albumsSearchPrefix)) {
+            $response = $this->audiosByAlbumNameMultiple($request, $query);
+        }
+
+        if (isset($response) && $response) {
+            return $response;
+        }
 
         $cacheKey = $this->getCacheKey($request);
 
@@ -87,8 +102,8 @@ trait SearchesTrait
         ];
 
         return as_json(httpClient()->get('method/audio.search', [
-            'query' => $params + $captchaParams,
-        ]
+                'query' => $params + $captchaParams,
+            ]
         ));
     }
 
@@ -127,10 +142,10 @@ trait SearchesTrait
             ];
             if ($error->error_code == 14) {
                 return $this->error($errorData + [
-                    'captcha_index' => $this->accessTokenIndex,
-                    'captcha_id'    => intval($error->captcha_sid),
-                    'captcha_img'   => $error->captcha_img,
-                ]);
+                        'captcha_index' => $this->accessTokenIndex,
+                        'captcha_id'    => intval($error->captcha_sid),
+                        'captcha_img'   => $error->captcha_img,
+                    ]);
             } else {
                 return $this->error($errorData);
             }

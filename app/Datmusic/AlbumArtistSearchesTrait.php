@@ -8,6 +8,7 @@ namespace App\Datmusic;
 
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 trait AlbumArtistSearchesTrait
 {
@@ -16,6 +17,84 @@ trait AlbumArtistSearchesTrait
     private $getArtistTypes = ['audiosByArtist', 'albumsByArtist'];
     private $audiosByArtist = 'audiosByArtist';
     private $albumsByArtist = 'albumsByArtist';
+
+    private $artistsSearchPrefix = 'artist:';
+    private $albumSearchPrefix = 'album:';
+    private $albumsSearchPrefix = 'albums:';
+    private $albumsSearchLimit = 10;
+
+    /**
+     * @param Request $request
+     * @param string  $query
+     *
+     * @return JsonResponse|bool
+     */
+    public function audiosByArtistName(Request $request, string $query)
+    {
+        $query = Str::replaceFirst($this->artistsSearchPrefix, '', $query);
+        $artists = $this->searchArtists($request->merge(['q' => $query]))->getOriginalContent()['data'];
+
+        logger()->searchBy('AudiosByArtistName', $query);
+
+        if (! empty($artists)) {
+            return $this->getArtistAudios($request, $artists[0]->id);
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * @param Request $request
+     * @param string  $query
+     *
+     * @return JsonResponse|bool
+     */
+    public function audiosByAlbumName(Request $request, string $query)
+    {
+        $query = Str::replaceFirst($this->albumSearchPrefix, '', $query);
+        $albums = $this->searchAlbums($request->merge(['q' => $query]))->getOriginalContent()['data'];
+
+        logger()->searchBy('AudiosByAlbumName', $query);
+
+        if (! empty($albums)) {
+            $album = collect($albums)->sortByDesc('plays')->first();
+
+            return $this->getAlbumById($request->merge([
+                'owner_id'   => $album->owner_id,
+                'access_key' => $album->access_key,
+            ]), $album->id);
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * @param Request $request
+     * @param string  $query
+     * @param int     $limit
+     *
+     * @return JsonResponse|bool
+     */
+    public function audiosByAlbumNameMultiple(Request $request, string $query, int $limit = 10)
+    {
+        $query = Str::replaceFirst($this->albumsSearchPrefix, '', $query);
+        $albums = $this->searchAlbums($request->merge(['q' => $query]))->getOriginalContent()['data'];
+
+        logger()->searchBy('AudiosByAlbumNameMultiple', $query);
+
+        if (! empty($albums)) {
+            $albums = collect($albums)->sortByDesc('plays')->take(min($limit, $this->albumsSearchLimit));
+
+            return $this->ok($albums->flatMap(function ($album) use ($request) {
+                return $this->getAlbumById($request->merge([
+                    'owner_id'   => $album->owner_id,
+                    'access_key' => $album->access_key,
+                ]), $album->id)->getOriginalContent()['data'];
+            }));
+        } else {
+            return false;
+        }
+    }
 
     public function searchAlbums(Request $request)
     {
@@ -58,8 +137,8 @@ trait AlbumArtistSearchesTrait
         ];
 
         $response = as_json(httpClient()->get('method/audio.get', [
-            'query' => $params + $captchaParams,
-        ]
+                'query' => $params + $captchaParams,
+            ]
         ));
 
         $error = $this->checkForErrors($response);
@@ -109,8 +188,8 @@ trait AlbumArtistSearchesTrait
         ];
 
         $response = as_json(httpClient()->get('method/audio.search'.ucfirst($type), [
-            'query' => $params + $captchaParams,
-        ]
+                'query' => $params + $captchaParams,
+            ]
         ));
 
         $error = $this->checkForErrors($response);
@@ -162,8 +241,8 @@ trait AlbumArtistSearchesTrait
         ];
 
         $response = as_json(httpClient()->get('method/audio.get'.ucfirst($type), [
-            'query' => $params + $captchaParams,
-        ]
+                'query' => $params + $captchaParams,
+            ]
         ));
 
         $error = $this->checkForErrors($response);

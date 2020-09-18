@@ -49,6 +49,11 @@ class Logger
         return $this->writeLog('Search', $args);
     }
 
+    public function searchCache(...$args)
+    {
+        return $this->writeLog('Search.Cache', $args);
+    }
+
     public function searchBy($type, ...$args)
     {
         return $this->writeLog('Search.'.ucfirst($type), $args);
@@ -77,11 +82,6 @@ class Logger
     public function getArtistItemsCache($type, ...$args)
     {
         return $this->writeLog(sprintf('Get.%s.Cache', ucfirst($type)), $args);
-    }
-
-    public function searchCache(...$args)
-    {
-        return $this->writeLog('Search.Cache', $args);
     }
 
     public function download($cache, ...$args)
