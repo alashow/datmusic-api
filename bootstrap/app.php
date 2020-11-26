@@ -72,6 +72,7 @@ $app->singleton('logger', function ($app) {
 
 $app->middleware([
     App\Http\Middleware\ResponseTimeMiddleware::class,
+    App\Http\Middleware\BannedClientsMiddleware::class,
     \Fruitcake\Cors\HandleCors::class,
 ]);
 

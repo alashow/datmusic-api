@@ -26,6 +26,6 @@ class CoverController extends ApiController
             }
         }
 
-        return $this->notFound();
+        return notFoundResponse();
     }
 }

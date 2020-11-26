@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Psr\Http\Message\ResponseInterface;
 
@@ -88,6 +89,62 @@ function as_json($response)
 }
 
 /**
+ * @param array $data
+ * @param int   $status
+ * @param array $headers
+ *
+ * @return JsonResponse
+ */
+function okResponse($data = null, $status = 200, $headers = [])
+{
+    return json_response('ok', $data, null, $status, $headers);
+}
+
+/**
+ * @param string $message
+ *
+ * @return JsonResponse
+ */
+function notFoundResponse($message = 'Not found')
+{
+    return errorResponse(['message' => $message], 404);
+}
+
+/**
+ * @param array|null $error
+ * @param int   $status
+ * @param array $headers
+ *
+ * @return JsonResponse
+ */
+function errorResponse(array $error = null, $status = 200, $headers = [])
+{
+    return json_response('error', null, $error, $status, $headers);
+}
+
+/**
+ * @param string $status
+ * @param array|null   $data
+ * @param array|null   $error
+ * @param int    $httpStatus
+ * @param array  $headers
+ *
+ * @return \Illuminate\Http\JsonResponse
+ */
+function json_response($status = 'ok', array $data = null, array $error = null, $httpStatus = 200, $headers = [])
+{
+    $result = ['status' => $status];
+    if (! is_null($data)) {
+        $result = array_merge($result, ['data' => $data]);
+    }
+    if (! is_null($error)) {
+        $result = array_merge($result, ['error' => $error]);
+    }
+
+    return response()->json($result, $httpStatus, $headers);
+}
+
+/**
  * Get param from the given request for given possible keys.
  *
  * @param Request $request
@@ -106,8 +163,20 @@ function getPossibleKeys(Request $request, ...$keys)
     return null;
 }
 
+function getRandomWeightedElement(array $weightedValues)
+{
+    $rand = mt_rand(1, (int) array_sum(array_values($weightedValues)));
+
+    foreach ($weightedValues as $key => $value) {
+        $rand -= $value;
+        if ($rand <= 0) {
+            return $key;
+        }
+    }
+}
+
 /**
- * Get query param from given request
+ * Get query param from given request.
  *
  * @param Request $request
  *
@@ -119,7 +188,7 @@ function getQuery(Request $request)
 }
 
 /**
- * Get page param from given request
+ * Get page param from given request.
  *
  * @param Request $request
  *
@@ -142,10 +211,10 @@ function subPathForHash($hash)
  * @param array    $captcha captcha info
  * @param stdClass $error
  */
-function reportCaptchaError(Request $request, array $captcha, stdClass $error)
+function reportCaptchaLock(Request $request, array $captcha, stdClass $error)
 {
     $firstAttempt = $request->has('captcha_key') ? 'false' : 'true';
-    logger()->captcha($firstAttempt, getQuery($request), $captcha['captcha_id']);
+    logger()->captchaLock($captcha['captcha_index'], $firstAttempt, getQuery($request), $captcha['captcha_id']);
 }
 
 /**
@@ -153,9 +222,10 @@ function reportCaptchaError(Request $request, array $captcha, stdClass $error)
  *
  * @param Request $request
  */
-function reportCaptchaSolved(Request $request)
+function reportCaptchaLockRelease(Request $request)
 {
+    $captchaIndex = $request->get('captcha_index');
     $captchaKey = $request->get('captcha_key');
     $captchaId = $request->get('captcha_id');
-    logger()->captchaSolved($captchaKey, $captchaId);
+    logger()->captchaSolved($captchaIndex, $captchaKey, $captchaId);
 }

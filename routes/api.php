@@ -7,7 +7,7 @@ $router->get('/', 'ApiController@index');
 $router->get('search', 'ApiController@search');
 $router->get('dl/{key}/{id}', 'ApiController@download');
 $router->get('dl/{key}/{id}/{bitrate}', 'ApiController@bitrateDownload');
-$router->get('stream/{key}/{id}', 'ApiController@stream');
+$router->get('strefam/{key}/{id}', 'ApiController@stream');
 $router->get('bytes/{key}/{id}', 'ApiController@bytes');
 
 $router->get('cover/{key}/{id}', 'CoverController@cover');

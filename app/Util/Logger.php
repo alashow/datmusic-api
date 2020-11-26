@@ -99,13 +99,28 @@ class Logger
         return $this->writeLog('Convert', $args);
     }
 
-    public function captcha(...$args)
+    public function captchaLock($index, ...$args)
     {
-        return $this->writeLog('Captcha', $args);
+        return $this->writeLog("Captcha.Lock#$index", $args);
     }
 
-    public function captchaSolved(...$args)
+    public function captchaLockedQuery($index, ...$args)
     {
-        return $this->writeLog('Captcha.Solved', $args);
+        return $this->writeLog("Captcha.LockedQuery#$index", $args);
+    }
+
+    public function captchaSolved($index, ...$args)
+    {
+        return $this->writeLog("Captcha.Solved#$index", $args);
+    }
+
+    public function banClient(...$args)
+    {
+        return $this->writeLog('BanClient', $args);
+    }
+
+    public function bannedClientRequest(...$args)
+    {
+        return $this->writeLog('BannedClientRequest', $args);
     }
 }

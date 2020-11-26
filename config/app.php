@@ -30,11 +30,11 @@ return [
     ],
 
     'cache' => [
-        // in minutes
-        'duration' => 24 * 60,
-        'duration_audio' => 24 * 60,
-        'duration_artists' => 24 * 60 * 7,
-        'duration_albums' => 24 * 60 * 7,
+        // in seconds
+        'duration' => 24 * 60 * 60,
+        'duration_audio' => 24 * 60 * 60,
+        'duration_artists' => 24 * 60 * 60 * 7,
+        'duration_albums' => 24 * 60 * 60 * 7,
     ],
 
     'auth' => [
@@ -91,5 +91,22 @@ return [
         'Sam Smith', 'Seinabo Sey', 'Sia', 'Takahiro Kido', 'The Irrepressibles', 'The Neighbourhood', 'The xx',
         'VLNY', 'Wye Oak', 'X ambassadors', 'Yann Tiersen', 'Yiruma', 'Young Summer', 'Zack Hemsey', 'Zinovia',
         'deadmau5', 'pg.lost', 'Ólafur Arnalds',
+    ],
+
+    'captcha_lock' => [
+        // locks accounts on captcha error until or timeout with duration
+        'enabled' => env('DATMUSIC_CAPTCHA_LOCK_ENABLED', true),
+
+        // depending on your needs, locked or unlocked tokens can be preferred i.e more weight = more chances of being picked as a search token
+        'weighted_tokens_enabled' => env('DATMUSIC_CAPTCHA_LOCK_WEIGHTED_TOKENS_ENABLED', true),
+        'unlocked_token_weight'   => env('DATMUSIC_CAPTCHA_LOCK_UNLOCKED_TOKEN_WEIGHT', 4),
+        'locked_token_weight'     => env('DATMUSIC_CAPTCHA_LOCK_LOCKED_TOKEN_WEIGHT', 1),
+
+        //seconds
+        'duration' => env('DATMUSIC_CAPTCHA_LOCK_DURATION', 5 * 60), //how to long to lock account when captcha received
+
+        // failure is detected when there's a captcha error in search response and captcha key in request
+        'allowed_failed_attempts' => 8, // how many times the client is allowed to send wrong captcha keys
+        'allowed_failed_attempts_duration' => 2 * 60, // before they get banned for n seconds
     ],
 ];

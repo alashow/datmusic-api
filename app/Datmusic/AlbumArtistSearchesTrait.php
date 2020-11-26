@@ -85,7 +85,7 @@ trait AlbumArtistSearchesTrait
         if (! empty($albums)) {
             $albums = collect($albums)->sortByDesc('plays')->take(min($limit, $this->albumsSearchLimit));
 
-            return $this->ok($albums->flatMap(function ($album) use ($request) {
+            return okResponse($albums->flatMap(function ($album) use ($request) {
                 return $this->getAlbumById($request->merge([
                     'owner_id'   => $album->owner_id,
                     'access_key' => $album->access_key,
@@ -176,7 +176,7 @@ trait AlbumArtistSearchesTrait
         if (! is_null($cachedResult)) {
             logger()->searchByCache($type, $query, $offset);
 
-            return $this->ok($cachedResult);
+            return okResponse($cachedResult);
         }
 
         $captchaParams = $this->getCaptchaParams($request);
@@ -201,7 +201,7 @@ trait AlbumArtistSearchesTrait
         $this->cacheResult($cacheKey, $data, $type);
         logger()->searchBy($type, $query, $offset);
 
-        return $this->ok($data);
+        return okResponse($data);
     }
 
     /**
@@ -228,7 +228,7 @@ trait AlbumArtistSearchesTrait
         if (! is_null($cachedResult)) {
             logger()->getArtistItemsCache($type, $artistId, $offset);
 
-            return ! $isAudios ? $this->ok($cachedResult) : $this->audiosResponse($request, $cachedResult, false);
+            return ! $isAudios ? okResponse($cachedResult) : $this->audiosResponse($request, $cachedResult, false);
         }
 
         $captchaParams = $this->getCaptchaParams($request);
@@ -255,6 +255,6 @@ trait AlbumArtistSearchesTrait
         $this->cacheResult($cacheKey, $data);
         logger()->getArtistItems($type, $artistId, $offset);
 
-        return $isAudios ? $this->audiosResponse($request, $data) : $this->ok($data);
+        return $isAudios ? $this->audiosResponse($request, $data) : okResponse($data);
     }
 }

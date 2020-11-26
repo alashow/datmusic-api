@@ -24,7 +24,16 @@ trait SearchesTrait
      */
     public function bootSearches()
     {
-        $this->accessTokenIndex = array_rand(config('app.auth.tokens'));
+        $tokens = config('app.auth.tokens');
+
+        if (config('app.captcha_lock.weighted_tokens_enabled')) {
+            $tokenWeights = array_map(function ($index, $token) {
+                return [$index => $this->isCaptchaLocked($index) ? config('app.captcha_lock.locked_token_weight') : config('app.captcha_lock.unlocked_token_weight')];
+            }, range(0, count($tokens) - 1), $tokens);
+            $this->accessTokenIndex = getRandomWeightedElement(collect($tokenWeights)->flatten()->toArray());
+        } else {
+            $this->accessTokenIndex = array_rand(config('app.auth.tokens'));
+        }
     }
 
     /**
@@ -40,6 +49,17 @@ trait SearchesTrait
         $query = getQuery($request);
         $offset = getPage($request) * $this->count; // calculate offset from page index
 
+        $cacheKey = $this->getCacheKey($request);
+        $cachedResult = $this->getCache($cacheKey);
+        $isCachedQuery = ! is_null($cachedResult);
+
+        if (! $isCachedQuery && ! $request->has('captcha_key') && $this->isCaptchaLocked($this->accessTokenIndex)) {
+            $errorData = $this->getCaptchaLockError($this->accessTokenIndex);
+            logger()->captchaLockedQuery($this->accessTokenIndex, $query, $errorData['captcha_id']);
+
+            return errorResponse($errorData);
+        }
+
         if (Str::startsWith($query, $this->artistsSearchPrefix)) {
             $response = $this->audiosByArtistName($request, $query);
         }
@@ -54,14 +74,11 @@ trait SearchesTrait
             return $response;
         }
 
-        $cacheKey = $this->getCacheKey($request);
-
         // return immediately if has in cache
-        $cachedResult = $this->getCache($cacheKey);
-        if (! is_null($cachedResult)) {
+        if ($isCachedQuery) {
             logger()->searchCache($query, $offset);
 
-            return $this->ok($this->transformAudioResponse($request, $cacheKey, $cachedResult));
+            return okResponse($this->transformAudioResponse($request, $cacheKey, $cachedResult));
         }
 
         $response = $this->getSearchResults($request, $query, $offset);
@@ -73,10 +90,10 @@ trait SearchesTrait
         // parse then store in cache
         $result = $this->parseAudioItems($response);
         $this->cacheResult($cacheKey, $result);
-        logger()->search($query, $offset);
+        logger()->search($query, $offset, 'Account#'.$this->accessTokenIndex);
 
         // parse data, save in cache, and response
-        return $this->ok($this->transformAudioResponse($request, $cacheKey, $result));
+        return okResponse($this->transformAudioResponse($request, $cacheKey, $result));
     }
 
     /**
@@ -131,17 +148,14 @@ trait SearchesTrait
     }
 
     /**
-     * @param Request $request
+     * @param Request  $request
      * @param stdClass $response
      *
      * @return bool|JsonResponse
      */
     protected function checkForErrors(Request $request, stdClass $response)
     {
-        if ($request->has('captcha_key')) {
-            reportCaptchaSolved($request);
-        }
-
+        $hasCaptchaKey = $request->has('captcha_key');
         if (property_exists($response, 'error')) {
             $error = $response->error;
             $errorData = [
@@ -154,12 +168,24 @@ trait SearchesTrait
                     'captcha_id'    => intval($error->captcha_sid),
                     'captcha_img'   => $error->captcha_img,
                 ];
-                reportCaptchaError($request, $captcha, $error);
-                return $this->error($errorData + $captcha);
+                $errorData = $errorData + $captcha;
+                $this->captchaLock($this->accessTokenIndex, $errorData);
+                reportCaptchaLock($request, $captcha, $error);
+
+                if ($hasCaptchaKey) {
+                    $this->captchaFailedAttempt($request);
+                }
+
+                return errorResponse($errorData);
             } else {
-                return $this->error($errorData);
+                return errorResponse($errorData);
             }
         } else {
+            if ($hasCaptchaKey && $this->isCaptchaLocked($this->accessTokenIndex)) {
+                $this->releaseCaptchaLock($this->accessTokenIndex);
+                reportCaptchaLockRelease($request);
+            }
+
             return false;
         }
     }
@@ -269,6 +295,6 @@ trait SearchesTrait
             }
         }
 
-        return $this->ok($this->transformAudioResponse($request, $this->audioKeyId, $data, false));
+        return okResponse($this->transformAudioResponse($request, $this->audioKeyId, $data, false));
     }
 }

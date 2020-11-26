@@ -92,6 +92,11 @@ trait ParserTrait
 
         try {
             $locations = get_headers($item['mp3'], 1)['Location'];
+
+            if (!is_array($locations) || count($locations) < 2) {
+                return false;
+            }
+
             $url = Arr::last($locations);
             if (Str::startsWith($url, 'https://vk.com/err404.php')) {
                 return false;

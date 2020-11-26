@@ -26,66 +26,10 @@ class ApiController extends Controller
     /**
      * Just response status.
      *
-     * @return array
+     * @return JsonResponse
      */
     public function index()
     {
-        return $this->ok();
-    }
-
-    /**
-     * @param array $data
-     * @param int   $status
-     * @param array $headers
-     *
-     * @return JsonResponse
-     */
-    protected function ok($data = null, $status = 200, $headers = [])
-    {
-        return $this->response('ok', $data, null, $status, $headers);
-    }
-
-    /**
-     * @param string $message
-     *
-     * @return JsonResponse
-     */
-    protected function notFound($message = 'Not found')
-    {
-        return $this->error(['message' => $message], 404);
-    }
-
-    /**
-     * @param array $error
-     * @param int   $status
-     * @param array $headers
-     *
-     * @return JsonResponse
-     */
-    protected function error($error = null, $status = 200, $headers = [])
-    {
-        return $this->response('error', null, $error, $status, $headers);
-    }
-
-    /**
-     * @param string $status
-     * @param array   $data
-     * @param array   $error
-     * @param int    $httpStatus
-     * @param array  $headers
-     *
-     * @return \Illuminate\Http\JsonResponse
-     */
-    protected function response($status = 'ok', $data = null, $error = null, $httpStatus = 200, $headers = [])
-    {
-        $result = ['status' => $status];
-        if (! is_null($data)) {
-            $result = array_merge($result, ['data' => $data]);
-        }
-        if (! is_null($error)) {
-            $result = array_merge($result, ['error' => $error]);
-        }
-
-        return response()->json($result, $httpStatus, $headers);
+        return okResponse();
     }
 }

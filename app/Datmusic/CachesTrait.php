@@ -12,6 +12,8 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
 
 trait CachesTrait
 {
+    private static $captchaLockPrefix = 'captchaLock';
+
     /**
      * Get current request cache key.
      *
@@ -143,5 +145,77 @@ trait CachesTrait
     public function getAudioCache($id)
     {
         return Cache::get("audio.$id");
+    }
+
+    public function captchaLock($accountIndex, $captcha)
+    {
+        $key = sprintf('%s#%s', self::$captchaLockPrefix, $accountIndex);
+
+        return Cache::put($key, $captcha, config('app.captcha_lock.duration'));
+    }
+
+    public static function isCaptchaLocked($accountIndex)
+    {
+        $key = sprintf('%s#%s', self::$captchaLockPrefix, $accountIndex);
+
+        return config('app.captcha_lock.enabled') && Cache::has($key);
+    }
+
+    public function getCaptchaLockError($accountIndex)
+    {
+        $key = sprintf('%s#%s', self::$captchaLockPrefix, $accountIndex);
+
+        return Cache::get($key, false);
+    }
+
+    public function releaseCaptchaLock($accountIndex)
+    {
+        $key = sprintf('%s#%s', self::$captchaLockPrefix, $accountIndex);
+
+        return Cache::forget($key);
+    }
+
+    private function captchaFailedAttemptCacheKey(Request $request)
+    {
+        return sprintf('%s.FailedAttempts#%s', self::$captchaLockPrefix, $request->getClientIp());
+    }
+
+    public function captchaFailedAttempt(Request $request)
+    {
+        $attemptsKey = $this->captchaFailedAttemptCacheKey($request);
+        $attemptsCount = Cache::increment($attemptsKey);
+        if ($attemptsCount > config('app.captcha_lock.allowed_failed_attempts')) {
+            Cache::forget($attemptsKey);
+            $this->banClientIp($request, config('app.captcha_lock.allowed_failed_attempts_duration'));
+        }
+    }
+
+    public function getCaptchaFailedAttempts(Request $request)
+    {
+        return Cache::get($this->captchaFailedAttemptCacheKey($request), 0);
+    }
+
+    private function banClientCacheKey(Request $request)
+    {
+        return sprintf('clientBan@%s', $request->getClientIp());
+    }
+
+    private function banClientIp(Request $request, int $duration = 10 * 60, string $reason = '')
+    {
+        $key = $this->banClientCacheKey($request);
+        $totalBans = Cache::increment(sprintf('%s.count', $key));
+        logger()->banClient($totalBans, $duration, $reason);
+
+        return Cache::put($key, $reason, $duration);
+    }
+
+    public function isClientBanned(Request $request)
+    {
+        return Cache::has($this->banClientCacheKey($request));
+    }
+
+    public function clientBanReason(Request $request)
+    {
+        return Cache::get($this->banClientCacheKey($request), false);
     }
 }
