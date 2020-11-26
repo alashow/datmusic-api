@@ -106,7 +106,56 @@ function getPossibleKeys(Request $request, ...$keys)
     return null;
 }
 
+/**
+ * Get query param from given request
+ *
+ * @param Request $request
+ *
+ * @return string
+ */
+function getQuery(Request $request)
+{
+    return trim(getPossibleKeys($request, 'q', 'query'));
+}
+
+/**
+ * Get page param from given request
+ *
+ * @param Request $request
+ *
+ * @return int
+ */
+function getPage(Request $request)
+{
+    return abs(intval($request->get('page')));
+}
+
 function subPathForHash($hash)
 {
     return sprintf('%s/%s', substr($hash, 0, 2), substr($hash, 2, 2));
+}
+
+/**
+ * Logs captcha errors for later analysis.
+ *
+ * @param Request  $request
+ * @param array    $captcha captcha info
+ * @param stdClass $error
+ */
+function reportCaptchaError(Request $request, array $captcha, stdClass $error)
+{
+    $firstAttempt = $request->has('captcha_key') ? 'false' : 'true';
+    logger()->captcha($firstAttempt, getQuery($request), $captcha['captcha_id']);
+}
+
+/**
+ * Logs captcha responses for later analysis.
+ *
+ * @param Request $request
+ */
+function reportCaptchaSolved(Request $request)
+{
+    $captchaKey = $request->get('captcha_key');
+    $captchaId = $request->get('captcha_id');
+    logger()->captchaSolved($captchaKey, $captchaId);
 }

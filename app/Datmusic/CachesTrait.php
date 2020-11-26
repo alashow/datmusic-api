@@ -21,8 +21,8 @@ trait CachesTrait
      */
     private function getCacheKey(Request $request)
     {
-        $q = strtolower(getPossibleKeys($request, 'q', 'query'));
-        $page = abs(intval($request->get('page')));
+        $q = strtolower(getQuery($request));
+        $page = getPage($request);
 
         $q = empty($q) ? md5('popular') : $q;
 
@@ -31,7 +31,7 @@ trait CachesTrait
 
     private function getCacheKeyForId(Request $request, string $id)
     {
-        $page = abs(intval($request->get('page')));
+        $page = getPage($request);
 
         return hash(config('app.hash.cache'), ($id.$page));
     }

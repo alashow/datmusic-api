@@ -9,6 +9,7 @@ namespace App\Datmusic;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use stdClass;
 
 trait SearchesTrait
 {
@@ -36,8 +37,8 @@ trait SearchesTrait
     public function search(Request $request)
     {
         // get inputs
-        $query = trim(getPossibleKeys($request, 'q', 'query'));
-        $offset = abs(intval($request->get('page'))) * $this->count; // calculate offset from page index
+        $query = getQuery($request);
+        $offset = getPage($request) * $this->count; // calculate offset from page index
 
         if (Str::startsWith($query, $this->artistsSearchPrefix)) {
             $response = $this->audiosByArtistName($request, $query);
@@ -64,7 +65,7 @@ trait SearchesTrait
         }
 
         $response = $this->getSearchResults($request, $query, $offset);
-        $error = $this->checkForErrors($response);
+        $error = $this->checkForErrors($request, $response);
         if ($error) {
             return $error;
         }
@@ -85,7 +86,7 @@ trait SearchesTrait
      * @param string  $query
      * @param int     $offset
      *
-     * @return \stdClass
+     * @return stdClass
      */
     private function getSearchResults(Request $request, string $query, int $offset)
     {
@@ -102,8 +103,8 @@ trait SearchesTrait
         ];
 
         return as_json(httpClient()->get('method/audio.search', [
-                'query' => $params + $captchaParams,
-            ]
+            'query' => $params + $captchaParams,
+        ]
         ));
     }
 
@@ -111,6 +112,8 @@ trait SearchesTrait
      * Get captcha inputs from given request.
      *
      * @param Request $request
+     *
+     * @return array extra params array to send to solve captcha if there's a key in request or empty array
      */
     protected function getCaptchaParams(Request $request)
     {
@@ -128,12 +131,17 @@ trait SearchesTrait
     }
 
     /**
-     * @param \stdClass $response
+     * @param Request $request
+     * @param stdClass $response
      *
      * @return bool|JsonResponse
      */
-    protected function checkForErrors(\stdClass $response)
+    protected function checkForErrors(Request $request, stdClass $response)
     {
+        if ($request->has('captcha_key')) {
+            reportCaptchaSolved($request);
+        }
+
         if (property_exists($response, 'error')) {
             $error = $response->error;
             $errorData = [
@@ -141,11 +149,13 @@ trait SearchesTrait
                 'code'    => $error->error_code,
             ];
             if ($error->error_code == 14) {
-                return $this->error($errorData + [
-                        'captcha_index' => $this->accessTokenIndex,
-                        'captcha_id'    => intval($error->captcha_sid),
-                        'captcha_img'   => $error->captcha_img,
-                    ]);
+                $captcha = [
+                    'captcha_index' => $this->accessTokenIndex,
+                    'captcha_id'    => intval($error->captcha_sid),
+                    'captcha_img'   => $error->captcha_img,
+                ];
+                reportCaptchaError($request, $captcha, $error);
+                return $this->error($errorData + $captcha);
             } else {
                 return $this->error($errorData);
             }

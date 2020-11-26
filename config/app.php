@@ -56,6 +56,11 @@ return [
             'download_covers'          => env('DOWNLOADING_ID3_COVERS', true),
             'download_covers_external' => env('DOWNLOADING_ID3_COVERS_EXTERNAL', false),
         ],
+
+        'callback' => [
+            'enabled' => env('DATMUSIC_DOWNLOAD_CALLBACK_ENABLED', false),
+            'url' => env('DATMUSIC_DOWNLOAD_CALLBACK_URL', null),
+        ],
     ],
 
     'conversion' => [

@@ -137,11 +137,11 @@ trait AlbumArtistSearchesTrait
         ];
 
         $response = as_json(httpClient()->get('method/audio.get', [
-                'query' => $params + $captchaParams,
-            ]
+            'query' => $params + $captchaParams,
+        ]
         ));
 
-        $error = $this->checkForErrors($response);
+        $error = $this->checkForErrors($request, $response);
         if ($error) {
             return $error;
         }
@@ -170,8 +170,8 @@ trait AlbumArtistSearchesTrait
         $cacheKey = sprintf('%s.%s', $type, $this->getCacheKey($request));
         $cachedResult = $this->getCache($cacheKey, $type);
 
-        $query = trim(getPossibleKeys($request, 'q', 'query'));
-        $offset = abs(intval($request->get('page'))) * $this->count;
+        $query = getQuery($request);
+        $offset = getPage($request) * $this->count;
 
         if (! is_null($cachedResult)) {
             logger()->searchByCache($type, $query, $offset);
@@ -188,11 +188,11 @@ trait AlbumArtistSearchesTrait
         ];
 
         $response = as_json(httpClient()->get('method/audio.search'.ucfirst($type), [
-                'query' => $params + $captchaParams,
-            ]
+            'query' => $params + $captchaParams,
+        ]
         ));
 
-        $error = $this->checkForErrors($response);
+        $error = $this->checkForErrors($request, $response);
         if ($error) {
             return $error;
         }
@@ -220,7 +220,7 @@ trait AlbumArtistSearchesTrait
         }
 
         $isAudios = $type == $this->audiosByArtist;
-        $offset = abs(intval($request->get('page'))) * $this->count;
+        $offset = getPage($request) * $this->count;
 
         $cacheKey = sprintf('%s.%s', $type, $this->getCacheKeyForId($request, $artistId));
         $cachedResult = $this->getCache($cacheKey);
@@ -241,11 +241,11 @@ trait AlbumArtistSearchesTrait
         ];
 
         $response = as_json(httpClient()->get('method/audio.get'.ucfirst($type), [
-                'query' => $params + $captchaParams,
-            ]
+            'query' => $params + $captchaParams,
+        ]
         ));
 
-        $error = $this->checkForErrors($response);
+        $error = $this->checkForErrors($request, $response);
         if ($error) {
             return $error;
         }

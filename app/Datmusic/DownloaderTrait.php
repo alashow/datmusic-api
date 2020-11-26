@@ -118,6 +118,9 @@ trait DownloaderTrait
 
         if ($this->downloadFile($item['mp3'], $path, $proxy)) {
             $this->writeAudioTags($item, $path);
+            // TODO: enable this later
+            //$this->onDownloadCallback($item, $path, $subPath, $fileName);
+            // TODO: remove bitrate conversion feature
             $this->tryToConvert($bitrate, $path, $fileName, $name);
 
             return $this->downloadLocal($path, $subPath, $fileName, $key, $id, $name, $stream, false);
@@ -394,5 +397,22 @@ trait DownloaderTrait
             $result);
 
         return $result == 0;
+    }
+
+    /**
+     * @param $item array audio item info
+     * @param $subPath string computed subpath for mp3 hash (/abcdefg -> /ab/cd/abcdefg)
+     * @param $fileName string saved mp3's filename
+     */
+    private function onDownloadCallback($item, $subPath, $fileName)
+    {
+//        if (config('app.downloading.callback.enabled')) {
+//            $callbackUrl = config('app.downloading.callback.enabled');
+//            $id = str_replace(".mp3", "", $fileName);
+//            $item['id'] = $id;
+//            $item['link'] = fullUrl(sprintf("links/%s/%s/%s - %s.mp3", $subPath, $id, $item['artist'], $item['title']));
+//            unset($item['mp3']);
+//            dd($item);
+//        }
     }
 }

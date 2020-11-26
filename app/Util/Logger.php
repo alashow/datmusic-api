@@ -98,4 +98,14 @@ class Logger
     {
         return $this->writeLog('Convert', $args);
     }
+
+    public function captcha(...$args)
+    {
+        return $this->writeLog('Captcha', $args);
+    }
+
+    public function captchaSolved(...$args)
+    {
+        return $this->writeLog('Captcha.Solved', $args);
+    }
 }
