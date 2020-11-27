@@ -119,6 +119,11 @@ class Logger
         return $this->writeLog('BanClient', $args);
     }
 
+    public function banClientSkipped(...$args)
+    {
+        return $this->writeLog('BanClientSkipped', $args);
+    }
+
     public function bannedClientRequest(...$args)
     {
         return $this->writeLog('BannedClientRequest', $args);

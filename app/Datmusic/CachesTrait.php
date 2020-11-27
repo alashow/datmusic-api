@@ -204,6 +204,13 @@ trait CachesTrait
     {
         $key = $this->banClientCacheKey($request);
         $totalBans = Cache::increment(sprintf('%s.count', $key));
+
+        if (in_array($request->getClientIp(), config('app.client_bans.ip_whitelist'))) {
+            logger()->banClientSkipped('White listed ip skipped banning', $totalBans, $duration, $reason);
+
+            return 0;
+        }
+
         logger()->banClient($totalBans, $duration, $reason);
 
         return Cache::put($key, $reason, $duration);
