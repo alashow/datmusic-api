@@ -106,7 +106,7 @@ return [
         'duration' => env('DATMUSIC_CAPTCHA_LOCK_DURATION', 5 * 60), //how to long to lock account when captcha received
 
         // failure is detected when there's a captcha error in search response and captcha key in request
-        'allowed_failed_attempts' => 8, // how many times the client is allowed to send wrong captcha keys
+        'allowed_failed_attempts' => 15, // how many times the client is allowed to send wrong captcha keys
         'allowed_failed_attempts_duration' => 2 * 60, // before they get banned for n seconds
 
     ],

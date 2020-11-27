@@ -76,7 +76,7 @@ trait SearchesTrait
 
         // return immediately if has in cache
         if ($isCachedQuery) {
-            logger()->searchCache($query, $offset);
+            logger()->searchCache($query, $offset, 'count='.count($cachedResult));
 
             return okResponse($this->transformAudioResponse($request, $cacheKey, $cachedResult));
         }
@@ -90,7 +90,7 @@ trait SearchesTrait
         // parse then store in cache
         $result = $this->parseAudioItems($response);
         $this->cacheResult($cacheKey, $result);
-        logger()->search($query, $offset, 'Account#'.$this->accessTokenIndex);
+        logger()->search($query, $offset, 'Account#'.$this->accessTokenIndex, 'count='.count($result));
 
         // parse data, save in cache, and response
         return okResponse($this->transformAudioResponse($request, $cacheKey, $result));

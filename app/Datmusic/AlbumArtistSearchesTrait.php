@@ -34,7 +34,7 @@ trait AlbumArtistSearchesTrait
         $query = Str::replaceFirst($this->artistsSearchPrefix, '', $query);
         $artists = $this->searchArtists($request->merge(['q' => $query]))->getOriginalContent()['data'];
 
-        logger()->searchBy('AudiosByArtistName', $query);
+        logger()->searchBy('AudiosByArtistName', $query, 'Account#'.$this->accessTokenIndex, 'count='.count($artists));
 
         if (! empty($artists)) {
             return $this->getArtistAudios($request, $artists[0]->id);
@@ -54,7 +54,7 @@ trait AlbumArtistSearchesTrait
         $query = Str::replaceFirst($this->albumSearchPrefix, '', $query);
         $albums = $this->searchAlbums($request->merge(['q' => $query]))->getOriginalContent()['data'];
 
-        logger()->searchBy('AudiosByAlbumName', $query);
+        logger()->searchBy('AudiosByAlbumName', $query, 'Account#'.$this->accessTokenIndex, 'count='.count($albums));
 
         if (! empty($albums)) {
             $album = collect($albums)->sortByDesc('plays')->first();
@@ -80,7 +80,7 @@ trait AlbumArtistSearchesTrait
         $query = Str::replaceFirst($this->albumsSearchPrefix, '', $query);
         $albums = $this->searchAlbums($request->merge(['q' => $query]))->getOriginalContent()['data'];
 
-        logger()->searchBy('AudiosByAlbumNameMultiple', $query);
+        logger()->searchBy('AudiosByAlbumNameMultiple', $query, 'Account#'.$this->accessTokenIndex, 'count='.count($albums));
 
         if (! empty($albums)) {
             $albums = collect($albums)->sortByDesc('plays')->take(min($limit, $this->albumsSearchLimit));
