@@ -13,6 +13,14 @@ function httpClient()
 }
 
 /**
+ * @return GuzzleHttp\Client Guzzle vk http client
+ */
+function vkClient()
+{
+    return app('vkClient')->getClient();
+}
+
+/**
  * @return \App\Util\CoverArtClient
  */
 function covers()

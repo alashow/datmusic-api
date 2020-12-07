@@ -136,7 +136,7 @@ trait AlbumArtistSearchesTrait
             'access_key'   => $request->get('access_key'),
         ];
 
-        $response = as_json(httpClient()->get('method/audio.get', [
+        $response = as_json(vkClient()->get('method/audio.get', [
             'query' => $params + $captchaParams,
         ]
         ));
@@ -187,7 +187,7 @@ trait AlbumArtistSearchesTrait
             'count'        => $this->count,
         ];
 
-        $response = as_json(httpClient()->get('method/audio.search'.ucfirst($type), [
+        $response = as_json(vkClient()->get('method/audio.search'.ucfirst($type), [
             'query' => $params + $captchaParams,
         ]
         ));
@@ -240,7 +240,7 @@ trait AlbumArtistSearchesTrait
             'extended'     => 1,
         ];
 
-        $response = as_json(httpClient()->get('method/audio.get'.ucfirst($type), [
+        $response = as_json(vkClient()->get('method/audio.get'.ucfirst($type), [
             'query' => $params + $captchaParams,
         ]
         ));

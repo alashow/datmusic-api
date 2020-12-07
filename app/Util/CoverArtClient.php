@@ -142,7 +142,7 @@ class CoverArtClient
         try {
             if (array_key_exists('cover_url', $audio)) {
                 $imageUrl = $audio['cover_url'];
-                $client = httpClient();
+                $client = vkClient();
             } elseif (config('app.downloading.id3.download_covers_external')) {
                 $imageUrl = $this->getImage($audio);
                 $client = $this->archiveClient;

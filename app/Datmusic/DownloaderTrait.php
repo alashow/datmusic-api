@@ -6,6 +6,7 @@
 
 namespace App\Datmusic;
 
+use App\Jobs\PostProcessAudioJob;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
@@ -48,7 +49,7 @@ trait DownloaderTrait
                 return get_headers($item['mp3'], 1)['Content-Length'];
             }
 
-            $response = httpClient()->head($item['mp3']);
+            $response = vkClient()->head($item['mp3']);
 
             return $response->getHeader('Content-Length')[0];
         });
@@ -100,26 +101,25 @@ trait DownloaderTrait
         [$fileName, $subPath, $path] = $this->buildFilePathsForId($id);
 
         if (@file_exists($path)) {
-            $item = $this->getAudioCache($id);
+            $audioItem = $this->getCachedAudio($id);
             // try looking in search cache if not found
-            if (is_null($item)) {
-                $item = $this->getAudio($key, $id, false);
+            if (is_null($audioItem)) {
+                $audioItem = $this->getAudio($key, $id, false);
             }
-            $name = ! is_null($item) ? $this->getFormattedName($item) : "$id.mp3";
+            $name = ! is_null($audioItem) ? $this->getFormattedName($audioItem) : "$id.mp3";
 
             $this->tryToConvert($bitrate, $path, $fileName, $name);
 
             return $this->downloadLocal($path, $subPath, $fileName, $key, $id, $name, $stream, true);
         }
 
-        $item = $this->getAudio($key, $id);
-        $proxy = ! $this->optimizeMp3Url($item);
-        $name = $this->getFormattedName($item);
+        $audioItem = $this->getAudio($key, $id);
+        $proxy = ! $this->optimizeMp3Url($audioItem);
+        $name = $this->getFormattedName($audioItem);
 
-        if ($this->downloadFile($item['mp3'], $path, $proxy)) {
-            $this->writeAudioTags($item, $path);
-            // TODO: enable this later
-            //$this->onDownloadCallback($item, $path, $subPath, $fileName);
+        if ($this->downloadFile($audioItem['mp3'], $path, $proxy)) {
+            $this->writeAudioTags($audioItem, $path);
+            $this->onDownloadCallback($audioItem);
             // TODO: remove bitrate conversion feature
             $this->tryToConvert($bitrate, $path, $fileName, $name);
 
@@ -225,7 +225,7 @@ trait DownloaderTrait
     {
         $hash = hash(config('app.hash.mp3'), $id);
         $subPath = subPathForHash($hash);
-        $fileName = sprintf('%s.mp3', hash(config('app.hash.mp3'), $id));
+        $fileName = sprintf('%s.mp3', $hash);
         $path = sprintf('%s/%s', config('app.paths.mp3'), $subPath);
 
         if (! is_dir($subPath)) {
@@ -264,6 +264,9 @@ trait DownloaderTrait
     private function downloadFile(string $url, string $path, bool $proxy = true)
     {
         $handle = fopen($path, 'w');
+        if (! file_exists(dirname($path))) {
+            mkdir(dirname($path), 0777, true);
+        }
 
         $curl = curl_init($url);
         curl_setopt($curl, CURLOPT_FILE, $handle);
@@ -400,19 +403,14 @@ trait DownloaderTrait
     }
 
     /**
-     * @param $item array audio item info
-     * @param $subPath string computed subpath for mp3 hash (/abcdefg -> /ab/cd/abcdefg)
-     * @param $fileName string saved mp3's filename
+     * Dispatch post process audio job if enabled.
+     *
+     * @param array $audioItem audio item info
      */
-    private function onDownloadCallback($item, $subPath, $fileName)
+    private function onDownloadCallback(array $audioItem)
     {
-//        if (config('app.downloading.callback.enabled')) {
-//            $callbackUrl = config('app.downloading.callback.enabled');
-//            $id = str_replace(".mp3", "", $fileName);
-//            $item['id'] = $id;
-//            $item['link'] = fullUrl(sprintf("links/%s/%s/%s - %s.mp3", $subPath, $id, $item['artist'], $item['title']));
-//            unset($item['mp3']);
-//            dd($item);
-//        }
+        if (config('app.downloading.post_process.enabled')) {
+            dispatch(new PostProcessAudioJob($audioItem))->onQueue('post_process');
+        }
     }
 }

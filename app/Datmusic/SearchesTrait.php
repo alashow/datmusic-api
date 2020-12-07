@@ -15,7 +15,6 @@ trait SearchesTrait
 {
     use CachesTrait, ParserTrait, AlbumArtistSearchesTrait;
 
-    protected $audioKeyId = 'audio';
     private $count = 200;
     private $accessTokenIndex = 0;
 
@@ -119,7 +118,7 @@ trait SearchesTrait
             'count'        => $this->count,
         ];
 
-        return as_json(httpClient()->get('method/audio.search', [
+        return as_json(vkClient()->get('method/audio.search', [
             'query' => $params + $captchaParams,
         ]
         ));
@@ -295,6 +294,6 @@ trait SearchesTrait
             }
         }
 
-        return okResponse($this->transformAudioResponse($request, $this->audioKeyId, $data, false));
+        return okResponse($this->transformAudioResponse($request, self::$audioKeyId, $data, false));
     }
 }

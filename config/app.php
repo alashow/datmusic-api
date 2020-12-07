@@ -8,9 +8,10 @@ return [
 
     'paths' => [
         'cookie' => storage_path('app/cookies/%s.json'),
-        'mp3'    => storage_path('app/public/mp3'),
-        'links'  => storage_path('app/public/links'),
-        'log'    => storage_path('logs/datmusic.log'),
+        'mp3'    => env('DATMUSIC_PATHS_MP3', storage_path('app/public/mp3')),
+        'covers'    => env('DATMUSIC_PATHS_COVERS', storage_path('app/public/covers')),
+        'links'  => env('DATMUSIC_PATHS_MP3_LINKS', storage_path('app/public/links')),
+        'log'    => env('DATMUSIC_PATHS_LOG_FILE', storage_path('logs/datmusic.log')),
     ],
 
     // hashing algorithms
@@ -57,9 +58,10 @@ return [
             'download_covers_external' => env('DOWNLOADING_ID3_COVERS_EXTERNAL', false),
         ],
 
-        'callback' => [
-            'enabled' => env('DATMUSIC_DOWNLOAD_CALLBACK_ENABLED', false),
-            'url' => env('DATMUSIC_DOWNLOAD_CALLBACK_URL', null),
+        'post_process' => [
+            'enabled'  => env('DATMUSIC_DOWNLOAD_POST_PROCESS_ENABLED', false),
+            'sink_url' => env('DATMUSIC_DOWNLOAD_POST_PROCESS_SINK_URL', null),
+            'archive_cover' => env('DATMUSIC_DOWNLOAD_POST_PROCESS_ARCHIVE_COVER', false),
         ],
     ],
 

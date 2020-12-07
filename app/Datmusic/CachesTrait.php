@@ -12,6 +12,7 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
 
 trait CachesTrait
 {
+    protected static $audioKeyId = 'audio';
     private static $captchaLockPrefix = 'captchaLock';
 
     /**
@@ -80,9 +81,9 @@ trait CachesTrait
      */
     public function getAudio(string $key, string $id, bool $abort = true)
     {
-        $isAudio = $key == $this->audioKeyId;
+        $isAudio = $key == self::$audioKeyId;
         // get from audio cache or search cache
-        $data = $isAudio ? $this->getAudioCache($id) : Cache::get('query.'.$key);
+        $data = $isAudio ? $this->getCachedAudio($id) : Cache::get('query.'.$key);
 
         if (is_null($data)) {
             logger()->log('Cache.NoAudio', $key, $id);
@@ -140,9 +141,9 @@ trait CachesTrait
      *
      * @param $id string audio id
      *
-     * @return array
+     * @return array|null
      */
-    public function getAudioCache($id)
+    public function getCachedAudio(string $id)
     {
         return Cache::get("audio.$id");
     }

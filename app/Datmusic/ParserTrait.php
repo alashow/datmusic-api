@@ -76,6 +76,20 @@ trait ParserTrait
         return $data;
     }
 
+    public function cleanAudioItemForSink(array $audioItem): array
+    {
+        $item = $audioItem;
+        $mp3Hash = hash(config('app.hash.mp3'), $item['id']);
+        $item['id'] = $mp3Hash;
+
+        // cleanup unnecessary fields
+        unset($item['mp3']);
+        unset($item['cover_url_small']);
+        unset($item['cover_url_medium']);
+
+        return $item;
+    }
+
     /**
      * Tries to get mp3 url bounded to this machines IP when proxy enabled, to avoid downloading mp3 via proxy.
      * Uses VK's bug/hack which leaks new mp3 url for requester's IP.
