@@ -16,7 +16,8 @@
         "ext-curl": "*",
         "mlntn/lumen-artisan-serve": "~1",
         "fruitcake/laravel-cors": "^2.0",
-        "predis/predis": "^1.1"
+        "predis/predis": "^1.1",
+        "ext-fileinfo": "*"
     },
     "require-dev": {
         "fzaninotto/faker": "~1.4",

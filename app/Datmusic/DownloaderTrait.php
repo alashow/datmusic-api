@@ -90,9 +90,9 @@ trait DownloaderTrait
      * @param bool   $stream
      * @param int    $bitrate
      *
-     * @return RedirectResponse
+     * @return RedirectResponse|void
      */
-    public function download($key, $id, $stream = false, $bitrate = -1)
+    public function download(string $key, string $id, $stream = false, $bitrate = -1)
     {
         if (! in_array($bitrate, config('app.conversion.allowed'))) {
             $bitrate = -1;
@@ -117,7 +117,7 @@ trait DownloaderTrait
         $proxy = ! $this->optimizeMp3Url($audioItem);
         $name = $this->getFormattedName($audioItem);
 
-        if ($this->downloadFile($audioItem['mp3'], $path, $proxy)) {
+        if ($this->downloadAudio($audioItem['mp3'], $path, $proxy)) {
             $this->writeAudioTags($audioItem, $path);
             $this->onDownloadCallback($audioItem);
             // TODO: remove bitrate conversion feature
@@ -261,12 +261,12 @@ trait DownloaderTrait
      *
      * @return bool true if succeeds
      */
-    private function downloadFile(string $url, string $path, bool $proxy = true)
+    private function downloadAudio(string $url, string $path, bool $proxy = true)
     {
-        $handle = fopen($path, 'w');
         if (! file_exists(dirname($path))) {
             mkdir(dirname($path), 0777, true);
         }
+        $handle = fopen($path, 'w');
 
         $curl = curl_init($url);
         curl_setopt($curl, CURLOPT_FILE, $handle);
@@ -290,10 +290,15 @@ trait DownloaderTrait
         // if curl had errors
         if (curl_errno($curl) > 0) {
             logger()->log('Download.Fail', curl_errno($curl));
-
-            // remove the file just in case
             @unlink($path);
+            return false;
+        }
 
+        // or the file is not audio
+        $fileMimeType = get_mime_type($path);
+        if (! isMimeTypeAudio($fileMimeType)) {
+            logger()->log('Download.Fail.InvalidAudio', $fileMimeType);
+            @unlink($path);
             return false;
         }
 
@@ -311,7 +316,7 @@ trait DownloaderTrait
      * @param $path string path of the file
      * @param $name string name of the downloading file
      *
-     * @return RedirectResponse
+     * @return RedirectResponse|void
      */
     private function downloadResponse(string $path, string $name)
     {

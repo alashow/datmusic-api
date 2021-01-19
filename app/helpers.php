@@ -237,3 +237,19 @@ function reportCaptchaLockRelease(Request $request)
     $captchaId = $request->get('captcha_id');
     logger()->captchaSolved($captchaIndex, $captchaKey, $captchaId);
 }
+
+if (! function_exists('get_file_type')) {
+    function get_mime_type($filePath)
+    {
+        $finfo = finfo_open(FILEINFO_MIME_TYPE);
+        $fileType = finfo_file($finfo, $filePath);
+        finfo_close($finfo);
+        return $fileType;
+    }
+}
+
+
+function isMimeTypeAudio($mimeType)
+{
+    return $mimeType == "audio/mpeg";
+}
