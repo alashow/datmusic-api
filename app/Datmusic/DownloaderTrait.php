@@ -291,6 +291,7 @@ trait DownloaderTrait
         if (curl_errno($curl) > 0) {
             logger()->log('Download.Fail', curl_errno($curl));
             @unlink($path);
+
             return false;
         }
 
@@ -299,6 +300,7 @@ trait DownloaderTrait
         if (! isMimeTypeAudio($fileMimeType)) {
             logger()->log('Download.Fail.InvalidAudio', $fileMimeType);
             @unlink($path);
+
             return false;
         }
 

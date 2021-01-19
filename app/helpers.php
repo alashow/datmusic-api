@@ -244,12 +244,12 @@ if (! function_exists('get_file_type')) {
         $finfo = finfo_open(FILEINFO_MIME_TYPE);
         $fileType = finfo_file($finfo, $filePath);
         finfo_close($finfo);
+
         return $fileType;
     }
 }
 
-
 function isMimeTypeAudio($mimeType)
 {
-    return $mimeType == "audio/mpeg";
+    return $mimeType == 'audio/mpeg';
 }
