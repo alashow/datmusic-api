@@ -7,8 +7,8 @@
 namespace App\Http\Controllers\v1;
 
 use App\Datmusic\SearchesTrait;
-use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class SearchApiController extends Controller

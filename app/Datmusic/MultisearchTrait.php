@@ -11,13 +11,15 @@ use Illuminate\Http\Request;
 
 trait MultisearchTrait
 {
-    function multisearch(Request $request)
+    public function multisearch(Request $request)
     {
         $results = [];
         $requestedTypes = $request->input('types', ['audios']);
 
         foreach (self::$SEARCH_BACKEND_TYPES as $type) {
-            if (! in_array($type, $requestedTypes)) continue;
+            if (! in_array($type, $requestedTypes)) {
+                continue;
+            }
 
             $data = $this->searchBackend($request, $type);
             if ($data instanceof JsonResponse) {
@@ -25,6 +27,7 @@ trait MultisearchTrait
             }
             array_push($results, $data);
         }
+
         return okResponse(array_merge(...$results));
     }
 
@@ -52,6 +55,7 @@ trait MultisearchTrait
         if ($type != self::$SEARCH_BACKEND_AUDIOS) {
             $results = $this->pluckItems($response, $type);
         }
+
         return [$type => $results];
     }
 
@@ -62,7 +66,7 @@ trait MultisearchTrait
      *
      * @return false|JsonResponse first found error or false
      */
-    function hasErrors(...$responses)
+    public function hasErrors(...$responses)
     {
         foreach ($responses as $response) {
             if ($response instanceof JsonResponse) {
@@ -71,6 +75,7 @@ trait MultisearchTrait
                 }
             }
         }
+
         return false;
     }
 
@@ -82,11 +87,12 @@ trait MultisearchTrait
      *
      * @return false|array
      */
-    function pluckItems($response, $key)
+    public function pluckItems($response, $key)
     {
         if ($response instanceof JsonResponse) {
             return $response->getOriginalContent()['data'][$key];
         }
+
         return false;
     }
 }

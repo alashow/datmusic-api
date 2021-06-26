@@ -135,8 +135,8 @@ trait AlbumArtistSearchesTrait
         ];
 
         $response = as_json(vkClient()->get('method/audio.get', [
-                'query' => $params + $captchaParams,
-            ]
+            'query' => $params + $captchaParams,
+        ]
         ));
 
         $error = $this->checkSearchResponseError($request, $response);
@@ -186,8 +186,8 @@ trait AlbumArtistSearchesTrait
         ];
 
         $response = as_json(vkClient()->get('method/audio.search'.ucfirst($type), [
-                'query' => $params + $captchaParams,
-            ]
+            'query' => $params + $captchaParams,
+        ]
         ));
 
         $error = $this->checkSearchResponseError($request, $response);
@@ -239,8 +239,8 @@ trait AlbumArtistSearchesTrait
         ];
 
         $response = as_json(vkClient()->get('method/audio.get'.ucfirst($type), [
-                'query' => $params + $captchaParams,
-            ]
+            'query' => $params + $captchaParams,
+        ]
         ));
 
         $error = $this->checkSearchResponseError($request, $response);

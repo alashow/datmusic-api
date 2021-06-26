@@ -7,7 +7,6 @@
 namespace App\Http\Controllers;
 
 use App\Datmusic\DownloaderTrait;
-use App\Datmusic\MultisearchTrait;
 use App\Datmusic\SearchesTrait;
 use Illuminate\Http\JsonResponse;
 

@@ -8,17 +8,16 @@ namespace App\Datmusic;
 
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 use stdClass;
 
 trait SearchesTrait
 {
     use CachesTrait, ParserTrait, AlbumArtistSearchesTrait, MultisearchTrait;
 
-    static $SEARCH_BACKEND_AUDIOS = 'audios';
-    static $SEARCH_BACKEND_ALBUMS = 'albums';
-    static $SEARCH_BACKEND_ARTISTS = 'artists';
-    static $SEARCH_BACKEND_TYPES = ['audios', 'albums', 'artists'];
+    public static $SEARCH_BACKEND_AUDIOS = 'audios';
+    public static $SEARCH_BACKEND_ALBUMS = 'albums';
+    public static $SEARCH_BACKEND_ARTISTS = 'artists';
+    public static $SEARCH_BACKEND_TYPES = ['audios', 'albums', 'artists'];
 
     private $count = 200;
     private $accessTokenIndex = 0;
