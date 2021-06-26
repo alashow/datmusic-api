@@ -22,7 +22,15 @@ By default, audio and album/artist search results are cached for 24 hours and a 
 - Audio search - `https://example.com/search?q={query}&page={page}`
 - Artists search - `https://example.com/search/artists?q={query}`
 - Albums search - `https://example.com/search/albums?q={query}`
-    - Querying artist name will return artist's all albums 
+    - Querying artist name will return artist's all albums
+
+
+### Multisearch
+
+Search multiple backends at once
+
+- Available types: `audios`, `artists`, `albums` (defaults to only `audios`)
+- `https://example.com/multisearch?q={query}&page={page}&types[]=audios&types[]=artists`
 
 ### Artists
 
