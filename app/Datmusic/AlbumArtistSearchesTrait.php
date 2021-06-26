@@ -130,8 +130,8 @@ trait AlbumArtistSearchesTrait
             'access_token' => config('app.auth.tokens')[$this->accessTokenIndex],
             'album_id'     => $albumId,
             'count'        => $this->count,
-            'owner_id'     => $request->get('owner_id'),
-            'access_key'   => $request->get('access_key'),
+            'owner_id'     => $request->input('owner_id'),
+            'access_key'   => $request->input('access_key'),
         ];
 
         $response = as_json(vkClient()->get('method/audio.get', [

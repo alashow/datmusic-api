@@ -37,6 +37,10 @@ class SearchApiController extends Controller
 
     public function search(Request $request)
     {
-        return okResponse($this->searchTrait($request));
+        $response = $this->searchTrait($request);
+        if ($response instanceof JsonResponse) {
+            return $response;
+        }
+        return okResponse($response);
     }
 }
