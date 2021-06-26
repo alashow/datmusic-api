@@ -117,7 +117,7 @@ trait DownloaderTrait
         $proxy = ! $this->optimizeMp3Url($audioItem);
         $name = $this->getFormattedName($audioItem);
 
-        if ($this->downloadAudio($audioItem['mp3'], $path, $proxy)) {
+        if ($this->downloadAudio($audioItem['mp3'], $path, $proxy, $audioItem)) {
             $this->writeAudioTags($audioItem, $path);
             $this->onDownloadCallback($audioItem);
             // TODO: remove bitrate conversion feature
@@ -194,7 +194,7 @@ trait DownloaderTrait
             }
         }
 
-        return isset($convertedPaths) ? $convertedPaths : false;
+        return $convertedPaths ?? false;
     }
 
     /**
@@ -258,10 +258,11 @@ trait DownloaderTrait
      * @param string $url
      * @param string $path
      * @param bool   $proxy
+     * @param array  $audioItem
      *
      * @return bool true if succeeds
      */
-    private function downloadAudio(string $url, string $path, bool $proxy = true)
+    private function downloadAudio(string $url, string $path, bool $proxy = true, $audioItem = [])
     {
         if (! file_exists(dirname($path))) {
             mkdir(dirname($path), 0777, true);

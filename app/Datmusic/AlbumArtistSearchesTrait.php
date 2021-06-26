@@ -12,8 +12,6 @@ use Illuminate\Support\Str;
 
 trait AlbumArtistSearchesTrait
 {
-    private $searchTypes = ['albums', 'artists'];
-
     private $getArtistTypes = ['audiosByArtist', 'albumsByArtist'];
     private $audiosByArtist = 'audiosByArtist';
     private $albumsByArtist = 'albumsByArtist';
@@ -32,7 +30,7 @@ trait AlbumArtistSearchesTrait
     public function audiosByArtistName(Request $request, string $query)
     {
         $query = Str::replaceFirst($this->artistsSearchPrefix, '', $query);
-        $artists = $this->searchArtists($request->merge(['q' => $query]))->getOriginalContent()['data'];
+        $artists = $this->searchArtists($request->merge(['q' => $query]))->getOriginalContent()['data'][self::$SEARCH_BACKEND_ARTISTS];
 
         logger()->searchBy('AudiosByArtistName', $query, 'Account#'.$this->accessTokenIndex, 'count='.count($artists));
 
@@ -52,7 +50,7 @@ trait AlbumArtistSearchesTrait
     public function audiosByAlbumName(Request $request, string $query)
     {
         $query = Str::replaceFirst($this->albumSearchPrefix, '', $query);
-        $albums = $this->searchAlbums($request->merge(['q' => $query]))->getOriginalContent()['data'];
+        $albums = $this->searchAlbums($request->merge(['q' => $query]))->getOriginalContent()['data'][self::$SEARCH_BACKEND_ALBUMS];
 
         logger()->searchBy('AudiosByAlbumName', $query, 'Account#'.$this->accessTokenIndex, 'count='.count($albums));
 
@@ -78,7 +76,7 @@ trait AlbumArtistSearchesTrait
     public function audiosByAlbumNameMultiple(Request $request, string $query, int $limit = 10)
     {
         $query = Str::replaceFirst($this->albumsSearchPrefix, '', $query);
-        $albums = $this->searchAlbums($request->merge(['q' => $query]))->getOriginalContent()['data'];
+        $albums = $this->searchAlbums($request->merge(['q' => $query]))->getOriginalContent()['data'][self::$SEARCH_BACKEND_ALBUMS];
 
         logger()->searchBy('AudiosByAlbumNameMultiple', $query, 'Account#'.$this->accessTokenIndex, 'count='.count($albums));
 
@@ -89,8 +87,8 @@ trait AlbumArtistSearchesTrait
                 return $this->getAlbumById($request->merge([
                     'owner_id'   => $album->owner_id,
                     'access_key' => $album->access_key,
-                ]), $album->id)->getOriginalContent()['data'];
-            }));
+                ]), $album->id)->getOriginalContent()['data']['audios'];
+            })->toArray(), 'audios');
         } else {
             return false;
         }
@@ -98,12 +96,12 @@ trait AlbumArtistSearchesTrait
 
     public function searchAlbums(Request $request)
     {
-        return $this->searchItems($request, 'albums');
+        return $this->searchItems($request, self::$SEARCH_BACKEND_ALBUMS);
     }
 
     public function searchArtists(Request $request)
     {
-        return $this->searchItems($request, 'artists');
+        return $this->searchItems($request, self::$SEARCH_BACKEND_ARTISTS);
     }
 
     public function getArtistAudios(Request $request, $artistId)
@@ -137,11 +135,11 @@ trait AlbumArtistSearchesTrait
         ];
 
         $response = as_json(vkClient()->get('method/audio.get', [
-            'query' => $params + $captchaParams,
-        ]
+                'query' => $params + $captchaParams,
+            ]
         ));
 
-        $error = $this->checkForErrors($request, $response);
+        $error = $this->checkSearchResponseError($request, $response);
         if ($error) {
             return $error;
         }
@@ -159,11 +157,11 @@ trait AlbumArtistSearchesTrait
      * @param Request $request
      * @param string  $type
      *
-     * @return JsonResponse
+     * @return JsonResponse|array
      */
     private function searchItems(Request $request, string $type)
     {
-        if (! in_array($type, $this->searchTypes)) {
+        if (! in_array($type, [self::$SEARCH_BACKEND_ALBUMS, self::$SEARCH_BACKEND_ARTISTS])) {
             abort(404);
         }
 
@@ -176,7 +174,7 @@ trait AlbumArtistSearchesTrait
         if (! is_null($cachedResult)) {
             logger()->searchByCache($type, $query, $offset);
 
-            return okResponse($cachedResult);
+            return okResponse($cachedResult, $type);
         }
 
         $captchaParams = $this->getCaptchaParams($request);
@@ -188,11 +186,11 @@ trait AlbumArtistSearchesTrait
         ];
 
         $response = as_json(vkClient()->get('method/audio.search'.ucfirst($type), [
-            'query' => $params + $captchaParams,
-        ]
+                'query' => $params + $captchaParams,
+            ]
         ));
 
-        $error = $this->checkForErrors($request, $response);
+        $error = $this->checkSearchResponseError($request, $response);
         if ($error) {
             return $error;
         }
@@ -201,7 +199,7 @@ trait AlbumArtistSearchesTrait
         $this->cacheResult($cacheKey, $data, $type);
         logger()->searchBy($type, $query, $offset);
 
-        return okResponse($data);
+        return okResponse($data, $type);
     }
 
     /**
@@ -211,7 +209,7 @@ trait AlbumArtistSearchesTrait
      * @param string  $artistId
      * @param string  $type
      *
-     * @return JsonResponse
+     * @return JsonResponse|array
      */
     private function getArtistItems(Request $request, string $artistId, string $type)
     {
@@ -228,7 +226,7 @@ trait AlbumArtistSearchesTrait
         if (! is_null($cachedResult)) {
             logger()->getArtistItemsCache($type, $artistId, $offset);
 
-            return ! $isAudios ? okResponse($cachedResult) : $this->audiosResponse($request, $cachedResult, false);
+            return $isAudios ? $this->audiosResponse($request, $cachedResult, false) : okResponse($cachedResult, self::$SEARCH_BACKEND_ALBUMS);
         }
 
         $captchaParams = $this->getCaptchaParams($request);
@@ -241,11 +239,11 @@ trait AlbumArtistSearchesTrait
         ];
 
         $response = as_json(vkClient()->get('method/audio.get'.ucfirst($type), [
-            'query' => $params + $captchaParams,
-        ]
+                'query' => $params + $captchaParams,
+            ]
         ));
 
-        $error = $this->checkForErrors($request, $response);
+        $error = $this->checkSearchResponseError($request, $response);
         if ($error) {
             return $error;
         }
@@ -255,6 +253,6 @@ trait AlbumArtistSearchesTrait
         $this->cacheResult($cacheKey, $data);
         logger()->getArtistItems($type, $artistId, $offset);
 
-        return $isAudios ? $this->audiosResponse($request, $data) : okResponse($data);
+        return $isAudios ? $this->audiosResponse($request, $data) : okResponse($data, self::$SEARCH_BACKEND_ALBUMS);
     }
 }

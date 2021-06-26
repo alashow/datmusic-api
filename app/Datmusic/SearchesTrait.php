@@ -13,7 +13,12 @@ use stdClass;
 
 trait SearchesTrait
 {
-    use CachesTrait, ParserTrait, AlbumArtistSearchesTrait;
+    use CachesTrait, ParserTrait, AlbumArtistSearchesTrait, MultisearchTrait;
+
+    static $SEARCH_BACKEND_AUDIOS = 'audios';
+    static $SEARCH_BACKEND_ALBUMS = 'albums';
+    static $SEARCH_BACKEND_ARTISTS = 'artists';
+    static $SEARCH_BACKEND_TYPES = ['audios', 'albums', 'artists'];
 
     private $count = 200;
     private $accessTokenIndex = 0;
@@ -40,7 +45,7 @@ trait SearchesTrait
      *
      * @param Request $request
      *
-     * @return JsonResponse
+     * @return JsonResponse|array
      */
     public function search(Request $request)
     {
@@ -53,46 +58,31 @@ trait SearchesTrait
         $isCachedQuery = ! is_null($cachedResult);
 
         if (! $isCachedQuery && ! $request->has('captcha_key') && $this->isCaptchaLocked($this->accessTokenIndex)) {
-            $errorData = $this->getCaptchaLockError($this->accessTokenIndex);
-            logger()->captchaLockedQuery($this->accessTokenIndex, $query, $errorData['captcha_id']);
+            $captchaError = $this->getCaptchaLockError($this->accessTokenIndex);
+            logger()->captchaLockedQuery($this->accessTokenIndex, $query, $captchaError['captcha_id']);
 
-            return errorResponse($errorData);
-        }
-
-        if (Str::startsWith($query, $this->artistsSearchPrefix)) {
-            $response = $this->audiosByArtistName($request, $query);
-        }
-        if (Str::startsWith($query, $this->albumSearchPrefix)) {
-            $response = $this->audiosByAlbumName($request, $query);
-        }
-        if (Str::startsWith($query, $this->albumsSearchPrefix)) {
-            $response = $this->audiosByAlbumNameMultiple($request, $query);
-        }
-
-        if (isset($response) && $response) {
-            return $response;
+            return errorResponse($captchaError);
         }
 
         // return immediately if has in cache
         if ($isCachedQuery) {
             logger()->searchCache($query, $offset, 'count='.count($cachedResult));
 
-            return okResponse($this->transformAudioResponse($request, $cacheKey, $cachedResult));
+            return $this->cleanAudioList($request, $cacheKey, $cachedResult);
         }
 
         $response = $this->getSearchResults($request, $query, $offset);
-        $error = $this->checkForErrors($request, $response);
+        $error = $this->checkSearchResponseError($request, $response);
         if ($error) {
             return $error;
         }
 
         // parse then store in cache
-        $result = $this->parseAudioItems($response);
-        $this->cacheResult($cacheKey, $result);
-        logger()->search($query, $offset, 'Account#'.$this->accessTokenIndex, 'count='.count($result));
+        $data = $this->parseAudioItems($response);
+        $this->cacheResult($cacheKey, $data);
+        logger()->search($query, $offset, 'Account#'.$this->accessTokenIndex, 'count='.count($data));
 
-        // parse data, save in cache, and response
-        return okResponse($this->transformAudioResponse($request, $cacheKey, $result));
+        return $this->cleanAudioList($request, $cacheKey, $data);
     }
 
     /**
@@ -152,7 +142,7 @@ trait SearchesTrait
      *
      * @return bool|JsonResponse
      */
-    protected function checkForErrors(Request $request, stdClass $response)
+    protected function checkSearchResponseError(Request $request, stdClass $response)
     {
         $hasCaptchaKey = $request->has('captcha_key');
         if (property_exists($response, 'error')) {
@@ -199,7 +189,7 @@ trait SearchesTrait
      *
      * @return array
      */
-    private function transformAudioResponse(Request $request, string $cacheKey, array $data, bool $sort = true)
+    private function cleanAudioList(Request $request, string $cacheKey, array $data, bool $sort = true)
     {
         // if query matches sort regex, we shouldn't sort
         $query = $request->get('q');
@@ -294,6 +284,6 @@ trait SearchesTrait
             }
         }
 
-        return okResponse($this->transformAudioResponse($request, self::$audioKeyId, $data, false));
+        return okResponse($this->cleanAudioList($request, self::$audioKeyId, $data, false), self::$SEARCH_BACKEND_AUDIOS);
     }
 }

@@ -4,16 +4,18 @@
  * It is licensed under GNU GPL v. 2 or later. For full terms see the file LICENSE.
  */
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\v1;
 
-use App\Datmusic\DownloaderTrait;
-use App\Datmusic\MultisearchTrait;
 use App\Datmusic\SearchesTrait;
 use Illuminate\Http\JsonResponse;
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
 
-class ApiController extends Controller
+class SearchApiController extends Controller
 {
-    use DownloaderTrait, SearchesTrait;
+    use SearchesTrait {
+        search as public searchTrait;
+    }
 
     /**
      * ApiController constructor.
@@ -21,7 +23,6 @@ class ApiController extends Controller
     public function __construct()
     {
         $this->bootSearches();
-        $this->bootDownloader();
     }
 
     /**
@@ -32,5 +33,10 @@ class ApiController extends Controller
     public function index()
     {
         return okResponse();
+    }
+
+    public function search(Request $request)
+    {
+        return okResponse($this->searchTrait($request));
     }
 }

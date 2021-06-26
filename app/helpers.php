@@ -97,15 +97,16 @@ function as_json($response)
 }
 
 /**
- * @param array $data
- * @param int   $status
- * @param array $headers
+ * @param array|null  $data
+ * @param string|null $dataFieldName
+ * @param int         $status
+ * @param array       $headers
  *
  * @return JsonResponse
  */
-function okResponse($data = null, $status = 200, $headers = [])
+function okResponse(array $data = null, string $dataFieldName = null, int $status = 200, array $headers = [])
 {
-    return json_response('ok', $data, null, $status, $headers);
+    return json_response('ok', $data, null, $status, $headers, $dataFieldName);
 }
 
 /**
@@ -113,37 +114,42 @@ function okResponse($data = null, $status = 200, $headers = [])
  *
  * @return JsonResponse
  */
-function notFoundResponse($message = 'Not found')
+function notFoundResponse(string $message = 'Not found')
 {
     return errorResponse(['message' => $message], 404);
 }
 
 /**
  * @param array|null $error
- * @param int   $status
- * @param array $headers
+ * @param int        $status
+ * @param array      $headers
  *
  * @return JsonResponse
  */
-function errorResponse(array $error = null, $status = 200, $headers = [])
+function errorResponse(array $error = null, int $status = 200, array $headers = [])
 {
     return json_response('error', null, $error, $status, $headers);
 }
 
 /**
- * @param string $status
- * @param array|null   $data
- * @param array|null   $error
- * @param int    $httpStatus
- * @param array  $headers
+ * @param string      $status
+ * @param array|null  $data
+ * @param array|null  $error
+ * @param int         $httpStatus
+ * @param array       $headers
+ * @param string|null $dataFieldName
  *
- * @return \Illuminate\Http\JsonResponse
+ * @return JsonResponse
  */
-function json_response($status = 'ok', array $data = null, array $error = null, $httpStatus = 200, $headers = [])
+function json_response(string $status = 'ok', array $data = null, array $error = null, int $httpStatus = 200, array $headers = [], string $dataFieldName = null)
 {
     $result = ['status' => $status];
     if (! is_null($data)) {
-        $result = array_merge($result, ['data' => $data]);
+        if ($dataFieldName != null) {
+            $result = array_merge($result, ['data' => [$dataFieldName => $data]]);
+        } else {
+            $result = array_merge($result, ['data' => $data]);
+        }
     }
     if (! is_null($error)) {
         $result = array_merge($result, ['error' => $error]);
