@@ -41,6 +41,7 @@ class SearchApiController extends Controller
         if ($response instanceof JsonResponse) {
             return $response;
         }
+
         return okResponse($response);
     }
 }
