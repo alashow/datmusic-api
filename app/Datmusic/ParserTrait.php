@@ -6,8 +6,10 @@
 
 namespace App\Datmusic;
 
+use Exception;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
+use Log;
 
 trait ParserTrait
 {
@@ -25,7 +27,7 @@ trait ParserTrait
         $data = [];
         foreach ($audios as $item) {
             if (isset($item->content_restricted) && empty($item->url)) {
-                \Log::debug('Audio item restricted, skipping it', [$item]);
+                Log::debug('Audio item restricted, skipping it', [$item]);
                 continue;
             }
 
@@ -62,11 +64,15 @@ trait ParserTrait
                     'album' => $item->album->title,
                 ]);
                 if (isset($item->album->thumb)) {
-                    $itemData = array_merge($itemData, [
-                        'cover_url_small'  => $item->album->thumb->photo_300,
-                        'cover_url_medium' => $item->album->thumb->photo_600,
-                        'cover_url'        => $item->album->thumb->photo_1200,
-                    ]);
+                    try {
+                        $itemData = array_merge($itemData, [
+                            'cover_url_small'  => $item->album->thumb->photo_300,
+                            'cover_url_medium' => $item->album->thumb->photo_600,
+                            'cover_url'        => $item->album->thumb->photo_1200,
+                        ]);
+                    } catch (Exception $exception) {
+                        Log::debug('Error while parsing thumbs', [$item]);
+                    }
                 }
             }
 
@@ -119,8 +125,8 @@ trait ParserTrait
 
                 return true;
             }
-        } catch (\Exception $e) {
-            \Log::error('Exception while trying to optimize url', [$item, $e]);
+        } catch (Exception $e) {
+            Log::error('Exception while trying to optimize url', [$item, $e]);
 
             return false;
         }
