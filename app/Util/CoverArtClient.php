@@ -118,14 +118,21 @@ class CoverArtClient
             return false;
         };
 
-        if ($value = Cache::get($cacheKey)) {
-            return $value;
+        if ($url = Cache::get($cacheKey)) {
+            return $url;
         } else {
-            $value = $retrieve();
-            $expiresAt = $value ? Carbon::now()->addWeek(1) : Carbon::now()->addDays(1);
-            Cache::put($cacheKey, $value, $expiresAt);
+            $url = $retrieve();
+            // expire in 1 week if retrieved, otherwise remember failure it for a day
+            $expiresAt = $url ? Carbon::now()->addWeek(1) : Carbon::now()->addDays(1);
 
-            return $value;
+            // force https
+            if ($url){
+                $url = preg_replace("/^http:/i", "https:", $url);
+            }
+
+            Cache::put($cacheKey, $url, $expiresAt);
+
+            return $url;
         }
     }
 
