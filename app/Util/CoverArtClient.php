@@ -31,7 +31,7 @@ class CoverArtClient
     public function __construct()
     {
         $this->archiveClient = new Client([
-            'base_uri' => 'http://coverartarchive.org',
+            'base_uri' => 'https://coverartarchive.org',
             'headers'  => [
                 'User-Agent' => config('app.covers.user-agent'),
             ],
