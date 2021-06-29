@@ -126,8 +126,8 @@ class CoverArtClient
             $expiresAt = $url ? Carbon::now()->addWeek(1) : Carbon::now()->addDays(1);
 
             // force https
-            if ($url){
-                $url = preg_replace("/^http:/i", "https:", $url);
+            if ($url) {
+                $url = preg_replace('/^http:/i', 'https:', $url);
             }
 
             Cache::put($cacheKey, $url, $expiresAt);
