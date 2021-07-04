@@ -83,9 +83,8 @@ class SpotifyClient
         }
 
         $images = $result->items[0]->album->images;
-        $image = $this->getImageBySize($images, $size);
 
-        return $image->url;
+        return $this->getImageBySize($images, $size);
     }
 
     public function findArtistCover(string $artist, string $size)

@@ -13,7 +13,7 @@ trait CoverArtRetriever
     public static $SIZE_MEDIUM = 'medium';
     public static $SIZE_SMALL = 'small';
 
-    public static function validateSize($size, $default = 'small')
+    public static function validateSize($size, $default = 'medium')
     {
         if (! $size) {
             $size = $default;
