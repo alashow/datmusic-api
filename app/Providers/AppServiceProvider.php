@@ -47,7 +47,8 @@ class AppServiceProvider extends ServiceProvider
         $this->createFolder(config('app.paths.links'));
     }
 
-    private function registerSingletons(){
+    private function registerSingletons()
+    {
         $vkClient = new VkHttpClient();
         $this->app->instance('vkClient', $vkClient);
 

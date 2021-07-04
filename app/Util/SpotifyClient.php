@@ -13,7 +13,6 @@ use SpotifyWebAPI\SpotifyWebAPI;
 
 class SpotifyClient
 {
-
     use CoverArtRetriever;
 
     /**
@@ -33,6 +32,7 @@ class SpotifyClient
     private function getAccessToken()
     {
         $expiration = Carbon::now()->addDays(7);
+
         return Cache::remember('spotify_access_token', $expiration, function () {
             $session = new Session(
                 config('app.services.spotify.client_id'),
@@ -40,6 +40,7 @@ class SpotifyClient
             );
 
             $session->requestCredentialsToken();
+
             return $session->getAccessToken();
         });
     }
@@ -58,6 +59,7 @@ class SpotifyClient
                 $image = $images[2];
                 break;
         }
+
         return $image->url;
     }
 
@@ -82,6 +84,7 @@ class SpotifyClient
 
         $images = $result->items[0]->album->images;
         $image = $this->getImageBySize($images, $size);
+
         return $image->url;
     }
 
@@ -90,6 +93,8 @@ class SpotifyClient
         $artist = $this->findArtist($artist);
         if ($artist) {
             return $this->getImageBySize($artist->images, $size);
-        } else return false;
+        } else {
+            return false;
+        }
     }
 }

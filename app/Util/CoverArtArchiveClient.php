@@ -102,6 +102,7 @@ class CoverArtArchiveClient
                 }
             }
         }
+
         return false;
     }
 }

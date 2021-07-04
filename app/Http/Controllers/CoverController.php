@@ -49,6 +49,8 @@ class CoverController extends ApiController
 
         if ($imageUrl) {
             return redirect($imageUrl);
-        } else return notFoundResponse();
+        } else {
+            return notFoundResponse();
+        }
     }
 }

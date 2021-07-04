@@ -7,15 +7,11 @@
 namespace App\Util;
 
 use Carbon\Carbon;
-use Concat\Http\Middleware\RateLimiter;
 use GuzzleHttp\Client;
-use GuzzleHttp\Exception\ClientException;
-use GuzzleHttp\HandlerStack;
 use Illuminate\Support\Facades\Cache;
 
 class CoverArtClient
 {
-
     private $retrievers = [];
 
     /**
@@ -64,6 +60,7 @@ class CoverArtClient
                     \Log::error('Exception while trying to find cover image.', [$e]);
                 }
             }
+
             return false;
         };
 
@@ -79,6 +76,7 @@ class CoverArtClient
                 Cache::put($cacheKey, $url, $expiresAt);
             }
         }
+
         return $url;
     }
 
@@ -142,6 +140,7 @@ class CoverArtClient
                     \Log::error('Exception while trying to find artist cover image.', [$e]);
                 }
             }
+
             return false;
         };
 
@@ -155,6 +154,7 @@ class CoverArtClient
                 Cache::put($cacheKey, $url, $expiresAt);
             }
         }
+
         return $url;
     }
 }

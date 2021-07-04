@@ -108,8 +108,8 @@ trait SearchesTrait
         ];
 
         return as_json(vkClient()->get('method/audio.search', [
-                'query' => $params + $captchaParams,
-            ]
+            'query' => $params + $captchaParams,
+        ]
         ));
     }
 
@@ -165,12 +165,14 @@ trait SearchesTrait
                     $this->captchaFailedAttempt($request);
                 }
             }
+
             return errorResponse($errorData);
         } else {
             if ($hasCaptchaKey && $this->isCaptchaLocked($this->accessTokenIndex)) {
                 $this->releaseCaptchaLock($this->accessTokenIndex);
                 reportCaptchaLockRelease($request);
             }
+
             return false;
         }
     }
