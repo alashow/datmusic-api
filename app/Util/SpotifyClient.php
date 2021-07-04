@@ -31,7 +31,7 @@ class SpotifyClient
 
     private function getAccessToken()
     {
-        $expiration = Carbon::now()->addDays(7);
+        $expiration = Carbon::now()->addHour();
 
         return Cache::remember('spotify_access_token', $expiration, function () {
             $session = new Session(
@@ -70,7 +70,6 @@ class SpotifyClient
         if ($result->total == 0) {
             return false;
         }
-
         return $result->items[0];
     }
 
