@@ -91,8 +91,8 @@ $app->routeMiddleware([
 |
 */
 
-$app->register(App\Providers\AppServiceProvider::class);
 $app->register(Illuminate\Redis\RedisServiceProvider::class);
+$app->register(App\Providers\AppServiceProvider::class);
 $app->register(Fruitcake\Cors\CorsServiceProvider::class);
 
 /*

@@ -26,9 +26,14 @@ class CoverArtClient
     /**
      * CoverArtClient constructor.
      */
-    public function __construct(CoverArtArchiveClient $coverArtArchiveClient)
+    public function __construct(SpotifyClient $spotifyClient, CoverArtArchiveClient $coverArtArchiveClient)
     {
-        $this->retrievers = [$coverArtArchiveClient];
+        if (config('app.services.spotify.enabled')) {
+            $this->retrievers = [$spotifyClient, $coverArtArchiveClient];
+        } else {
+            $this->retrievers = [$coverArtArchiveClient];
+        }
+
         $this->coverDownloaderClient = new Client([
             'headers' => [
                 'User-Agent' => config('app.covers.user-agent'),
@@ -45,16 +50,16 @@ class CoverArtClient
      *
      * @return bool|string
      */
-    public function getCover(array $audio)
+    public function getCover(array $audio, $size)
     {
         $artist = $audio['artist'];
         $title = preg_replace('~(\(|\[|\{)[^)]*(\)|\]|\})~', '', $audio['title']);
-        $cacheKey = sprintf('cover_%s', hash(config('app.hash.mp3'), sprintf('%s,%s', $artist, $title)));
+        $cacheKey = sprintf('cover_%s', hash(config('app.hash.mp3'), sprintf('%s,%s,%s', $artist, $title, $size)));
 
-        $retrieve = function () use ($artist, $title) {
+        $retrieve = function () use ($artist, $title, $size) {
             foreach ($this->retrievers as $retriever) {
                 try {
-                    return $retriever->findCover($artist, $title);
+                    return $retriever->findCover($artist, $title, $size);
                 } catch (\Exception $e) {
                     \Log::error('Exception while trying to find cover image.', [$e]);
                 }
@@ -64,7 +69,7 @@ class CoverArtClient
 
         if (! ($url = Cache::get($cacheKey))) {
             $url = $retrieve();
-            if ($url) {
+            if (is_string($url)) {
                 // force https
                 $url = preg_replace('/^http:/i', 'https:', $url);
                 Cache::forever($cacheKey, $url);
@@ -93,7 +98,7 @@ class CoverArtClient
                 $client = vkClient();
             } else {
                 if (config('app.downloading.id3.download_covers_external')) {
-                    $imageUrl = $this->getCover($audio);
+                    $imageUrl = $this->getCover($audio, CoverArtRetriever::$SIZE_LARGE);
                     $client = $this->coverDownloaderClient;
                 } else {
                     return false;
@@ -115,5 +120,41 @@ class CoverArtClient
         }
 
         return false;
+    }
+
+    /**
+     * Get artists photo.
+     *
+     * @param string $artist
+     * @param string $size
+     *
+     * @return false|string
+     */
+    public function getArtistCover(string $artist, string $size)
+    {
+        $cacheKey = sprintf('artist_cover_%s', hash(config('app.hash.mp3'), sprintf('%s,%s', $artist, $size)));
+
+        $retrieve = function () use ($artist, $size) {
+            foreach ($this->retrievers as $retriever) {
+                try {
+                    return $retriever->findArtistCover($artist, $size);
+                } catch (\Exception $e) {
+                    \Log::error('Exception while trying to find artist cover image.', [$e]);
+                }
+            }
+            return false;
+        };
+
+        if (! ($url = Cache::get($cacheKey))) {
+            $url = $retrieve();
+            if (is_string($url)) {
+                Cache::forever($cacheKey, $url);
+            } else {
+                // remember failure for n days
+                $expiresAt = Carbon::now()->addDays(15);
+                Cache::put($cacheKey, $url, $expiresAt);
+            }
+        }
+        return $url;
     }
 }

@@ -10,8 +10,10 @@ use Concat\Http\Middleware\RateLimiter;
 use GuzzleHttp\Client;
 use GuzzleHttp\HandlerStack;
 
-class CoverArtArchiveClient implements CoverArtRetriever
+class CoverArtArchiveClient
 {
+    use CoverArtRetriever;
+
     /**
      * @var Client Guzzle client for cover archive
      */
@@ -80,7 +82,7 @@ class CoverArtArchiveClient implements CoverArtRetriever
         return false;
     }
 
-    public function findCover($artist, $title)
+    public function findCover(string $artist, string $title, string $size)
     {
         if ($releaseId = $this->getReleaseId($artist, $title)) {
             $response = $this->archiveClient->get('release/'.$releaseId);
@@ -88,9 +90,18 @@ class CoverArtArchiveClient implements CoverArtRetriever
 
             if (isset($response->images)) {
                 foreach ($response->images as $cover) {
-                    return $cover->thumbnails->large;
+                    $thumbs = stdToArray($cover->thumbnails);
+                    switch ($size) {
+                        case self::$SIZE_LARGE:
+                            return $thumbs['1200'];
+                        case self::$SIZE_MEDIUM:
+                            return $thumbs['500'];
+                        case self::$SIZE_SMALL:
+                            return $thumbs['250'];
+                    }
                 }
             }
         }
+        return false;
     }
 }

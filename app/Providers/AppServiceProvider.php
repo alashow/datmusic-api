@@ -10,6 +10,7 @@ use App\Util\CoverArtArchiveClient;
 use App\Util\CoverArtClient;
 use App\Util\HttpClient;
 use App\Util\Logger;
+use App\Util\SpotifyClient;
 use App\Util\VkHttpClient;
 use Exception;
 use Illuminate\Support\ServiceProvider;
@@ -56,7 +57,10 @@ class AppServiceProvider extends ServiceProvider
         $coverArtArchiveClient = new CoverArtArchiveClient();
         $this->app->instance('coverArtArchiveClient', $coverArtArchiveClient);
 
-        $coverArtClient = new CoverArtClient($coverArtArchiveClient);
+        $spotifyClient = new SpotifyClient();
+        $this->app->instance('spotifyClient', $spotifyClient);
+
+        $coverArtClient = new CoverArtClient($spotifyClient, $coverArtArchiveClient);
         $this->app->instance('coverArtClient', $coverArtClient);
 
         $logger = new Logger();

@@ -17,7 +17,8 @@
         "mlntn/lumen-artisan-serve": "~1",
         "fruitcake/laravel-cors": "^2.0",
         "predis/predis": "^1.1",
-        "ext-fileinfo": "*"
+        "ext-fileinfo": "*",
+        "jwilsson/spotify-web-api-php": "^5.0"
     },
     "require-dev": {
         "fakerphp/faker": "^1.9.1",

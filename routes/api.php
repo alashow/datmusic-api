@@ -11,7 +11,8 @@ $router->get('dl/{key}/{id}', 'ApiController@download');
 $router->get('dl/{key}/{id}/{bitrate}', 'ApiController@bitrateDownload');
 $router->get('stream/{key}/{id}', 'ApiController@stream');
 $router->get('bytes/{key}/{id}', 'ApiController@bytes');
-$router->get('cover/{key}/{id}', 'CoverController@cover');
+$router->get('cover/artists/{artist}[/{size}]', 'CoverController@artistCover');
+$router->get('cover/{key}/{id}[/{size}]', 'CoverController@cover');
 
 $router->get('search/albums', 'ApiController@searchAlbums');
 $router->get('search/artists', 'ApiController@searchArtists');

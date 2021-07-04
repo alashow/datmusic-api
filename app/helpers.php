@@ -259,3 +259,8 @@ function isMimeTypeAudio($mimeType)
 {
     return $mimeType == 'audio/mpeg';
 }
+
+function stdToArray($std)
+{
+    return json_decode(json_encode($std), true);
+}
