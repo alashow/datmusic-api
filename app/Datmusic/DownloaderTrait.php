@@ -366,7 +366,7 @@ trait DownloaderTrait
             }
             $downloadCovers = config('app.downloading.id3.download_covers');
             if ($downloadCovers) {
-                if ($coverImage = covers()->getImageFile($audio)) {
+                if ($coverImage = covers()->getCoverFile($audio)) {
                     if ($coverImageFile = file_get_contents($coverImage)) {
                         if ($coverImageExif = exif_imagetype($coverImage)) {
                             $tags['attached_picture'][0]['data'] = $coverImageFile;

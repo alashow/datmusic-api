@@ -6,6 +6,9 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Http\JsonResponse;
+use Laravel\Lumen\Http\Redirector;
+
 class CoverController extends ApiController
 {
     /**
@@ -14,13 +17,13 @@ class CoverController extends ApiController
      * @param $key
      * @param $id
      *
-     * @return \Illuminate\Http\JsonResponse
+     * @return Redirector|JsonResponse
      */
     public function cover($key, $id)
     {
         $audio = $this->getAudio($key, $id);
         if ($audio != null) {
-            $imageUrl = covers()->getImage($audio);
+            $imageUrl = covers()->getCover($audio);
             if ($imageUrl) {
                 return redirect($imageUrl);
             }

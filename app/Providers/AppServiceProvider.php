@@ -6,10 +6,12 @@
 
 namespace App\Providers;
 
+use App\Util\CoverArtArchiveClient;
 use App\Util\CoverArtClient;
 use App\Util\HttpClient;
 use App\Util\Logger;
 use App\Util\VkHttpClient;
+use Exception;
 use Illuminate\Support\ServiceProvider;
 use Log;
 
@@ -18,7 +20,7 @@ class AppServiceProvider extends ServiceProvider
     /**
      * Register any application services.
      *
-     * @return void
+     * @throws Exception if tokens aren't setup
      */
     public function register()
     {
@@ -27,7 +29,7 @@ class AppServiceProvider extends ServiceProvider
             $tokens = explode(',', $tokens);
             config(['app.auth.tokens' => $tokens]);
         } else {
-            throw new \Exception('No tokens found. Set tokens in .env to continue');
+            throw new Exception('No tokens found. Set tokens in .env to continue');
         }
 
         // override CORs
@@ -37,22 +39,28 @@ class AppServiceProvider extends ServiceProvider
             config(['cors.allowed_origins' => $origins]);
         }
 
-        // register singletons
+        $this->registerSingletons();
+
+        // Create mp3s folders if they doesn't exist
+        $this->createFolder(config('app.paths.mp3'));
+        $this->createFolder(config('app.paths.links'));
+    }
+
+    private function registerSingletons(){
         $vkClient = new VkHttpClient();
         $this->app->instance('vkClient', $vkClient);
 
         $httpClient = new HttpClient();
         $this->app->instance('httpClient', $httpClient);
 
-        $coverArtClient = new CoverArtClient();
+        $coverArtArchiveClient = new CoverArtArchiveClient();
+        $this->app->instance('coverArtArchiveClient', $coverArtArchiveClient);
+
+        $coverArtClient = new CoverArtClient($coverArtArchiveClient);
         $this->app->instance('coverArtClient', $coverArtClient);
 
         $logger = new Logger();
         $this->app->instance('logger', $logger);
-
-        // Create mp3s folders if they doesn't exist
-        $this->createFolder(config('app.paths.mp3'));
-        $this->createFolder(config('app.paths.links'));
     }
 
     /**

@@ -15,72 +15,26 @@ use Illuminate\Support\Facades\Cache;
 
 class CoverArtClient
 {
-    /**
-     * @var Client Guzzle client for cover archive
-     */
-    private $archiveClient;
+
+    private $retrievers = [];
 
     /**
-     * @var Client Guzzle client for music brainz
+     * @var Client Used for downloading cover files to set in mp3's.
      */
-    private $brainzClient;
+    private $coverDownloaderClient;
 
     /**
      * CoverArtClient constructor.
      */
-    public function __construct()
+    public function __construct(CoverArtArchiveClient $coverArtArchiveClient)
     {
-        $this->archiveClient = new Client([
-            'base_uri' => 'https://coverartarchive.org',
-            'headers'  => [
+        $this->retrievers = [$coverArtArchiveClient];
+        $this->coverDownloaderClient = new Client([
+            'headers' => [
                 'User-Agent' => config('app.covers.user-agent'),
             ],
-            'timeout'  => 3,
+            'timeout' => 3,
         ]);
-
-        $handler = HandlerStack::create();
-        $rateLimitProvider = new MusicBrainzRateLimitProvider();
-        $handler->push(new RateLimiter($rateLimitProvider));
-        $this->brainzClient = new Client([
-            'base_uri' => 'https://musicbrainz.org',
-            'headers'  => [
-                'User-Agent' => config('app.covers.user-agent'),
-            ],
-            'timeout'  => 3,
-            'handler'  => $handler,
-        ]);
-    }
-
-    /**
-     * Searches for MusicBrainz release id for given audio artist and title.
-     *
-     * @param $artist
-     * @param $title
-     *
-     * @return bool|string release id if succeeds, false when fails.
-     */
-    private function getReleaseId($artist, $title)
-    {
-        $response = $this->brainzClient->get('ws/2/recording', [
-            'query' => [
-                'query' => sprintf('artist:%s AND recording:%s', $artist, $title),
-                'limit' => '1',
-                'fmt'   => 'json',
-            ],
-        ]);
-        $response = json_decode($response->getBody());
-
-        if (isset($response->recordings)) {
-            foreach ($response->recordings as $record) {
-                if (isset($record->releases)) {
-                    foreach ($record->releases as $release) {
-                        return $release->id;
-                    }
-                }
-            }
-        }
-
-        return false;
     }
 
     /**
@@ -91,49 +45,36 @@ class CoverArtClient
      *
      * @return bool|string
      */
-    public function getImage(array $audio)
+    public function getCover(array $audio)
     {
         $artist = $audio['artist'];
         $title = preg_replace('~(\(|\[|\{)[^)]*(\)|\]|\})~', '', $audio['title']);
         $cacheKey = sprintf('cover_%s', hash(config('app.hash.mp3'), sprintf('%s,%s', $artist, $title)));
 
         $retrieve = function () use ($artist, $title) {
-            try {
-                if ($releaseId = $this->getReleaseId($artist, $title)) {
-                    $response = $this->archiveClient->get('release/'.$releaseId);
-                    $response = json_decode($response->getBody());
-
-                    if (isset($response->images)) {
-                        foreach ($response->images as $cover) {
-                            return $cover->thumbnails->large;
-                        }
-                    }
-                }
-            } catch (\Exception $e) {
-                if (! $e instanceof ClientException) {
-                    \Log::error('Exception while trying to fetch cover image. Will try to fetch from Amazon', [$e]);
+            foreach ($this->retrievers as $retriever) {
+                try {
+                    return $retriever->findCover($artist, $title);
+                } catch (\Exception $e) {
+                    \Log::error('Exception while trying to find cover image.', [$e]);
                 }
             }
-
             return false;
         };
 
-        if ($url = Cache::get($cacheKey)) {
-            return $url;
-        } else {
+        if (! ($url = Cache::get($cacheKey))) {
             $url = $retrieve();
-            // expire in 1 week if retrieved, otherwise remember failure it for a day
-            $expiresAt = $url ? Carbon::now()->addWeek(1) : Carbon::now()->addDays(1);
-
-            // force https
             if ($url) {
+                // force https
                 $url = preg_replace('/^http:/i', 'https:', $url);
+                Cache::forever($cacheKey, $url);
+            } else {
+                // remember failure for n days
+                $expiresAt = Carbon::now()->addDays(3);
+                Cache::put($cacheKey, $url, $expiresAt);
             }
-
-            Cache::put($cacheKey, $url, $expiresAt);
-
-            return $url;
         }
+        return $url;
     }
 
     /**
@@ -144,17 +85,19 @@ class CoverArtClient
      *
      * @return bool|string
      */
-    public function getImageFile(array $audio)
+    public function getCoverFile(array $audio)
     {
         try {
             if (array_key_exists('cover_url', $audio)) {
                 $imageUrl = $audio['cover_url'];
                 $client = vkClient();
-            } elseif (config('app.downloading.id3.download_covers_external')) {
-                $imageUrl = $this->getImage($audio);
-                $client = $this->archiveClient;
             } else {
-                return false;
+                if (config('app.downloading.id3.download_covers_external')) {
+                    $imageUrl = $this->getCover($audio);
+                    $client = $this->coverDownloaderClient;
+                } else {
+                    return false;
+                }
             }
 
             if ($imageUrl) {
