@@ -70,6 +70,7 @@ class SpotifyClient
         if ($result->total == 0) {
             return false;
         }
+
         return $result->items[0];
     }
 
