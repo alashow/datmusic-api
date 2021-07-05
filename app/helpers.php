@@ -1,5 +1,7 @@
 <?php
 
+use App\Util\CoverArtClient;
+use App\Util\SpotifyClient;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Psr\Http\Message\ResponseInterface;
@@ -21,11 +23,19 @@ function vkClient()
 }
 
 /**
- * @return \App\Util\CoverArtClient
+ * @return CoverArtClient
  */
 function covers()
 {
     return app('coverArtClient');
+}
+
+/**
+ * @return SpotifyClient
+ */
+function spotifyClient()
+{
+    return app('spotifyClient');
 }
 
 /**

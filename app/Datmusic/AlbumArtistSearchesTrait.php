@@ -104,9 +104,9 @@ trait AlbumArtistSearchesTrait
         return $this->searchItems($request, self::$SEARCH_BACKEND_ARTISTS);
     }
 
-    public function getArtistAudios(Request $request, $artistId)
+    public function getArtistAudios(Request $request, $id)
     {
-        return $this->getArtistItems($request, $artistId, $this->audiosByArtist);
+        return $this->getArtistItems($request, $id, $this->audiosByArtist);
     }
 
     public function getArtistAlbums(Request $request, $artistId)

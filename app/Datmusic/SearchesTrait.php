@@ -108,8 +108,8 @@ trait SearchesTrait
         ];
 
         return as_json(vkClient()->get('method/audio.search', [
-            'query' => $params + $captchaParams,
-        ]
+                'query' => $params + $captchaParams,
+            ]
         ));
     }
 
@@ -152,7 +152,7 @@ trait SearchesTrait
             ];
             if ($error->error_code == 14) {
                 $captcha = [
-                    'id' => 'captcha',
+                    'id'            => 'captcha',
                     'captcha_index' => $this->accessTokenIndex,
                     'captcha_id'    => intval($error->captcha_sid),
                     'captcha_img'   => $error->captcha_img,
@@ -197,9 +197,9 @@ trait SearchesTrait
         $badMatches = [];
 
         $mapped = array_map(function ($item) use (&$cacheKey, &$badMatches, &$sortable) {
-            $downloadUrl = fullUrl(sprintf('dl/%s/%s', $cacheKey, $item['id']));
-            $streamUrl = fullUrl(sprintf('stream/%s/%s', $cacheKey, $item['id']));
-            $coverUrl = fullUrl(sprintf('cover/%s/%s', $cacheKey, $item['id']));
+            $downloadUrl = route('download', ['key' => $cacheKey, 'id' => $item['id']]);
+            $streamUrl = route('stream', ['key' => $cacheKey, 'id' => $item['id']]);
+            $coverUrl = route('cover', ['key' => $cacheKey, 'id' => $item['id']]);
 
             // we don't wanna share original mp3 urls
             unset($item['mp3']);
