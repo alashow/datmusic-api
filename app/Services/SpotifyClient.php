@@ -1,11 +1,12 @@
 <?php
-/**
- * Copyright (c) 2018  Alashov Berkeli
+/*
+ * Copyright (c) 2021  Alashov Berkeli
  * It is licensed under GNU GPL v. 2 or later. For full terms see the file LICENSE.
  */
 
-namespace App\Util;
+namespace App\Services;
 
+use App\Util\Scanner;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
 use SpotifyWebAPI\Session;
@@ -13,7 +14,7 @@ use SpotifyWebAPI\SpotifyWebAPI;
 
 class SpotifyClient
 {
-    use CoverArtRetriever;
+    use Scanner;
 
     /**
      * @var SpotifyWebAPI instance.
@@ -47,6 +48,10 @@ class SpotifyClient
 
     private function getImageBySize($images, $size)
     {
+        if (empty($images)) {
+            return false;
+        }
+
         $image = null;
         switch ($size) {
             case self::$SIZE_LARGE:
@@ -66,12 +71,21 @@ class SpotifyClient
     public function findArtist($artist)
     {
         $query = "artist:$artist";
-        $result = $this->api->search($query, 'artist', ['limit' => 1])->artists;
-        if ($result->total == 0) {
+        $results = $this->api->search($query, 'artist', ['limit' => 5])->artists;
+        $resultCount = $results->total;
+        if ($resultCount == 0) {
             return false;
         }
-
-        return $result->items[0];
+        // try to match by exact artist name if there are multiple results
+        if ($resultCount > 1) {
+            foreach ($results->items as $item) {
+                if ($item->name == $artist) {
+                    return $item;
+                }
+            }
+        }
+        // otherwise just return the first result
+        return $results->items[0];
     }
 
     public function findCover($artist, $title, $size)
@@ -87,7 +101,7 @@ class SpotifyClient
         return $this->getImageBySize($images, $size);
     }
 
-    public function findArtistCover(string $artist, string $size)
+    public function findArtistImage(string $artist, string $size)
     {
         $artist = $this->findArtist($artist);
         if ($artist) {

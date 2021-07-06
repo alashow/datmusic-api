@@ -6,13 +6,15 @@
 
 namespace App\Datmusic;
 
+use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
 trait AlbumArtistSearchesTrait
 {
-    private $getArtistTypes = ['audiosByArtist', 'albumsByArtist'];
+    private $getArtistTypes = ['artistById', 'audiosByArtist', 'albumsByArtist'];
+    private $artistById = 'artistById';
     private $audiosByArtist = 'audiosByArtist';
     private $albumsByArtist = 'albumsByArtist';
 
@@ -20,6 +22,209 @@ trait AlbumArtistSearchesTrait
     private $albumSearchPrefix = 'album:';
     private $albumsSearchPrefix = 'albums:';
     private $albumsSearchLimit = 10;
+
+    private function artistTypeToSearchBackend($type)
+    {
+        switch ($type) {
+            case $this->artistById:
+                return self::$SEARCH_BACKEND_ARTIST;
+            case $this->audiosByArtist:
+                return self::$SEARCH_BACKEND_AUDIOS;
+            case $this->albumsByArtist:
+                return self::$SEARCH_BACKEND_ALBUMS;
+            default:
+                abort('Unknown type', '400');
+        }
+    }
+
+    public function getArtist(Request $request, $id)
+    {
+        $results = [];
+        foreach ([$this->audiosByArtist, $this->albumsByArtist] as $type) {
+            $response = $this->getArtistItems($request, $id, $type);
+            $error = $this->checkResponseErrors($response);
+            if ($error) {
+                return $error;
+            }
+            $backendType = $this->artistTypeToSearchBackend($type);
+            $results[$backendType] = $this->pluckItems($response, $backendType);
+        }
+
+        // try to include artist details from albums
+        try {
+            $artistDetails = stdToArray(collect($results[self::$SEARCH_BACKEND_ALBUMS][0]->main_artists)->firstWhere('id', $id));
+        } catch (Exception $e) { // albums can be empty on after the first page
+            $artistDetails = [];
+        }
+
+        return okResponse(['artist' => array_merge($artistDetails, $results)]);
+    }
+
+    public function searchAlbums(Request $request)
+    {
+        return $this->searchItems($request, self::$SEARCH_BACKEND_ALBUMS);
+    }
+
+    public function searchArtists(Request $request)
+    {
+        return $this->searchItems($request, self::$SEARCH_BACKEND_ARTISTS);
+    }
+
+    public function getArtistAudios(Request $request, $id)
+    {
+        return $this->getArtistItems($request, $id, $this->audiosByArtist);
+    }
+
+    public function getArtistAlbums(Request $request, $id)
+    {
+        return $this->getArtistItems($request, $id, $this->albumsByArtist);
+    }
+
+    public function getAlbumById(Request $request, string $id)
+    {
+        $cacheKey = $this->getCacheKeyForId($request, $id);
+        $cachedResult = $this->getCache($cacheKey);
+
+        if (! is_null($cachedResult)) {
+            logger()->getAlbumByIdCache($id);
+
+            return $this->audiosResponse($request, $cachedResult, false);
+        }
+
+        $captchaParams = $this->getCaptchaParams($request);
+        $params = [
+            'access_token' => config('app.auth.tokens')[$this->accessTokenIndex],
+            'album_id'     => $id,
+            'count'        => $this->count,
+            'owner_id'     => $request->input('owner_id'),
+            'access_key'   => $request->input('access_key'),
+        ];
+
+        $response = as_json(vkClient()->get('method/audio.get', [
+            'query' => $params + $captchaParams,
+        ]
+        ));
+
+        $error = $this->checkSearchResponseError($request, $response);
+        if ($error) {
+            return $error;
+        }
+
+        $data = $this->parseAudioItems($response);
+        $this->cacheResult($cacheKey, $data);
+        logger()->getAlbumById($id);
+
+        return $this->audiosResponse($request, $data);
+    }
+
+    /**
+     * Search and cache mechanism for albums and artists.
+     *
+     * @param Request $request
+     * @param string  $type
+     *
+     * @return JsonResponse|array
+     */
+    private function searchItems(Request $request, string $type)
+    {
+        if (! in_array($type, [self::$SEARCH_BACKEND_ALBUMS, self::$SEARCH_BACKEND_ARTISTS])) {
+            abort(404);
+        }
+
+        $cacheKey = sprintf('%s.%s', $type, $this->getCacheKey($request));
+        $cachedResult = $this->getCache($cacheKey, $type);
+
+        $query = getQuery($request);
+        $offset = getPage($request) * $this->count;
+
+        if (! is_null($cachedResult)) {
+            logger()->searchByCache($type, $query, $offset);
+
+            return okResponse($cachedResult, $type);
+        }
+
+        $captchaParams = $this->getCaptchaParams($request);
+        $params = [
+            'access_token' => config('app.auth.tokens')[$this->accessTokenIndex],
+            'q'            => $query,
+            'offset'       => $offset,
+            'count'        => $this->count,
+        ];
+
+        $response = as_json(vkClient()->get('method/audio.search'.ucfirst($type), [
+            'query' => $params + $captchaParams,
+        ]
+        ));
+
+        $error = $this->checkSearchResponseError($request, $response);
+        if ($error) {
+            return $error;
+        }
+
+        $data = $response->response->items;
+        $this->cacheResult($cacheKey, $data, $type);
+        logger()->searchBy($type, $query, $offset);
+
+        $this->autoScanSearchResults($request, $data, $type);
+
+        return okResponse($data, $type);
+    }
+
+    /**
+     * Search and cache mechanism for albums and artists.
+     *
+     * @param Request $request
+     * @param string  $artistId
+     * @param string  $type
+     *
+     * @return JsonResponse|array
+     */
+    private function getArtistItems(Request $request, string $artistId, string $type)
+    {
+        if (! in_array($type, $this->getArtistTypes)) {
+            abort(404);
+        }
+
+        $isArtistById = $type == $this->artistById;
+        $isAudiosByArtist = $type == $this->audiosByArtist;
+        $dataFieldName = $this->artistTypeToSearchBackend($type);
+
+        $offset = getPage($request) * $this->count;
+
+        $cacheKey = sprintf('%s.%s', $type, $this->getCacheKeyForId($request, $artistId));
+        $cachedResult = $this->getCache($cacheKey);
+
+        if (! is_null($cachedResult)) {
+            logger()->getArtistItemsCache($type, $artistId, $offset);
+
+            return $isAudiosByArtist ? $this->audiosResponse($request, $cachedResult, false) : okResponse($cachedResult, $dataFieldName);
+        }
+
+        $captchaParams = $this->getCaptchaParams($request);
+        $params = [
+            'access_token' => config('app.auth.tokens')[$this->accessTokenIndex],
+            'artist_id'    => $artistId,
+            'offset'       => $offset,
+            'count'        => $this->count,
+            'extended'     => 1,
+        ];
+
+        $response = as_json(vkClient()->get('method/audio.get'.ucfirst($type), [
+            'query' => $params + $captchaParams,
+        ]
+        ));
+
+        $error = $this->checkSearchResponseError($request, $response);
+        if ($error) {
+            return $error;
+        }
+
+        $data = $isAudiosByArtist ? $this->parseAudioItems($response) : ($isArtistById ? $response->response : $response->response->items);
+        $this->cacheResult($cacheKey, $data);
+        logger()->getArtistItems($type, $artistId, $offset);
+
+        return $isAudiosByArtist ? $this->audiosResponse($request, $data) : okResponse($data, $dataFieldName);
+    }
 
     /**
      * @param Request $request
@@ -92,167 +297,5 @@ trait AlbumArtistSearchesTrait
         } else {
             return false;
         }
-    }
-
-    public function searchAlbums(Request $request)
-    {
-        return $this->searchItems($request, self::$SEARCH_BACKEND_ALBUMS);
-    }
-
-    public function searchArtists(Request $request)
-    {
-        return $this->searchItems($request, self::$SEARCH_BACKEND_ARTISTS);
-    }
-
-    public function getArtistAudios(Request $request, $id)
-    {
-        return $this->getArtistItems($request, $id, $this->audiosByArtist);
-    }
-
-    public function getArtistAlbums(Request $request, $artistId)
-    {
-        return $this->getArtistItems($request, $artistId, $this->albumsByArtist);
-    }
-
-    public function getAlbumById(Request $request, string $albumId)
-    {
-        $cacheKey = $this->getCacheKeyForId($request, $albumId);
-        $cachedResult = $this->getCache($cacheKey);
-
-        if (! is_null($cachedResult)) {
-            logger()->getAlbumByIdCache($albumId);
-
-            return $this->audiosResponse($request, $cachedResult, false);
-        }
-
-        $captchaParams = $this->getCaptchaParams($request);
-        $params = [
-            'access_token' => config('app.auth.tokens')[$this->accessTokenIndex],
-            'album_id'     => $albumId,
-            'count'        => $this->count,
-            'owner_id'     => $request->input('owner_id'),
-            'access_key'   => $request->input('access_key'),
-        ];
-
-        $response = as_json(vkClient()->get('method/audio.get', [
-            'query' => $params + $captchaParams,
-        ]
-        ));
-
-        $error = $this->checkSearchResponseError($request, $response);
-        if ($error) {
-            return $error;
-        }
-
-        $data = $this->parseAudioItems($response);
-        $this->cacheResult($cacheKey, $data);
-        logger()->getAlbumById($albumId);
-
-        return $this->audiosResponse($request, $data);
-    }
-
-    /**
-     * Search and cache mechanism for albums and artists.
-     *
-     * @param Request $request
-     * @param string  $type
-     *
-     * @return JsonResponse|array
-     */
-    private function searchItems(Request $request, string $type)
-    {
-        if (! in_array($type, [self::$SEARCH_BACKEND_ALBUMS, self::$SEARCH_BACKEND_ARTISTS])) {
-            abort(404);
-        }
-
-        $cacheKey = sprintf('%s.%s', $type, $this->getCacheKey($request));
-        $cachedResult = $this->getCache($cacheKey, $type);
-
-        $query = getQuery($request);
-        $offset = getPage($request) * $this->count;
-
-        if (! is_null($cachedResult)) {
-            logger()->searchByCache($type, $query, $offset);
-
-            return okResponse($cachedResult, $type);
-        }
-
-        $captchaParams = $this->getCaptchaParams($request);
-        $params = [
-            'access_token' => config('app.auth.tokens')[$this->accessTokenIndex],
-            'q'            => $query,
-            'offset'       => $offset,
-            'count'        => $this->count,
-        ];
-
-        $response = as_json(vkClient()->get('method/audio.search'.ucfirst($type), [
-            'query' => $params + $captchaParams,
-        ]
-        ));
-
-        $error = $this->checkSearchResponseError($request, $response);
-        if ($error) {
-            return $error;
-        }
-
-        $data = $response->response->items;
-        $this->cacheResult($cacheKey, $data, $type);
-        logger()->searchBy($type, $query, $offset);
-
-        return okResponse($data, $type);
-    }
-
-    /**
-     * Search and cache mechanism for albums and artists.
-     *
-     * @param Request $request
-     * @param string  $artistId
-     * @param string  $type
-     *
-     * @return JsonResponse|array
-     */
-    private function getArtistItems(Request $request, string $artistId, string $type)
-    {
-        if (! in_array($type, $this->getArtistTypes)) {
-            abort(404);
-        }
-
-        $isAudios = $type == $this->audiosByArtist;
-        $offset = getPage($request) * $this->count;
-
-        $cacheKey = sprintf('%s.%s', $type, $this->getCacheKeyForId($request, $artistId));
-        $cachedResult = $this->getCache($cacheKey);
-
-        if (! is_null($cachedResult)) {
-            logger()->getArtistItemsCache($type, $artistId, $offset);
-
-            return $isAudios ? $this->audiosResponse($request, $cachedResult, false) : okResponse($cachedResult, self::$SEARCH_BACKEND_ALBUMS);
-        }
-
-        $captchaParams = $this->getCaptchaParams($request);
-        $params = [
-            'access_token' => config('app.auth.tokens')[$this->accessTokenIndex],
-            'artist_id'    => $artistId,
-            'offset'       => $offset,
-            'count'        => $this->count,
-            'extended'     => 1,
-        ];
-
-        $response = as_json(vkClient()->get('method/audio.get'.ucfirst($type), [
-            'query' => $params + $captchaParams,
-        ]
-        ));
-
-        $error = $this->checkSearchResponseError($request, $response);
-        if ($error) {
-            return $error;
-        }
-
-        $data = $isAudios ? $this->parseAudioItems($response) : $response->response->items;
-
-        $this->cacheResult($cacheKey, $data);
-        logger()->getArtistItems($type, $artistId, $offset);
-
-        return $isAudios ? $this->audiosResponse($request, $data) : okResponse($data, self::$SEARCH_BACKEND_ALBUMS);
     }
 }

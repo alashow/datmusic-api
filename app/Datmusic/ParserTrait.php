@@ -90,8 +90,6 @@ trait ParserTrait
 
         // cleanup unnecessary fields
         unset($item['mp3']);
-        unset($item['cover_url_small']);
-        unset($item['cover_url_medium']);
 
         return $item;
     }

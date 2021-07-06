@@ -1,18 +1,19 @@
 <?php
-/**
- * Copyright (c) 2018  Alashov Berkeli
+/*
+ * Copyright (c) 2021  Alashov Berkeli
  * It is licensed under GNU GPL v. 2 or later. For full terms see the file LICENSE.
  */
 
-namespace App\Util;
+namespace App\Services;
 
+use App\Util\Scanner;
 use Concat\Http\Middleware\RateLimiter;
 use GuzzleHttp\Client;
 use GuzzleHttp\HandlerStack;
 
 class CoverArtArchiveClient
 {
-    use CoverArtRetriever;
+    use Scanner;
 
     /**
      * @var Client Guzzle client for cover archive

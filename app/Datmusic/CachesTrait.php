@@ -12,7 +12,8 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
 
 trait CachesTrait
 {
-    protected static $audioKeyId = 'audio';
+    protected static $expiringCacheKeyPrefix = 'expiring.';
+    protected static $expiringAudioSearchCacheKey = 'audio';
     private static $captchaLockPrefix = 'captchaLock';
 
     /**
@@ -43,10 +44,10 @@ trait CachesTrait
      * Save search result in cache.
      *
      * @param string $cacheKey cache key
-     * @param array  $result   audio array
+     * @param mixed  $result   result data
      * @param string $type     cache type. from: blank for audio search type, albums, artists
      */
-    private function cacheResult(string $cacheKey, array $result, string $type = '')
+    private function cacheResult(string $cacheKey, $result, string $type = '')
     {
         if (! blank($type)) {
             $type = "_$type";
@@ -58,7 +59,7 @@ trait CachesTrait
      * @param string $cacheKey
      * @param string $type cache type. from: blank for audio search type, albums, artists
      *
-     * @return array|null audio array or null if not cached
+     * @return mixed|null audio array or null if not cached
      */
     private function getCache(string $cacheKey, string $type = '')
     {
@@ -81,9 +82,9 @@ trait CachesTrait
      */
     public function getAudio(string $key, string $id, bool $abort = true)
     {
-        $isAudio = $key == self::$audioKeyId;
+        $isExpiringAudio = $key == self::$expiringAudioSearchCacheKey;
         // get from audio cache or search cache
-        $data = $isAudio ? $this->getCachedAudio($id) : Cache::get('query.'.$key);
+        $data = $isExpiringAudio ? $this->getCachedAudio(self::$expiringAudioSearchCacheKey.$id) : Cache::get('query.'.$key);
 
         if (is_null($data)) {
             logger()->log('Cache.NoAudio', $key, $id);
@@ -94,7 +95,7 @@ trait CachesTrait
             return null;
         }
 
-        if ($isAudio) {
+        if ($isExpiringAudio) {
             return $data;
         }
 
@@ -110,6 +111,7 @@ trait CachesTrait
         }
 
         $item = $data[$key];
+        // cache the audio item forever
         $this->cacheAudioItem($id, $item);
 
         return $item;
@@ -132,7 +134,9 @@ trait CachesTrait
 
             return Cache::forever("audio.$id", $item);
         } else {
-            return Cache::put("audio.$id", $item, config('app.cache.duration_audio'));
+            $prefix = self::$expiringCacheKeyPrefix;
+
+            return Cache::put("audio.$prefix$id", $item, config('app.cache.duration_audio'));
         }
     }
 

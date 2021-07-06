@@ -47,7 +47,7 @@ trait MultisearchTrait
             default:
                 abort('Unknown search backend type', 400);
         }
-        $error = $this->hasErrors($response);
+        $error = $this->checkResponseErrors($response);
         if ($error) {
             return $error;
         }
@@ -57,42 +57,5 @@ trait MultisearchTrait
         }
 
         return [$type => $results];
-    }
-
-    /**
-     * Checks for errors in given responses.
-     *
-     * @param ...$responses
-     *
-     * @return false|JsonResponse first found error or false
-     */
-    public function hasErrors(...$responses)
-    {
-        foreach ($responses as $response) {
-            if ($response instanceof JsonResponse) {
-                if ($response->getOriginalContent()['status'] === 'error') {
-                    return $response;
-                }
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * Plucks given field key from response's data array.
-     *
-     * @param $response
-     * @param $key
-     *
-     * @return false|array
-     */
-    public function pluckItems($response, $key)
-    {
-        if ($response instanceof JsonResponse) {
-            return $response->getOriginalContent()['data'][$key];
-        }
-
-        return false;
     }
 }

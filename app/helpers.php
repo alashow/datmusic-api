@@ -1,7 +1,8 @@
 <?php
 
-use App\Util\CoverArtClient;
-use App\Util\SpotifyClient;
+use App\Services\CoverArtClient;
+use App\Services\SpotifyClient;
+use App\Util\Logger;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Psr\Http\Message\ResponseInterface;
@@ -23,6 +24,14 @@ function vkClient()
 }
 
 /**
+ * @return SpotifyClient
+ */
+function scanners()
+{
+    return app('scanners');
+}
+
+/**
  * @return CoverArtClient
  */
 function covers()
@@ -31,15 +40,7 @@ function covers()
 }
 
 /**
- * @return SpotifyClient
- */
-function spotifyClient()
-{
-    return app('spotifyClient');
-}
-
-/**
- * @return \App\Util\Logger logger instance
+ * @return Logger logger instance
  */
 function logger()
 {
@@ -107,14 +108,14 @@ function as_json($response)
 }
 
 /**
- * @param array|null  $data
+ * @param mixed|null  $data
  * @param string|null $dataFieldName
  * @param int         $status
  * @param array       $headers
  *
  * @return JsonResponse
  */
-function okResponse(array $data = null, string $dataFieldName = null, int $status = 200, array $headers = [])
+function okResponse($data = null, string $dataFieldName = null, int $status = 200, array $headers = [])
 {
     return json_response('ok', $data, null, $status, $headers, $dataFieldName);
 }
@@ -142,23 +143,28 @@ function errorResponse(array $error = null, int $status = 200, array $headers = 
 }
 
 /**
- * @param string      $status
- * @param array|null  $data
- * @param array|null  $error
- * @param int         $httpStatus
- * @param array       $headers
- * @param string|null $dataFieldName
+ * @param string           $status
+ * @param array|mixed|null $data
+ * @param array|null       $error
+ * @param int              $httpStatus
+ * @param array            $headers
+ * @param string|null      $dataFieldName
  *
  * @return JsonResponse
+ * @throws Exception if $data is not array and dataFieldName is null
  */
-function json_response(string $status = 'ok', array $data = null, array $error = null, int $httpStatus = 200, array $headers = [], string $dataFieldName = null)
+function json_response(string $status = 'ok', $data = null, array $error = null, int $httpStatus = 200, array $headers = [], string $dataFieldName = null)
 {
     $result = ['status' => $status];
     if (! is_null($data)) {
         if ($dataFieldName != null) {
             $result = array_merge($result, ['data' => [$dataFieldName => $data]]);
         } else {
-            $result = array_merge($result, ['data' => $data]);
+            if (is_array($data)) {
+                $result = array_merge($result, ['data' => $data]);
+            } else {
+                throw new Exception();
+            }
         }
     }
     if (! is_null($error)) {

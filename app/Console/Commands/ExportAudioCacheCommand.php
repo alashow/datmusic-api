@@ -12,18 +12,18 @@ use GuzzleHttp\RequestOptions;
 use Illuminate\Console\Command;
 
 /**
- * Imports audio cache from given ids file.
+ * Exports audio cache from given ids file.
  *
  * @category Console_Command
  */
-class ImportAudioCacheCommand extends Command
+class ExportAudioCacheCommand extends Command
 {
     use CachesTrait, ParserTrait;
 
-    protected $signature = 'datmusic:import-audio-from-cache
+    protected $signature = 'datmusic:export-audio-from-cache
                             {audio-ids : path to audio ids file (id on every line)}';
 
-    protected $description = 'Imports audios from cache to sink url';
+    protected $description = '´Exports audios from cache to sink url';
 
     private $batchCount = 25000;
     private $counter = 0;

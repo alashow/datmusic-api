@@ -6,12 +6,12 @@
 
 namespace App\Providers;
 
-use App\Util\CoverArtArchiveClient;
-use App\Util\CoverArtClient;
+use App\Services\CoverArtArchiveClient;
+use App\Services\CoverArtClient;
+use App\Services\SpotifyClient;
+use App\Services\VkHttpClient;
 use App\Util\HttpClient;
 use App\Util\Logger;
-use App\Util\SpotifyClient;
-use App\Util\VkHttpClient;
 use Exception;
 use Illuminate\Support\ServiceProvider;
 use Log;
@@ -55,13 +55,21 @@ class AppServiceProvider extends ServiceProvider
         $httpClient = new HttpClient();
         $this->app->instance('httpClient', $httpClient);
 
+        $scanners = [];
+
+        if (config('app.services.spotify.enabled')) {
+            $spotifyClient = new SpotifyClient();
+            $this->app->instance('spotifyClient', $spotifyClient);
+            array_push($scanners, $spotifyClient);
+        }
+
         $coverArtArchiveClient = new CoverArtArchiveClient();
         $this->app->instance('coverArtArchiveClient', $coverArtArchiveClient);
+        array_push($scanners, $coverArtArchiveClient);
 
-        $spotifyClient = new SpotifyClient();
-        $this->app->instance('spotifyClient', $spotifyClient);
+        $this->app->instance('scanners', $scanners);
 
-        $coverArtClient = new CoverArtClient($spotifyClient, $coverArtArchiveClient);
+        $coverArtClient = new CoverArtClient($scanners);
         $this->app->instance('coverArtClient', $coverArtClient);
 
         $logger = new Logger();

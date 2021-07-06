@@ -6,7 +6,7 @@
 
 namespace App\Console;
 
-use App\Console\Commands\ImportAudioCacheCommand;
+use App\Console\Commands\ExportAudioCacheCommand;
 use Illuminate\Console\Scheduling\Schedule;
 use Laravel\Lumen\Console\Kernel as ConsoleKernel;
 
@@ -18,7 +18,7 @@ class Kernel extends ConsoleKernel
      * @var array
      */
     protected $commands = [
-        ImportAudioCacheCommand::class,
+        ExportAudioCacheCommand::class,
     ];
 
     /**

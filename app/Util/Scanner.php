@@ -6,7 +6,7 @@
 
 namespace App\Util;
 
-trait CoverArtRetriever
+trait Scanner
 {
     public static $SIZES = ['large', 'medium', 'small'];
     public static $SIZE_LARGE = 'large';
@@ -18,7 +18,7 @@ trait CoverArtRetriever
         if (! $size) {
             $size = $default;
         }
-        if (! in_array($size, CoverArtRetriever::$SIZES)) {
+        if (! in_array($size, Scanner::$SIZES)) {
             abort(400, 'Unknown size');
         }
 
@@ -27,7 +27,12 @@ trait CoverArtRetriever
 
     abstract public function findCover(string $artist, string $title, string $size);
 
-    public function findArtistCover(string $artist, string $size)
+    public function findArtist(string $artist)
+    {
+        return false;
+    }
+
+    public function findArtistImage(string $artist, string $size)
     {
         return false;
     }

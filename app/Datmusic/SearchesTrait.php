@@ -12,11 +12,12 @@ use stdClass;
 
 trait SearchesTrait
 {
-    use CachesTrait, ParserTrait, AlbumArtistSearchesTrait, MultisearchTrait;
+    use CachesTrait, ParserTrait, AlbumArtistSearchesTrait, ScannerTrait, MultisearchTrait, ScannerTrait;
 
     public static $SEARCH_BACKEND_AUDIOS = 'audios';
     public static $SEARCH_BACKEND_ALBUMS = 'albums';
     public static $SEARCH_BACKEND_ARTISTS = 'artists';
+    public static $SEARCH_BACKEND_ARTIST = 'artist';
     public static $SEARCH_BACKEND_TYPES = ['audios', 'albums', 'artists'];
 
     private $count = 200;
@@ -108,8 +109,8 @@ trait SearchesTrait
         ];
 
         return as_json(vkClient()->get('method/audio.search', [
-                'query' => $params + $captchaParams,
-            ]
+            'query' => $params + $captchaParams,
+        ]
         ));
     }
 
@@ -282,6 +283,43 @@ trait SearchesTrait
             }
         }
 
-        return okResponse($this->cleanAudioList($request, self::$audioKeyId, $data, false), self::$SEARCH_BACKEND_AUDIOS);
+        return okResponse($this->cleanAudioList($request, self::$expiringAudioSearchCacheKey, $data, false), self::$SEARCH_BACKEND_AUDIOS);
+    }
+
+    /**
+     * Checks for errors in given responses.
+     *
+     * @param ...$responses
+     *
+     * @return false|JsonResponse first found error or false
+     */
+    public function checkResponseErrors(...$responses)
+    {
+        foreach ($responses as $response) {
+            if ($response instanceof JsonResponse) {
+                if ($response->getOriginalContent()['status'] === 'error') {
+                    return $response;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Plucks given field key from response's data array.
+     *
+     * @param $response
+     * @param $key
+     *
+     * @return false|array
+     */
+    public function pluckItems($response, $key)
+    {
+        if ($response instanceof JsonResponse) {
+            return $response->getOriginalContent()['data'][$key];
+        }
+
+        return false;
     }
 }
