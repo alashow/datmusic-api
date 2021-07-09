@@ -52,7 +52,7 @@ trait AlbumArtistSearchesTrait
 
         // try to include artist details from albums
         try {
-            $artistDetails = stdToArray(collect($results[self::$SEARCH_BACKEND_ALBUMS][0]->main_artists)->firstWhere('id', $id));
+            $artistDetails = stdToArray(collect($results[self::$SEARCH_BACKEND_ALBUMS])->take(10)->pluck('main_artists')->flatten()->firstWhere('id', $id)) ?: [];
         } catch (Exception $e) { // albums can be empty on after the first page
             $artistDetails = [];
         }
