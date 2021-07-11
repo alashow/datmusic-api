@@ -1,0 +1,29 @@
+version: '3.4'
+services:
+  minerva:
+    image: getmeili/meilisearch
+    restart: always
+    volumes:
+      - meilisearch-data:/data.ms
+    environment:
+      MEILI_MASTER_KEY: "${MINERVA_MEILISEARCH_KEY}"
+    ports:
+      - "127.0.0.1:7700:7700"
+    networks:
+      default:
+        ipv4_address: 172.27.0.2
+
+networks:
+  default:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.27.0.0/24
+
+volumes:
+  meilisearch-data:
+    driver: local
+    driver_opts:
+      device: /opt/datmusic/meilisearch
+      type: none
+      o: bind

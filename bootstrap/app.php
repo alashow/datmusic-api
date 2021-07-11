@@ -30,6 +30,7 @@ $app->configure('cache');
 $app->configure('cors');
 
 $app->withFacades();
+$app->withEloquent();
 
 /*
 |--------------------------------------------------------------------------

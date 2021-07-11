@@ -7,7 +7,6 @@
 namespace App\Services;
 
 use App\Util\Scanner;
-use Concat\Http\Middleware\RateLimiter;
 use GuzzleHttp\Client;
 use GuzzleHttp\HandlerStack;
 
@@ -39,8 +38,6 @@ class CoverArtArchiveClient
         ]);
 
         $handler = HandlerStack::create();
-        $rateLimitProvider = new MusicBrainzRateLimitProvider();
-        $handler->push(new RateLimiter($rateLimitProvider));
         $this->brainzClient = new Client([
             'base_uri' => 'https://musicbrainz.org',
             'headers'  => [

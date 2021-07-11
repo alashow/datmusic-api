@@ -8,8 +8,9 @@ namespace App\Console\Commands;
 
 use App\Datmusic\CachesTrait;
 use App\Datmusic\ParserTrait;
-use GuzzleHttp\RequestOptions;
+use App\Models\Audio;
 use Illuminate\Console\Command;
+use MeiliSearch\Client;
 
 /**
  * Exports audio cache from given ids file.
@@ -20,12 +21,12 @@ class ExportAudioCacheCommand extends Command
 {
     use CachesTrait, ParserTrait;
 
-    protected $signature = 'datmusic:export-audio-from-cache
+    protected $signature = 'datmusic:export-audios-from-cache
                             {audio-ids : path to audio ids file (id on every line)}';
 
-    protected $description = '´Exports audios from cache to sink url';
+    protected $description = '´Exports audios from cache to minerva';
 
-    private $batchCount = 25000;
+    private $batchCount = 10000;
     private $counter = 0;
 
     /**
@@ -49,7 +50,7 @@ class ExportAudioCacheCommand extends Command
                 if ($audio) {
                     array_push($foundAudios, $audio);
                     if (count($foundAudios) > $this->batchCount) {
-                        $this->batchUpload($foundAudios);
+                        $this->batchExporting($foundAudios);
                         $foundAudios = [];
                     }
                 }
@@ -59,8 +60,8 @@ class ExportAudioCacheCommand extends Command
             $this->warn("Couldn't open file: $audioIdsPath");
         }
 
-        // upload the leftovers
-        $this->batchUpload($foundAudios);
+        // export the leftovers
+        $this->batchExporting($foundAudios);
 
         return 0;
     }
@@ -69,23 +70,38 @@ class ExportAudioCacheCommand extends Command
     {
         $audioItem = $this->getCachedAudio($id);
         if ($audioItem && is_array($audioItem)) {
-            return $this->cleanAudioItemForSink($audioItem);
+            return $this->cleanAudioItemForStorage($audioItem);
         } else {
-            $this->warn("Audio id = $id wasn't in cache");
+            $this->warn("Audio id = '$id' wasn't in cache");
 
             return false;
         }
     }
 
-    private function batchUpload(array $audios)
+    private function batchExporting(array $audios)
     {
         if (empty($audios)) {
-            $this->warn('No items to upload');
+            $this->warn('No items to export');
 
             return;
         }
+
         $this->counter += count($audios);
-        $this->info("Batch uploading {$this->batchCount} items to sink, uploaded = {$this->counter}");
-        httpClient()->post(config('app.downloading.post_process.sink_url'), [RequestOptions::JSON => $audios]);
+
+        if (config('app.minerva.meilisearch.enabled')) {
+            $this->info("Batch uploading {$this->batchCount} items to meilisearch, uploaded = {$this->counter}");
+            $client = new Client(config('app.minerva.meilisearch.url'), config('app.minerva.meilisearch.key'));
+            $index = $client->index(config('app.minerva.meilisearch.index'));
+            $index->addDocuments($audios);
+        }
+
+        if (config('app.minerva.database.enabled')) {
+            $this->info("Batch inserting {$this->batchCount} items to minerva database, inserted = {$this->counter}");
+            try {
+                Audio::insertAudioItems($audios);
+            } catch (\Exception $exception) {
+                $this->error('Error while bulk inserting items: '.$exception->getMessage());
+            }
+        }
     }
 }

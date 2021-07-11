@@ -82,11 +82,9 @@ trait ParserTrait
         return $data;
     }
 
-    public function cleanAudioItemForSink(array $audioItem): array
+    public function cleanAudioItemForStorage(array $audioItem): array
     {
         $item = $audioItem;
-        $mp3Hash = hash(config('app.hash.mp3'), $item['id']);
-        $item['id'] = $mp3Hash;
 
         // cleanup unnecessary fields
         unset($item['mp3']);

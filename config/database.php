@@ -5,19 +5,20 @@
  */
 
 return [
+    'default' => 'sqlite',
+    'migrations' => 'migrations',
 
-    /*
-    |--------------------------------------------------------------------------
-    | Redis Databases
-    |--------------------------------------------------------------------------
-    |
-    | Redis is an open source, fast, and advanced key-value store that also
-    | provides a richer set of commands than a typical key-value systems
-    | such as APC or Memcached. Laravel makes it easy to dig right in.
-    |
-    */
+    'connections' => [
+        'sqlite' => [
+            'driver'   => 'sqlite',
+            'database' => env('DB_DATABASE', storage_path('app/database/minerva.db')),
+            'prefix'   => env('DB_PREFIX', ''),
+        ],
 
-    'redis' => [
+    ],
+
+    //  redis is used for caches and queues
+    'redis'       => [
         'client'  => 'predis',
         'cluster' => false,
 
@@ -27,7 +28,5 @@ return [
             'port'     => env('REDIS_PORT', 6379),
             'database' => 0,
         ],
-
     ],
-
 ];

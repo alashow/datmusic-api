@@ -6,27 +6,69 @@
 
 namespace App\Jobs;
 
-use App\Datmusic\ParserTrait;
-use GuzzleHttp\RequestOptions;
+use
+    App\Datmusic\ParserTrait;
+use App\Models\Audio;
+use App\Util\Scanner;
+use MeiliSearch\Client;
 
 class PostProcessAudioJob extends Job
 {
     protected $audioItems;
-    protected $sinkUrl;
 
     use ParserTrait;
 
     public function __construct(...$items)
     {
-        $this->sinkUrl = config('app.downloading.post_process.sink_url');
         $this->audioItems = array_map(function ($item) {
-            return $this->cleanAudioItemForSink($item);
+            return $this->cleanAudioItemForStorage($item);
         }, $items);
     }
 
     public function handle()
     {
-        // push audio items to sink url
-        httpClient()->post($this->sinkUrl, [RequestOptions::JSON => [$this->audioItems]]);
+        $items = $this->audioItems;
+
+        if (! empty($items)) {
+            if (config('app.minerva.fetch_covers')) {
+                $items = array_map(function ($item) {
+                    return $this->fetchCovers($item);
+                }, $items);
+            }
+
+            if (config('app.minerva.meilisearch.enabled')) {
+                $client = new Client(config('app.minerva.meilisearch.url'), config('app.minerva.meilisearch.key'));
+                $index = $client->index(config('app.minerva.meilisearch.index'));
+                $index->addDocuments($items);
+            }
+
+            if (config('app.minerva.database.enabled')) {
+                try {
+                    Audio::insertAudioItems($items);
+                } catch (\Exception $exception) {
+                    \Log::warning('Exception while inserting audio items to minerva', [$exception]);
+                }
+            }
+        }
+    }
+
+    private function fetchCovers(array $audio)
+    {
+        // do nothing if it already has cover
+        if (array_key_exists('cover_url', $audio)) {
+            return $audio;
+        }
+
+        $coverUrl = covers()->getCover($audio, Scanner::$SIZE_LARGE);
+        if ($coverUrl) {
+            $audio['cover_url'] = $coverUrl;
+            // we're assuming if it could find the large size, it can find the rest without failing
+            $audio['cover_url_medium'] = covers()->getCover($audio, Scanner::$SIZE_MEDIUM);
+            $audio['cover_url_small'] = covers()->getCover($audio, Scanner::$SIZE_SMALL);
+
+            return $audio;
+        } else {
+            return $audio;
+        } // failed to fetch the cover, just return what's given
     }
 }

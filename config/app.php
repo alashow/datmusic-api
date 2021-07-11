@@ -59,7 +59,6 @@ return [
 
         'post_process' => [
             'enabled'  => env('DATMUSIC_DOWNLOAD_POST_PROCESS_ENABLED', false),
-            'sink_url' => env('DATMUSIC_DOWNLOAD_POST_PROCESS_SINK_URL', null),
             'archive_cover' => env('DATMUSIC_DOWNLOAD_POST_PROCESS_ARCHIVE_COVER', false),
         ],
     ],
@@ -121,6 +120,20 @@ return [
             'enabled'       => env('SPOTIFY_CLIENT_ENABLED', false),
             'client_id'     => env('SPOTIFY_CLIENT_ID', ''),
             'client_secret' => env('SPOTIFY_CLIENT_SECRET', ''),
+        ],
+    ],
+
+    'minerva' => [
+        'fetch_covers' => env('MINERVA_FETCH_COVERS', false),
+
+        'database'    => [
+            'enabled' => env('MINERVA_DATABASE_ENABLED', false),
+        ],
+        'meilisearch' => [
+            'enabled' => env('MINERVA_MEILISEARCH_ENABLED', false),
+            'url' => env('MINERVA_MEILISEARCH_URL', ''),
+            'index' => env('MINERVA_MEILISEARCH_INDEX', 'datmusic'),
+            'key' => env('MINERVA_MEILISEARCH_KEY', ''),
         ],
     ],
 ];
