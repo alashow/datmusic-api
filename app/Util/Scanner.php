@@ -25,14 +25,30 @@ trait Scanner
         return $size;
     }
 
-    abstract public function findCover(string $artist, string $title, string $size);
+    /**
+     * @param string $artist artist name
+     * @param string $title  song name
+     *
+     * @return false|array cover image array or false if fails
+     */
+    abstract public function findCover(string $artist, string $title);
 
+    /**
+     * @param string $artist
+     *
+     * @return false|array artist details or false if fails
+     */
     public function findArtist(string $artist)
     {
         return false;
     }
 
-    public function findArtistImage(string $artist, string $size)
+    /**
+     * @param string $artist artist name
+     *
+     * @return false|array artist image array or false if fails
+     */
+    public function findArtistImage(string $artist)
     {
         return false;
     }

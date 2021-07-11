@@ -8,6 +8,7 @@ namespace App\Services;
 
 use App\Util\Scanner;
 use Carbon\Carbon;
+use Closure;
 use GuzzleHttp\Client;
 use Illuminate\Support\Facades\Cache;
 
@@ -47,12 +48,12 @@ class CoverArtClient
     {
         $artist = $audio['artist'];
         $title = preg_replace('~(\(|\[|\{)[^)]*(\)|\]|\})~', '', $audio['title']);
-        $cacheKey = sprintf('cover_%s', hash(config('app.hash.mp3'), sprintf('%s,%s,%s', $artist, $title, $size)));
+        $cacheKey = sprintf('cover_%s', hash(config('app.hash.mp3'), sprintf('%s,%s', $artist, $title)));
 
-        $retrieve = function () use ($artist, $title, $size) {
+        $retriever = function () use ($artist, $title) {
             foreach ($this->scanners as $scanner) {
                 try {
-                    return $scanner->findCover($artist, $title, $size);
+                    return $scanner->findCover($artist, $title);
                 } catch (\Exception $e) {
                     \Log::error('Exception while trying to find cover image.', [$e]);
                 }
@@ -61,20 +62,7 @@ class CoverArtClient
             return false;
         };
 
-        if (! ($url = Cache::get($cacheKey))) {
-            $url = $retrieve();
-            if (is_string($url)) {
-                // force https
-                $url = preg_replace('/^http:/i', 'https:', $url);
-                Cache::forever($cacheKey, $url);
-            } else {
-                // remember failure for n days
-                $expiresAt = Carbon::now()->addDays(3);
-                Cache::put($cacheKey, $url, $expiresAt);
-            }
-        }
-
-        return $url;
+        return $this->fetchCover($cacheKey, $retriever, $size);
     }
 
     /**
@@ -127,12 +115,12 @@ class CoverArtClient
      */
     public function getArtistImage(string $artist, string $size)
     {
-        $cacheKey = sprintf('artist_image_%s', hash(config('app.hash.mp3'), sprintf('%s,%s', $artist, $size)));
+        $cacheKey = sprintf('artist_image_%s', hash(config('app.hash.mp3'), sprintf('%s', $artist)));
 
-        $retrieve = function () use ($artist, $size) {
+        $retriever = function () use ($artist) {
             foreach ($this->scanners as $scanner) {
                 try {
-                    return $scanner->findArtistImage($artist, $size);
+                    return $scanner->findArtistImage($artist);
                 } catch (\Exception $e) {
                     \Log::error('Exception while trying to find artist cover image.', [$e]);
                 }
@@ -141,17 +129,42 @@ class CoverArtClient
             return false;
         };
 
-        if (! ($url = Cache::get($cacheKey))) {
-            $url = $retrieve();
-            if (is_string($url)) {
-                Cache::forever($cacheKey, $url);
-            } else {
-                // remember failure for n days
-                $expiresAt = Carbon::now()->addDays(15);
-                Cache::put($cacheKey, $url, $expiresAt);
+        return $this->fetchCover($cacheKey, $retriever, $size, 15);
+    }
+
+    /**
+     * @param string  $cacheKey
+     * @param Closure $retrieve
+     * @param string  $size
+     * @param int     $failureExpirationDays
+     *
+     * @return string|false url or false if failed (both might be cached values)
+     */
+    private function fetchCover(string $cacheKey, Closure $retrieve, string $size, int $failureExpirationDays = 3)
+    {
+        $images = Cache::get($cacheKey);
+        if (! $images) {
+            if ($images === null) {
+                $images = $retrieve();
+                if (is_array($images)) {
+                    Cache::forever($cacheKey, $images);
+                    $url = $images[$size];
+                    // force https
+                    $url = preg_replace('/^http:/i', 'https:', $url);
+
+                    return $url;
+                } else {
+                    // remember failure for n days
+                    $expiresAt = Carbon::now()->addDays($failureExpirationDays);
+                    Cache::put($cacheKey, false, $expiresAt);
+                }
+            }
+        } else {
+            if (is_array($images)) {
+                return $images[$size];
             }
         }
 
-        return $url;
+        return false;
     }
 }

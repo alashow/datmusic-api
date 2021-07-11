@@ -30,6 +30,10 @@ class SpotifyClient
         $this->api->setAccessToken($this->getAccessToken());
     }
 
+    /**
+     * Get expiring cached access token.
+     * @return string
+     */
     private function getAccessToken()
     {
         $expiration = Carbon::now()->addHour();
@@ -46,29 +50,25 @@ class SpotifyClient
         });
     }
 
-    private function getImageBySize($images, $size)
+    private function getSizeMappedImages($images)
     {
         if (empty($images)) {
             return false;
         }
 
-        $image = null;
-        switch ($size) {
-            case self::$SIZE_LARGE:
-                $image = $images[0];
-                break;
-            case self::$SIZE_MEDIUM:
-                $image = $images[1];
-                break;
-            case self::$SIZE_SMALL:
-                $image = $images[2];
-                break;
-        }
-
-        return $image->url;
+        return [
+            self::$SIZE_LARGE  => $images[0]->url,
+            self::$SIZE_MEDIUM => $images[1]->url,
+            self::$SIZE_SMALL  => $images[2]->url,
+        ];
     }
 
-    public function findArtist($artist)
+    /**
+     * @param string $artist artist name
+     *
+     * @return false|array artist or false if fails
+     */
+    public function findArtist(string $artist)
     {
         $query = "artist:$artist";
         $results = $this->api->search($query, 'artist', ['limit' => 5])->artists;
@@ -88,7 +88,13 @@ class SpotifyClient
         return $results->items[0];
     }
 
-    public function findCover($artist, $title, $size)
+    /**
+     * @param string $artist artist name
+     * @param string $title song title
+     *
+     * @return array|false size mapped images or false if fails
+     */
+    public function findCover(string $artist, string $title)
     {
         $query = "artist:$artist track:$title";
         $result = $this->api->search($query, 'track', ['limit' => 1])->tracks;
@@ -98,14 +104,20 @@ class SpotifyClient
 
         $images = $result->items[0]->album->images;
 
-        return $this->getImageBySize($images, $size);
+        return $this->getSizeMappedImages($images);
     }
 
-    public function findArtistImage(string $artist, string $size)
+    /**
+     * @param string $artist
+     * @param string $size
+     *
+     * @return array|false size mapped images or false if fails
+     */
+    public function findArtistImage(string $artist)
     {
         $artist = $this->findArtist($artist);
         if ($artist) {
-            return $this->getImageBySize($artist->images, $size);
+            return $this->getSizeMappedImages($artist->images);
         } else {
             return false;
         }

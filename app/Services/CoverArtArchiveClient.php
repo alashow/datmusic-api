@@ -83,7 +83,13 @@ class CoverArtArchiveClient
         return false;
     }
 
-    public function findCover(string $artist, string $title, string $size)
+    /**
+     * @param string $artist
+     * @param string $title
+     *
+     * @return array|false size mapped images or false if fails
+     */
+    public function findCover(string $artist, string $title)
     {
         if ($releaseId = $this->getReleaseId($artist, $title)) {
             $response = $this->archiveClient->get('release/'.$releaseId);
@@ -92,14 +98,12 @@ class CoverArtArchiveClient
             if (isset($response->images)) {
                 foreach ($response->images as $cover) {
                     $thumbs = stdToArray($cover->thumbnails);
-                    switch ($size) {
-                        case self::$SIZE_LARGE:
-                            return $thumbs['1200'];
-                        case self::$SIZE_MEDIUM:
-                            return $thumbs['500'];
-                        case self::$SIZE_SMALL:
-                            return $thumbs['250'];
-                    }
+
+                    return [
+                        self::$SIZE_LARGE  => $thumbs['1200'],
+                        self::$SIZE_MEDIUM => $thumbs['500'],
+                        self::$SIZE_SMALL  => $thumbs['250'],
+                    ];
                 }
             }
         }
