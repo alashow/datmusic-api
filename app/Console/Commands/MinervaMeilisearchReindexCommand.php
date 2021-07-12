@@ -6,15 +6,12 @@
 
 namespace App\Console\Commands;
 
-use App\Datmusic\CachesTrait;
-use App\Datmusic\ParserTrait;
 use App\Models\Audio;
 use Illuminate\Console\Command;
 use MeiliSearch\Client;
 
 class MinervaMeilisearchReindexCommand extends Command
 {
-
     protected $signature = 'datmusic:minerva-meilisearch-reindex';
 
     protected $description = 'Reindexes meilisearch index from minerva database';
@@ -28,11 +25,13 @@ class MinervaMeilisearchReindexCommand extends Command
     public function handle(): int
     {
         if (! config('app.minerva.meilisearch.enabled')) {
-            $this->error("Minerva meilisearch is not enabled");
+            $this->error('Minerva meilisearch is not enabled');
+
             return 1;
         }
         if (! config('app.minerva.database.enabled')) {
-            $this->error("Minerva database is not enabled");
+            $this->error('Minerva database is not enabled');
+
             return 1;
         }
 
