@@ -12,11 +12,6 @@ use App\Models\Audio;
 use Illuminate\Console\Command;
 use MeiliSearch\Client;
 
-/**
- * Exports audio cache from given ids file.
- *
- * @category Console_Command
- */
 class ExportAudioCacheCommand extends Command
 {
     use CachesTrait, ParserTrait;
@@ -24,7 +19,7 @@ class ExportAudioCacheCommand extends Command
     protected $signature = 'datmusic:export-audios-from-cache
                             {audio-ids : path to audio ids file (id on every line)}';
 
-    protected $description = '´Exports audios from cache to minerva';
+    protected $description = 'Exports audios from cache to minerva';
 
     private $batchCount = 10000;
     private $counter = 0;
@@ -50,7 +45,7 @@ class ExportAudioCacheCommand extends Command
                 if ($audio) {
                     array_push($foundAudios, $audio);
                     if (count($foundAudios) > $this->batchCount) {
-                        $this->batchExporting($foundAudios);
+                        $this->batchExport($foundAudios);
                         $foundAudios = [];
                     }
                 }
@@ -61,7 +56,7 @@ class ExportAudioCacheCommand extends Command
         }
 
         // export the leftovers
-        $this->batchExporting($foundAudios);
+        $this->batchExport($foundAudios);
 
         return 0;
     }
@@ -78,7 +73,7 @@ class ExportAudioCacheCommand extends Command
         }
     }
 
-    private function batchExporting(array $audios)
+    private function batchExport(array $audios)
     {
         if (empty($audios)) {
             $this->warn('No items to export');

@@ -1,7 +1,7 @@
 version: '3.4'
 services:
   minerva:
-    image: getmeili/meilisearch
+    image: getmeili/meilisearch:v0.21.0rc2
     restart: always
     volumes:
       - meilisearch-data:/data.ms
