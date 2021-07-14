@@ -13,6 +13,7 @@ use App\Services\VkHttpClient;
 use App\Util\HttpClient;
 use App\Util\Logger;
 use Exception;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 use Log;
 
@@ -45,6 +46,8 @@ class AppServiceProvider extends ServiceProvider
         // Create mp3s folders if they doesn't exist
         $this->createFolder(config('app.paths.mp3'));
         $this->createFolder(config('app.paths.links'));
+
+        URL::forceRootUrl(env('APP_URL'));
     }
 
     private function registerSingletons()
