@@ -262,7 +262,7 @@ trait DownloaderTrait
      *
      * @return bool true if succeeds
      */
-    private function downloadAudio(string $url, string $path, bool $proxy = true, $audioItem = [])
+    private function downloadAudio(string $url, string $path, bool $proxy = true, array $audioItem = [])
     {
         if (! file_exists(dirname($path))) {
             mkdir(dirname($path), 0777, true);
@@ -299,7 +299,7 @@ trait DownloaderTrait
         // or the file is not audio
         $fileMimeType = get_mime_type($path);
         if (! isMimeTypeAudio($fileMimeType)) {
-            logger()->log('Download.Fail.InvalidAudio', $fileMimeType);
+            logger()->log('Download.Fail.InvalidAudio', [$audioItem['key'], $audioItem['id'], $fileMimeType]);
             @unlink($path);
 
             return false;
