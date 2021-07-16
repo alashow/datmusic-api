@@ -299,7 +299,7 @@ trait DownloaderTrait
         // or the file is not audio
         $fileMimeType = get_mime_type($path);
         if (! isMimeTypeAudio($fileMimeType)) {
-            logger()->log('Download.Fail.InvalidAudio', [$audioItem['key'], $audioItem['id'], $fileMimeType]);
+            logger()->log('Download.Fail.InvalidAudio', json_encode([$audioItem['id'], $audioItem['artist'], $audioItem['title'], $fileMimeType]));
             @unlink($path);
 
             return false;
