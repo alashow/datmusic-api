@@ -54,6 +54,11 @@ class Logger
         return $this->writeLog('Search.Cache', $args);
     }
 
+    public function searchHlsCount(...$args)
+    {
+        return $this->writeLog('Search.HlsCount', $args);
+    }
+
     public function searchBy($type, ...$args)
     {
         return $this->writeLog('Search.'.ucfirst($type), $args);

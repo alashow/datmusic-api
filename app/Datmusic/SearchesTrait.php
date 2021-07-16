@@ -197,7 +197,9 @@ trait SearchesTrait
         // items that needs to sorted to the end of response list if matches the regex
         $badMatches = [];
 
-        $mapped = array_map(function ($item) use (&$cacheKey, &$badMatches, &$sortable) {
+        $hlsCount = 0;
+
+        $mapped = array_map(function ($item) use (&$cacheKey, &$badMatches, &$sortable, &$hlsCount) {
             $downloadUrl = route('download', ['key' => $cacheKey, 'id' => $item['id']]);
             $streamUrl = route('stream', ['key' => $cacheKey, 'id' => $item['id']]);
             $coverUrl = route('cover', ['key' => $cacheKey, 'id' => $item['id']]);
@@ -217,19 +219,42 @@ trait SearchesTrait
             // is audio name bad match
             $badMatch = $sortable && $this->isBadMatch([$item['artist'], $item['title']]);
 
+            // count hls's for analytics for now
+            if (array_key_exists('is_hls', $item) && $item['is_hls']) {
+                $badMatch = true;
+                $hlsCount++;
+            }
+
             // add to bad matches
             if ($badMatch) {
                 array_push($badMatches, $result);
             }
 
+            if (array_key_exists('is_hls', $result))
+                unset($result['is_hls']);
+
             // remove from main array if bad match
             return $badMatch ? null : $result;
         }, $data);
 
-        // remove null items from mapped (nulls are added to badMatches, emptied in mapping above)
-        $mapped = array_filter($mapped);
+        if (! config('app.downloading.hls.enabled')) {
+            $badMatches = array_filter(array_map(function ($item) {
+                if (array_key_exists('is_hls', $item) && $item['is_hls']) {
+                    return null;
+                } else {
+                    return $item;
+                }
+            }, $badMatches));
+        }
 
-        // if there was any bad matches, merge with base list or just return
+        // remove null items from mapped (nulls are added to badMatches, emptied in mapping above)
+        $mapped = array_values(array_filter($mapped));
+
+        if ($hlsCount > 0) {
+            logger()->searchHlsCount($query, 'count='.count($mapped).',hls_count='.$hlsCount);
+        }
+
+        // if there were any bad matches, merge with base list or just return
         return empty($badMatches) ? $mapped : array_merge($mapped, $badMatches);
     }
 

@@ -43,6 +43,9 @@ return [
     ],
 
     'downloading' => [
+        'hls' => [
+            'enabled' => env('DOWNLOADING_HLS_ENABLED', false),
+        ],
         'timeout' => [
             //seconds
             'connection' => 2, // connection timeout

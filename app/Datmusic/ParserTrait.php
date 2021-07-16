@@ -39,12 +39,20 @@ trait ParserTrait
             $duration = $item->duration;
             $date = $item->date;
             $mp3 = $item->url;
+            $isHls = false;
 
+            $peskyHlsReg = '/(psv4\.vkuseraudio\.net\/audio\/ee)/';
             $hlsReg = '/(\/[a-zA-Z0-9]{1,30})(\/audios)?\/([a-zA-Z0-9]{1,30})(\/index\.m3u8)/';
+            preg_match($peskyHlsReg, $mp3, $peskyHlsMatches);
             preg_match($hlsReg, $mp3, $matches);
-            if (array_key_exists(4, $matches)) {
-                $mp3 = str_replace($matches[1], '', $mp3);
-                $mp3 = str_replace($matches[4], '.mp3', $mp3);
+
+            if (! empty($peskyHlsMatches)) {
+                $isHls = true;
+            } else {
+                if (array_key_exists(4, $matches)) {
+                    $mp3 = str_replace($matches[1], '', $mp3);
+                    $mp3 = str_replace($matches[4], '.mp3', $mp3);
+                }
             }
 
             $hash = hash(config('app.hash.id'), $sourceId);
@@ -57,6 +65,7 @@ trait ParserTrait
                 'duration'  => (int) $duration,
                 'date'      => $date,
                 'mp3'       => $mp3,
+                'is_hls'    => $isHls,
             ];
 
             if (isset($item->album)) {
