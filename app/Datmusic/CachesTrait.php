@@ -89,7 +89,7 @@ trait CachesTrait
         if (is_null($data)) {
             logger()->log('Cache.NoAudio', $key, $id);
             if ($abort) {
-                abort(404);
+                abort(400);
             }
 
             return null;
