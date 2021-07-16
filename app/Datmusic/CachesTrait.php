@@ -84,7 +84,7 @@ trait CachesTrait
     {
         $isExpiringAudio = $key == self::$expiringAudioSearchCacheKey;
         // get from audio cache or search cache
-        $data = $isExpiringAudio ? $this->getCachedAudio(self::$expiringAudioSearchCacheKey.$id) : Cache::get('query.'.$key);
+        $data = $isExpiringAudio ? $this->getCachedAudio(self::$expiringCacheKeyPrefix.$id) : Cache::get('query.'.$key);
 
         if (is_null($data)) {
             logger()->log('Cache.NoAudio', $key, $id);
