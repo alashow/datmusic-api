@@ -267,8 +267,12 @@ trait DownloaderTrait
         if (! file_exists(dirname($path))) {
             mkdir(dirname($path), 0777, true);
         }
-        $handle = fopen($path, 'w');
 
+        if (config('app.downloading.hls.enabled') && array_key_exists('is_hls', $audioItem) && $audioItem['is_hls']) {
+            return $this->downloadAudioFfmpeg($url, $path, $proxy, $audioItem);
+        }
+
+        $handle = fopen($path, 'w');
         $curl = curl_init($url);
         curl_setopt($curl, CURLOPT_FILE, $handle);
         curl_setopt($curl, CURLOPT_HEADER, 0);
@@ -296,12 +300,7 @@ trait DownloaderTrait
             return false;
         }
 
-        // or the file is not audio
-        $fileMimeType = get_mime_type($path);
-        if (! isMimeTypeAudio($fileMimeType)) {
-            logger()->log('Download.Fail.InvalidAudio', json_encode([$audioItem['id'], $audioItem['artist'], $audioItem['title'], $fileMimeType]));
-            @unlink($path);
-
+        if (! $this->verifyDownloadedFile($path, $audioItem)) {
             return false;
         }
 
@@ -310,6 +309,57 @@ trait DownloaderTrait
         fclose($handle);
 
         return true;
+    }
+
+    /**
+     * Download audio using ffmpeg.
+     * @param string $url
+     * @param string $path
+     * @param bool   $proxy
+     * @param array  $audioItem
+     *
+     * @return bool
+     */
+    private function downloadAudioFfmpeg(string $url, string $path, bool $proxy = true, array $audioItem = [])
+    {
+        $startedAt = microtime(true);
+        $ffmpeg = config('app.conversion.ffmpeg_path');
+        if ($proxy && env('PROXY_ENABLE', false)) {
+            $ffmpeg .= sprintf(' -http_proxy %s ', buildHttpProxyString());
+        }
+
+        $command = "$ffmpeg -i $url -c copy $path";
+        exec($command, $exOutput, $result);
+
+        // check if command had errors and verify the file
+        if ($result != 0 || ! $this->verifyDownloadedFile($path, $audioItem)) {
+            return false;
+        }
+
+        $elapsed = round(microtime(true) - $startedAt, 3);
+        logger()->statsHlsDownloadTime($audioItem['id'], $elapsed);
+
+        return true;
+    }
+
+    /**
+     * Verify whether the given file is an audio file.
+     * @param string $path
+     * @param array $audioItem
+     *
+     * @return bool
+     */
+    private function verifyDownloadedFile(string $path, array $audioItem)
+    {
+        $fileMimeType = get_mime_type($path);
+        if (! isMimeTypeAudio($fileMimeType)) {
+            logger()->log('Download.Fail.InvalidAudio', json_encode([$audioItem['id'], $audioItem['artist'], $audioItem['title'], $fileMimeType]));
+            @unlink($path);
+
+            return false;
+        } else {
+            return true;
+        }
     }
 
     /**

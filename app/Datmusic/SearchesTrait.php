@@ -230,8 +230,9 @@ trait SearchesTrait
                 array_push($badMatches, $result);
             }
 
-            if (array_key_exists('is_hls', $result))
+            if (array_key_exists('is_hls', $result)) {
                 unset($result['is_hls']);
+            }
 
             // remove from main array if bad match
             return $badMatch ? null : $result;

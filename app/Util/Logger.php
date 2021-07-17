@@ -59,6 +59,11 @@ class Logger
         return $this->writeLog('Search.HlsCount', $args);
     }
 
+    public function statsHlsDownloadTime(...$args)
+    {
+        return $this->writeLog('Stats.HlsDownloadTime', $args);
+    }
+
     public function searchBy($type, ...$args)
     {
         return $this->writeLog('Search.'.ucfirst($type), $args);

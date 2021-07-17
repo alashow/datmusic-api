@@ -27,13 +27,7 @@ class VkHttpClient
         $config = [];
 
         if (env('PROXY_ENABLE', false)) {
-            $proxy = sprintf('%s://', env('PROXY_METHOD'));
-
-            if (! empty(env('PROXY_USERNAME')) && ! empty(env('PROXY_PASSWORD'))) {
-                $proxy .= sprintf('%s:%s@', env('PROXY_USERNAME'), env('PROXY_PASSWORD'));
-            }
-
-            $proxy .= sprintf('%s:%s', env('PROXY_IP'), env('PROXY_PORT'));
+            $proxy = buildHttpProxyString();
             $config = ['proxy' => $proxy];
         }
         $handler = HandlerStack::create();
