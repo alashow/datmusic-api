@@ -283,7 +283,7 @@ if (! function_exists('get_file_type')) {
 
 function isMimeTypeAudio($mimeType)
 {
-    return $mimeType == 'audio/mpeg';
+    return in_array($mimeType, ['audio/mpeg', 'application/octet-stream']);
 }
 
 function stdToArray($std)
