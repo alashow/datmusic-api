@@ -10,7 +10,6 @@ use
     App\Datmusic\ParserTrait;
 use App\Models\Audio;
 use App\Util\Scanner;
-use MeiliSearch\Client;
 
 class PostProcessAudioJob extends Job
 {
@@ -34,12 +33,6 @@ class PostProcessAudioJob extends Job
                 $items = array_map(function ($item) {
                     return $this->fetchCovers($item);
                 }, $items);
-            }
-
-            if (config('app.minerva.meilisearch.enabled')) {
-                $client = new Client(config('app.minerva.meilisearch.url'), config('app.minerva.meilisearch.key'));
-                $index = $client->index(config('app.minerva.meilisearch.index'));
-                $index->addDocuments($items);
             }
 
             if (config('app.minerva.database.enabled')) {

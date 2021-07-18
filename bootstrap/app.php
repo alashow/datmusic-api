@@ -28,6 +28,7 @@ $app->configure('app');
 $app->configure('database');
 $app->configure('cache');
 $app->configure('cors');
+$app->configure('tinker');
 
 $app->withFacades();
 $app->withEloquent();
@@ -95,6 +96,7 @@ $app->routeMiddleware([
 $app->register(Illuminate\Redis\RedisServiceProvider::class);
 $app->register(App\Providers\AppServiceProvider::class);
 $app->register(Fruitcake\Cors\CorsServiceProvider::class);
+$app->register(Laravel\Tinker\TinkerServiceProvider::class);
 
 /*
 |--------------------------------------------------------------------------
