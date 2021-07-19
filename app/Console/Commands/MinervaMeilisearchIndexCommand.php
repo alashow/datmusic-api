@@ -8,6 +8,7 @@ namespace App\Console\Commands;
 
 use App\Models\Audio;
 use Cache;
+use Carbon\Carbon;
 use Illuminate\Console\Command;
 use MeiliSearch\Client;
 
@@ -71,6 +72,10 @@ class MinervaMeilisearchIndexCommand extends Command
 
         $this->counter += count($audios);
 
+        $audios = array_map(function ($audio) {
+            return $this->formatAudioForMeilisearch($audio);
+        }, $audios);
+
         $this->info("Batch uploading {$this->batchCount} items to meilisearch, uploaded = {$this->counter}");
         $client = new Client(config('app.minerva.meilisearch.url'), config('app.minerva.meilisearch.key'));
         $index = $client->index(config('app.minerva.meilisearch.index'));
@@ -83,5 +88,20 @@ class MinervaMeilisearchIndexCommand extends Command
                 Cache::forever(self::$LAST_INDEXED_AUDIO_CREATED_AT, $lastDate);
             }
         }
+    }
+
+    private function formatAudioForMeilisearch(array $audio)
+    {
+        if (array_key_exists('duration', $audio)) {
+            $audio['duration'] = intval($audio['duration']);
+        }
+        if (array_key_exists('date', $audio)) {
+            $audio['date'] = intval($audio['date']);
+        }
+        if (array_key_exists('created_at', $audio) && $audio['created_at'] != null) {
+            $audio['created_at'] = Carbon::parse($audio['created_at'])->timestamp;
+        }
+
+        return $audio;
     }
 }

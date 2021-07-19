@@ -18,6 +18,12 @@ class Audio extends Model
     protected $keyType = 'string';
     protected $fillable = ['id', 'source_id', 'title', 'artist', 'duration', 'date', 'cover_url', 'cover_url_medium', 'cover_url_small'];
 
+    protected $casts = [
+        'id' => 'string',
+        'duration' => 'integer',
+        'date' => 'timestamp',
+    ];
+
     /**
      * Bulk insert given audio items.
      *
