@@ -46,7 +46,7 @@ class Audio extends Model
             return $item;
         }, $audioItems);
 
-        Audio::insert($items);
+        Audio::upsert($items, ['id']);
     }
 
     private static function requireField(&$item, $fieldName, $default = null): void
