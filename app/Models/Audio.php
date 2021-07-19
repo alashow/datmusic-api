@@ -31,15 +31,17 @@ class Audio extends Model
      */
     public static function insertAudioItems(array $audioItems)
     {
-        // sqlite will throw exception if bulk items have inconsistent field counts
-        // album and cover urls are only nullable fields for "normal" audios
+        // sqlite will throw exception if bulk items have inconsistent field counts, so we're normalizing it here
         $items = array_map(function ($item) {
+            // album and cover urls are only nullable fields for "normal" audios
             self::requireField($item, 'album');
             self::requireField($item, 'cover_url');
             self::requireField($item, 'cover_url_medium');
             self::requireField($item, 'cover_url_small');
 
             self::requireField($item, 'created_at', Date::now());
+
+            unset($item['is_hls']);
 
             return $item;
         }, $audioItems);
