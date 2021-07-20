@@ -19,17 +19,17 @@ class Audio extends Model
     protected $fillable = ['id', 'source_id', 'title', 'artist', 'duration', 'date', 'cover_url', 'cover_url_medium', 'cover_url_small'];
 
     protected $casts = [
-        'id' => 'string',
+        'id'       => 'string',
         'duration' => 'integer',
-        'date' => 'timestamp',
+        'date'     => 'timestamp',
     ];
 
     /**
      * Bulk insert given audio items.
      *
-     * @param array $audioItems
+     * @param array $items
      */
-    public static function insertAudioItems(array $audioItems)
+    public static function insertAudioItems(array $items)
     {
         // sqlite will throw exception if bulk items have inconsistent field counts, so we're normalizing it here
         $items = array_map(function ($item) {
@@ -44,9 +44,19 @@ class Audio extends Model
             unset($item['is_hls']);
 
             return $item;
-        }, $audioItems);
+        }, $items);
 
-        Audio::upsert($items, ['id']);
+        self::upsert($items);
+    }
+
+    private static function upsert(array $items)
+    {
+        if (count($items) > 10) {
+            parent::upsert($items, ['id']);
+        } else { // manual upsert because some people might not have time to upgrade sqlite3 >3.24 to use upserts
+            parent::destroy(collect($items)->pluck('id'));
+            Audio::insert($items);
+        }
     }
 
     private static function requireField(&$item, $fieldName, $default = null): void
