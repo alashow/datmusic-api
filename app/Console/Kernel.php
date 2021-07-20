@@ -7,6 +7,7 @@
 namespace App\Console;
 
 use App\Console\Commands\ExportAudioCacheCommand;
+use App\Console\Commands\MinervaConfigureMeilisearchCommand;
 use App\Console\Commands\MinervaMeilisearchIndexCommand;
 use Illuminate\Console\Scheduling\Schedule;
 use Laravel\Lumen\Console\Kernel as ConsoleKernel;
@@ -21,6 +22,7 @@ class Kernel extends ConsoleKernel
     protected $commands = [
         ExportAudioCacheCommand::class,
         MinervaMeilisearchIndexCommand::class,
+        MinervaConfigureMeilisearchCommand::class,
     ];
 
     /**

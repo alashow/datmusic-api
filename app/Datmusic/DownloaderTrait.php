@@ -113,6 +113,10 @@ trait DownloaderTrait
             return $this->downloadLocal($path, $subPath, $fileName, $key, $id, $name, $stream, true);
         }
 
+        if ($key === self::$SEARCH_BACKEND_MINERVA) {
+            abort(404, 'Minerva file was not found');
+        }
+
         $audioItem = $this->getAudio($key, $id);
         $proxy = ! $this->optimizeMp3Url($audioItem);
         $name = $this->getFormattedName($audioItem);
@@ -313,6 +317,7 @@ trait DownloaderTrait
 
     /**
      * Download audio using ffmpeg.
+     *
      * @param string $url
      * @param string $path
      * @param bool   $proxy
@@ -344,8 +349,9 @@ trait DownloaderTrait
 
     /**
      * Verify whether the given file is an audio file.
+     *
      * @param string $path
-     * @param array $audioItem
+     * @param array  $audioItem
      *
      * @return bool
      */

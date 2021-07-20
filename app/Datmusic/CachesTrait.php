@@ -6,6 +6,7 @@
 
 namespace App\Datmusic;
 
+use App\Models\Audio;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Symfony\Component\HttpKernel\Exception\HttpException;
@@ -83,8 +84,19 @@ trait CachesTrait
     public function getAudio(string $key, string $id, bool $abort = true)
     {
         $isExpiringAudio = $key == self::$expiringAudioSearchCacheKey;
-        // get from audio cache or search cache
-        $data = $isExpiringAudio ? $this->getCachedAudio(self::$expiringCacheKeyPrefix.$id) : Cache::get('query.'.$key);
+        $isMinerva = $key === self::$SEARCH_BACKEND_MINERVA;
+        if ($isMinerva) {
+            $data = Audio::find($id);
+            if ($data != null) {
+                $data = $data->toArray();
+            }
+        } else {
+            if ($isExpiringAudio) {
+                $data = $this->getCachedAudio(self::$expiringCacheKeyPrefix.$id);
+            } else {
+                $data = Cache::get('query.'.$key);
+            }
+        }
 
         if (is_null($data)) {
             logger()->log('Cache.NoAudio', $key, $id);
@@ -95,14 +107,14 @@ trait CachesTrait
             return null;
         }
 
-        if ($isExpiringAudio) {
+        if ($isExpiringAudio || $isMinerva) {
             return $data;
         }
 
         // search audio by audio id/hash
-        $key = array_search($id, array_column($data, 'id'));
+        $idIndex = array_search($id, array_column($data, 'id'));
 
-        if ($key === false) {
+        if ($idIndex === false) {
             if ($abort) {
                 abort(404);
             }
@@ -110,7 +122,7 @@ trait CachesTrait
             return null;
         }
 
-        $item = $data[$key];
+        $item = $data[$idIndex];
         // cache the audio item forever
         $this->cacheAudioItem($id, $item);
 

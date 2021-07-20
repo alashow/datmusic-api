@@ -12,13 +12,14 @@ use stdClass;
 
 trait SearchesTrait
 {
-    use CachesTrait, ParserTrait, AlbumArtistSearchesTrait, ScannerTrait, MultisearchTrait, ScannerTrait;
+    use CachesTrait, ParserTrait, AlbumArtistSearchesTrait, ScannerTrait, MultisearchTrait, MinervaSearchTrait, ScannerTrait;
 
     public static $SEARCH_BACKEND_AUDIOS = 'audios';
     public static $SEARCH_BACKEND_ALBUMS = 'albums';
     public static $SEARCH_BACKEND_ARTISTS = 'artists';
+    public static $SEARCH_BACKEND_MINERVA = 'minerva';
     public static $SEARCH_BACKEND_ARTIST = 'artist';
-    public static $SEARCH_BACKEND_TYPES = ['audios', 'albums', 'artists'];
+    public static $SEARCH_BACKEND_TYPES = ['audios', 'albums', 'artists', 'minerva'];
 
     private $count = 200;
     private $accessTokenIndex = 0;

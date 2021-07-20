@@ -44,6 +44,9 @@ trait MultisearchTrait
             case self::$SEARCH_BACKEND_ARTISTS:
                 $response = $this->searchArtists($request);
                 break;
+            case self::$SEARCH_BACKEND_MINERVA:
+                $response = $this->minervaSearch($request);
+                break;
             default:
                 abort('Unknown search backend type', 400);
         }
