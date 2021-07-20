@@ -253,7 +253,7 @@ trait SearchesTrait
         $mapped = array_values(array_filter($mapped));
 
         if ($hlsCount > 0) {
-            logger()->searchHlsCount($query, 'count='.count($mapped).',hls_count='.$hlsCount);
+            logger()->searchStatsHlsCount($query, 'count='.count($mapped).',hls_count='.$hlsCount);
         }
 
         // if there were any bad matches, merge with base list or just return

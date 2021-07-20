@@ -19,6 +19,7 @@ trait MultisearchTrait
             $requestedTypes = ['audios'];
         }
 
+        sort($requestedTypes);
         foreach (self::$SEARCH_BACKEND_TYPES as $type) {
             if (! in_array($type, $requestedTypes)) {
                 continue;
@@ -30,6 +31,8 @@ trait MultisearchTrait
             }
             array_push($results, $data);
         }
+
+        logger()->searchMultisearch(getQuery($request), getPage($request) * $this->count, join(',', $requestedTypes));
 
         return okResponse(array_merge(...$results));
     }

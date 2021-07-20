@@ -26,6 +26,11 @@ trait MinervaSearchTrait
         $results = $index->search($query, ['limit' => $pageBy, 'offset' => $offset]);
 
         $hits = $results->getHits();
+        $hitsCount = $results->getNbHits();
+        $tookMs = $results->getProcessingTimeMs();
+
+        logger()->searchMinervaMeilisearch($query, $offset, $tookMs.'ms', 'count='.$hitsCount);
+
         $backendName = self::$SEARCH_BACKEND_MINERVA;
 
         return okResponse($this->cleanAudioList($request, $backendName, $hits, false), $backendName);

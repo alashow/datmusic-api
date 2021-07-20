@@ -54,9 +54,19 @@ class Logger
         return $this->writeLog('Search.Cache', $args);
     }
 
-    public function searchHlsCount(...$args)
+    public function searchMultisearch(...$args)
     {
-        return $this->writeLog('Search.HlsCount', $args);
+        return $this->writeLog('Search.Multisearch', $args);
+    }
+
+    public function searchMinervaMeilisearch(...$args)
+    {
+        return $this->writeLog('Search.MinervaMeilisearch', $args);
+    }
+
+    public function searchStatsHlsCount(...$args)
+    {
+        return $this->writeLog('Stats.HlsCount', $args);
     }
 
     public function statsHlsDownloadTime(...$args)
