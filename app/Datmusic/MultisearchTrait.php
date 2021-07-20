@@ -14,7 +14,10 @@ trait MultisearchTrait
     public function multisearch(Request $request)
     {
         $results = [];
-        $requestedTypes = $request->input('types', ['audios']);
+        $requestedTypes = $request->input('types', '');
+        if (! is_array($requestedTypes)) {
+            $requestedTypes = ['audios'];
+        }
 
         foreach (self::$SEARCH_BACKEND_TYPES as $type) {
             if (! in_array($type, $requestedTypes)) {
