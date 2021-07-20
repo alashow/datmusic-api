@@ -16,12 +16,13 @@ class Audio extends Model
     protected $table = 'audios';
     protected $primaryKey = 'id';
     protected $keyType = 'string';
-    protected $fillable = ['id', 'source_id', 'title', 'artist', 'duration', 'date', 'cover_url', 'cover_url_medium', 'cover_url_small'];
+    protected $fillable = ['id', 'source_id', 'title', 'artist', 'duration', 'date', 'cover_url', 'cover_url_medium', 'cover_url_small', 'created_at'];
 
     protected $casts = [
-        'id'       => 'string',
-        'duration' => 'integer',
-        'date'     => 'timestamp',
+        'id'         => 'string',
+        'duration'   => 'integer',
+        'date'       => 'timestamp',
+        'created_at' => 'timestamp',
     ];
 
     /**

@@ -42,7 +42,7 @@ class MinervaMeilisearchIndexCommand extends Command
         if (! $reindex) {
             $lastAddedDate = Cache::get(self::$LAST_INDEXED_AUDIO_CREATED_AT);
             if ($lastAddedDate != null) {
-                $audios = $audios->whereNotNull('created_at')->whereDate('created_at', '>', Carbon::createFromTimestamp($lastAddedDate));
+                $audios = $audios->whereNotNull('created_at')->where('created_at', '>', Carbon::createFromTimestamp($lastAddedDate));
                 if ($audios->count() == 0) {
                     $this->info('No recent items to index');
 
