@@ -92,11 +92,9 @@ trait DownloaderTrait
             return $this->downloadLocal($path, $subPath, $fileName, $key, $id, $name, $stream, true);
         }
 
-        if ($key === self::$SEARCH_BACKEND_MINERVA) {
-            abort(404, 'Minerva file was not found');
-        }
+        $fetchNewMp3Url = $key === self::$SEARCH_BACKEND_MINERVA;
 
-        $audioItem = $this->getAudio($key, $id);
+        $audioItem = $this->getAudio($key, $id, true, $fetchNewMp3Url);
         $proxy = ! $this->optimizeMp3Url($audioItem);
         $name = $this->getFormattedName($audioItem);
 
@@ -274,7 +272,7 @@ trait DownloaderTrait
         $startedAt = microtime(true);
         $ffmpeg = config('app.tools.ffmpeg_path');
         if ($proxy && env('PROXY_ENABLE', false)) {
-            $ffmpeg .= sprintf(' -http_proxy %s ', buildHttpProxyString());
+            $ffmpeg .= sprintf(' -http_proxy %s', buildHttpProxyString());
         }
 
         $command = "$ffmpeg -i $url -c copy $path";

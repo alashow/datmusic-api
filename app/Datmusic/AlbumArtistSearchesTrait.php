@@ -13,7 +13,8 @@ use Illuminate\Support\Str;
 
 trait AlbumArtistSearchesTrait
 {
-    private $getArtistTypes = ['artistById', 'audiosByArtist', 'albumsByArtist'];
+    private $getArtistTypes = ['byId', 'artistById', 'audiosByArtist', 'albumsByArtist'];
+    private $audioById = 'byId';
     private $artistById = 'artistById';
     private $audiosByArtist = 'audiosByArtist';
     private $albumsByArtist = 'albumsByArtist';
@@ -110,7 +111,7 @@ trait AlbumArtistSearchesTrait
             return $error;
         }
 
-        $data = $this->parseAudioItems($response);
+        $data = $this->parseAudioItems($response->response->items);
         $this->cacheResult($cacheKey, $data);
         logger()->getAlbumById($id);
 
@@ -178,6 +179,7 @@ trait AlbumArtistSearchesTrait
      * @param string  $type
      *
      * @return JsonResponse|array
+     * @throws \GuzzleHttp\Exception\GuzzleException
      */
     private function getArtistItems(Request $request, string $artistId, string $type)
     {
@@ -219,11 +221,46 @@ trait AlbumArtistSearchesTrait
             return $error;
         }
 
-        $data = $isAudiosByArtist ? $this->parseAudioItems($response) : ($isArtistById ? $response->response : $response->response->items);
+        $data = $isAudiosByArtist ? $this->parseAudioItems($response->response->items)
+            : ($isArtistById ? $response->response : $response->response->items);
         $this->cacheResult($cacheKey, $data);
         logger()->getArtistItems($type, $artistId, $offset);
 
         return $isAudiosByArtist ? $this->audiosResponse($request, $data) : okResponse($data, $dataFieldName);
+    }
+
+    /**
+     * Search and cache mechanism for albums and artists.
+     *
+     * @param Request $request
+     * @param array   ...$audios
+     *
+     * @return JsonResponse|array
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     */
+    private function getAudios(Request $request, ...$audios)
+    {
+        $audios = array_map(function ($item) {
+            return $item['source_id'];
+        }, $audios);
+        $captchaParams = $this->getCaptchaParams($request);
+        $params = [
+            'access_token' => config('app.auth.tokens')[$this->accessTokenIndex],
+            'audios'       => $audios,
+            'extended'     => 1,
+        ];
+
+        $response = as_json(vkClient()->get('method/audio.getById', [
+            'query' => $params + $captchaParams,
+        ]
+        ));
+
+        $error = $this->checkSearchResponseError($request, $response);
+        if ($error) {
+            return $error;
+        }
+
+        return $this->parseAudioItems($response->response);
     }
 
     /**

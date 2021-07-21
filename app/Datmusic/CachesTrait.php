@@ -7,6 +7,7 @@
 namespace App\Datmusic;
 
 use App\Models\Audio;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Symfony\Component\HttpKernel\Exception\HttpException;
@@ -81,7 +82,7 @@ trait CachesTrait
      * @return array|null
      * @throws HttpException
      */
-    public function getAudio(string $key, string $id, bool $abort = true)
+    public function getAudio(string $key, string $id, bool $abort = true, bool $fetchUrl = false)
     {
         $isExpiringAudio = $key == self::$expiringAudioSearchCacheKey;
         $isMinerva = $key === self::$SEARCH_BACKEND_MINERVA;
@@ -89,6 +90,9 @@ trait CachesTrait
             $data = Audio::find($id);
             if ($data != null) {
                 $data = $data->toArray();
+                if ($fetchUrl) {
+                    $data['mp3'] = $this->getAudioUrl($data);
+                }
             }
         } else {
             if ($isExpiringAudio) {
@@ -127,6 +131,21 @@ trait CachesTrait
         $this->cacheAudioItem($id, $item);
 
         return $item;
+    }
+
+    /**
+     * @param array $audio
+     *
+     * @return string
+     */
+    public function getAudioUrl(array $audio)
+    {
+        $response = $this->getAudios(Request::capture(), $audio);
+        if ($response instanceof JsonResponse) {
+            abort(404);
+        }
+
+        return $response[0]['mp3'];
     }
 
     /**

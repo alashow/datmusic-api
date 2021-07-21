@@ -16,14 +16,12 @@ trait ParserTrait
     /**
      * Maps response to audio items.
      *
-     * @param \stdClass $response
+     * @param array $audios
      *
      * @return array
      */
-    public function parseAudioItems($response)
+    public function parseAudioItems(array $audios)
     {
-        $audios = $response->response->items;
-
         $data = [];
         foreach ($audios as $item) {
             if (isset($item->content_restricted) && empty($item->url)) {

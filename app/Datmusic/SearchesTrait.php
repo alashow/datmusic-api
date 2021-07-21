@@ -79,7 +79,7 @@ trait SearchesTrait
         }
 
         // parse then store in cache
-        $data = $this->parseAudioItems($response);
+        $data = $this->parseAudioItems($response->response->items);
         $this->cacheResult($cacheKey, $data);
         logger()->search($query, $offset, 'Account#'.$this->accessTokenIndex, 'count='.count($data));
 
