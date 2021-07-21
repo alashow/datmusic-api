@@ -5,9 +5,6 @@
  */
 $router->get('/', 'ApiController@index');
 
-// todo: remove/disable bitrate choosing from code
-//$router->get('dl/{key}/{id}/{bitrate}', ['as' => 'downloadWithBitrate', 'uses' => 'ApiController@bitrateDownload']);
-
 $router->get('search', ['as' => 'v1/search', 'uses' => 'v1\SearchApiController@search']);
 
 $router->get('multisearch', ['as' => 'multisearch', 'uses' => 'ApiController@multisearch']);

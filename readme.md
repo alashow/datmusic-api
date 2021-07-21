@@ -48,14 +48,6 @@ Get audios by album - `https://example.com/albums/{album_id}?owner_id={owner_id}
 - Redirects to mp3 file - `https://example.com/stream/{search_hash}/{audio_hash}`
 - Get file size of mp3 in bytes - `https://example.com/bytes/{search_hash}/{audio_hash}`
 
-# Bitrate converting
-
-Default convertable bitrates are: `64`, `128`, `192`
-You need to install `ffmpeg` to your server to make it work and change path to binary in [config file](config/app.php).
- 
-`https://example.com/dl/{search_hash}/{audio_hash}/{bitrate}`
-`https://example.com/stream/{search_hash}/{audio_hash}/{bitrate}`
-
 # Hashing
 
 Search hash calculated by request params (query and page).

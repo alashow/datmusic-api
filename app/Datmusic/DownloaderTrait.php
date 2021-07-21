@@ -69,35 +69,16 @@ trait DownloaderTrait
     }
 
     /**
-     * Just like download but with bitrate converting enabled.
-     *
-     * @param string $key
-     * @param string $id
-     * @param int    $bitrate
-     *
-     * @return RedirectResponse
-     */
-    public function bitrateDownload(string $key, string $id, int $bitrate)
-    {
-        return $this->download($key, $id, false, $bitrate);
-    }
-
-    /**
      * Serves given audio item or aborts with 404 if not found.
      *
      * @param string $key
      * @param string $id
      * @param bool   $stream
-     * @param int    $bitrate
      *
-     * @return RedirectResponse|void
+     * @return RedirectResponse
      */
-    public function download(string $key, string $id, $stream = false, $bitrate = -1)
+    public function download(string $key, string $id, bool $stream = false)
     {
-        if (! in_array($bitrate, config('app.conversion.allowed'))) {
-            $bitrate = -1;
-        }
-
         [$fileName, $subPath, $path] = $this->buildFilePathsForId($id);
 
         if (@file_exists($path)) {
@@ -107,8 +88,6 @@ trait DownloaderTrait
                 $audioItem = $this->getAudio($key, $id, false);
             }
             $name = ! is_null($audioItem) ? $this->getFormattedName($audioItem) : "$id.mp3";
-
-            $this->tryToConvert($bitrate, $path, $fileName, $name);
 
             return $this->downloadLocal($path, $subPath, $fileName, $key, $id, $name, $stream, true);
         }
@@ -124,8 +103,6 @@ trait DownloaderTrait
         if ($this->downloadAudio($audioItem['mp3'], $path, $proxy, $audioItem)) {
             $this->writeAudioTags($audioItem, $path);
             $this->onDownloadCallback($audioItem);
-            // TODO: remove bitrate conversion feature
-            $this->tryToConvert($bitrate, $path, $fileName, $name);
 
             return $this->downloadLocal($path, $subPath, $fileName, $key, $id, $name, $stream, false);
         } else {
@@ -161,44 +138,27 @@ trait DownloaderTrait
     }
 
     /**
-     * Try to convert mp3 if possible, alters given path and file path if succeeds.
+     * Creates symlink to original mp3 file with given file name at /links/{sub_path}/{mp3_hash}/{name}.
+     * For now, we are getting mp3 hash from file name of given path.
      *
-     * @param $bitrate   int bitrate
-     * @param $path      string path
-     * @param $fileName  string file name
-     * @param $name      string file name (logging)
-     */
-    private function tryToConvert(int $bitrate, string &$path, string &$fileName, string &$name)
-    {
-        $convertResult = $this->bitrateConvert($bitrate, $path, $fileName);
-
-        if ($convertResult != false) {
-            [$fileName, $path] = $convertResult;
-            logger()->convert($name, $bitrate);
-            $name = str_replace('.mp3', " ($bitrate).mp3", $name);
-        }
-    }
-
-    /**
-     * @param int    $bitrate
-     * @param string $path
-     * @param string $fileName
+     * @param $path string path of the file
+     * @param $name string name of the downloading file
      *
-     * @return array|bool
+     * @return RedirectResponse|void
      */
-    private function bitrateConvert(int $bitrate, string $path, string $fileName)
+    private function downloadResponse(string $path, string $name)
     {
-        if ($bitrate > 0) {
-            // Change path only if already converted or conversion function returns true
-            $pathConverted = $this->formatPathWithBitrate($path, $bitrate);
-            $fileNameConverted = $this->formatPathWithBitrate($fileName, $bitrate);
+        $hash = basename($path, '.mp3');
+        $subPath = subPathForHash($hash);
+        $filePath = sprintf('%s/%s', $hash, $name);
+        $linkFolderPath = sprintf('%s/%s/%s', config('app.paths.links'), $subPath, $hash);
+        $linkPath = sprintf('%s/%s', $linkFolderPath, $name);
 
-            if (file_exists($pathConverted) || $this->convertMp3Bitrate($bitrate, $path, $pathConverted)) {
-                $convertedPaths = [$fileNameConverted, $pathConverted];
-            }
+        if (file_exists($linkPath) || ((file_exists($linkFolderPath) || mkdir($linkFolderPath, 0777, true)) && symlink($path, $linkPath))) {
+            return redirect("links/$subPath/$filePath");
         }
 
-        return $convertedPaths ?? false;
+        abort(500, "Couldn't create symlink for downloading");
     }
 
     /**
@@ -213,9 +173,8 @@ trait DownloaderTrait
         $name = sprintf('%s - %s', $audio['artist'], $audio['title']);
         $name = Str::ascii($name);
         $name = sanitize($name, false, false);
-        $name = sprintf('%s.mp3', $name);
 
-        return $name;
+        return sprintf('%s.mp3', $name);
     }
 
     /**
@@ -239,21 +198,6 @@ trait DownloaderTrait
         $path = sprintf('%s/%s', $path, $fileName);
 
         return [$fileName, $subPath, $path];
-    }
-
-    /**
-     * @param string $path    path to mp3
-     * @param int    $bitrate bitrate
-     *
-     * @return string path_bitrate.mp3 formatted path
-     */
-    private function formatPathWithBitrate(string $path, int $bitrate)
-    {
-        if ($bitrate > 0) {
-            return str_replace('.mp3', "_$bitrate.mp3", $path);
-        } else {
-            return $path;
-        }
     }
 
     /**
@@ -328,7 +272,7 @@ trait DownloaderTrait
     private function downloadAudioFfmpeg(string $url, string $path, bool $proxy = true, array $audioItem = [])
     {
         $startedAt = microtime(true);
-        $ffmpeg = config('app.conversion.ffmpeg_path');
+        $ffmpeg = config('app.tools.ffmpeg_path');
         if ($proxy && env('PROXY_ENABLE', false)) {
             $ffmpeg .= sprintf(' -http_proxy %s ', buildHttpProxyString());
         }
@@ -366,30 +310,6 @@ trait DownloaderTrait
         } else {
             return true;
         }
-    }
-
-    /**
-     * Creates symlink to original mp3 file with given file name at /links/{sub_path}/{mp3_hash}/{name}.
-     * For now, we are getting mp3 hash from file name of given path.
-     *
-     * @param $path string path of the file
-     * @param $name string name of the downloading file
-     *
-     * @return RedirectResponse|void
-     */
-    private function downloadResponse(string $path, string $name)
-    {
-        $hash = basename($path, '.mp3');
-        $subPath = subPathForHash($hash);
-        $filePath = sprintf('%s/%s', $hash, $name);
-        $linkFolderPath = sprintf('%s/%s/%s', config('app.paths.links'), $subPath, $hash);
-        $linkPath = sprintf('%s/%s', $linkFolderPath, $name);
-
-        if (file_exists($linkPath) || ((file_exists($linkFolderPath) || mkdir($linkFolderPath, 0777, true)) && symlink($path, $linkPath))) {
-            return redirect("links/$subPath/$filePath");
-        }
-
-        abort(500, "Couldn't create symlink for downloading");
     }
 
     /**
@@ -443,27 +363,6 @@ trait DownloaderTrait
         } catch (\getid3_exception $e) {
             Log::error('Exception while writing id3 tags', [$audio, $path, $e]);
         }
-    }
-
-    /**
-     * Executes ffmpeg command synchronously for converting given file to given bitrate.
-     *
-     * @param $bitrate integer, one of $config["allowed_bitrates"]
-     * @param $input   string input mp3 file full path
-     * @param $output  string output mp3 file full path
-     *
-     * @return bool is success
-     */
-    private function convertMp3Bitrate(int $bitrate, string $input, string $output)
-    {
-        $bitrateString = config('app.conversion.allowed_ffmpeg')[array_search($bitrate,
-            config('app.conversion.allowed'))];
-        $ffmpegPath = config('app.conversion.ffmpeg_path');
-
-        exec("$ffmpegPath -i $input -codec:a libmp3lame $bitrateString $output", $exOutput,
-            $result);
-
-        return $result == 0;
     }
 
     /**

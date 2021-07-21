@@ -66,10 +66,7 @@ return [
         ],
     ],
 
-    'conversion' => [
-        //popular bitrates: economy, standard, good
-        'allowed'        => [64, 128, 192],
-        'allowed_ffmpeg' => ['-q:a 9', '-q:a 5', '-q:a 2'],
+    'tools' => [
         'ffmpeg_path'    => 'ffmpeg',
     ],
 
