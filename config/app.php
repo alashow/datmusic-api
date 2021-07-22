@@ -115,6 +115,10 @@ return [
         'ip_whitelist' => explode(',', env('DATMUSIC_CLIENT_BANS_IP_WHITELIST', '')),
     ],
 
+    'client_logger' => [
+        'require_headers' => env('DATMUSIC_CLIENT_HEADERS_REQUIRE', false),
+    ],
+
     'services' => [
         'spotify' => [
             'enabled'       => env('SPOTIFY_CLIENT_ENABLED', false),

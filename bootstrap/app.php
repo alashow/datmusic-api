@@ -80,6 +80,8 @@ $app->middleware([
 
 $app->routeMiddleware([
     'auth.basic' => App\Http\Middleware\HttpBasicAuth::class,
+
+    'require_client_headers' => App\Http\Middleware\ClientHeadersMiddleware::class,
 ]);
 
 /*
@@ -110,7 +112,7 @@ $app->register(Laravel\Tinker\TinkerServiceProvider::class);
 */
 
 $app->router->group([
-    'namespace' => 'App\Http\Controllers',
+    'namespace'  => 'App\Http\Controllers',
     'middleware' => 'auth.basic',
 ], function ($router) {
     require __DIR__.'/../routes/api.php';

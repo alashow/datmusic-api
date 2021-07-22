@@ -6,6 +6,7 @@
 
 namespace App\Util;
 
+use App\Http\Middleware\ClientHeadersMiddleware;
 use App\Http\Middleware\ResponseTimeMiddleware;
 use Illuminate\Http\Request;
 
@@ -34,7 +35,8 @@ class Logger
         $log = implode(' ', $args);
         $ip = Request::capture()->ip();
         $elapsed = ResponseTimeMiddleware::secondsSinceRequest();
-        $text = sprintf("%s, %s, %s, %s, %s\n", $type, $this->getTime(), $log, $ip, $elapsed);
+        $clientInfo = ClientHeadersMiddleware::getClientInfoForLogger();
+        $text = sprintf("%s, %s, %s, %s, %s, %s\n", $type, $this->getTime(), $log, $ip, $elapsed, $clientInfo);
 
         return file_put_contents(config('app.paths.log'), $text, FILE_APPEND);
     }
