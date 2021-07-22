@@ -1,7 +1,23 @@
 version: '3.4'
 services:
-  minerva:
+  postgres:
+    container_name: datmusic-postgres
+    image: postgres
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    ports:
+      - "127.0.0.1:${DB_PORT_POSTGRES}:5432"
+    environment:
+      POSTGRES_DB: "${DB_DATABASE_POSTGRES}"
+      POSTGRES_USER: "${DB_USERNAME_POSTGRES}"
+      POSTGRES_PASSWORD: "${DB_PASSWORD_POSTGRES}"
+    networks:
+      default:
+        ipv4_address: 172.27.0.3
+
+  minerva-meilisearch:
     image: getmeili/meilisearch:v0.21.0rc2
+    container_name: minerva-meilisearch
     restart: always
     volumes:
       - meilisearch-data:/data.ms
@@ -21,6 +37,8 @@ networks:
         - subnet: 172.27.0.0/24
 
 volumes:
+  postgres-data:
+    driver: local
   meilisearch-data:
     driver: local
     driver_opts:

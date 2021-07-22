@@ -150,4 +150,9 @@ class Logger
     {
         return $this->writeLog('BannedClientRequest', $args);
     }
+
+    public function registerFcmToken(...$args)
+    {
+        return $this->writeLog('Users.RegisterFcm', $args);
+    }
 }

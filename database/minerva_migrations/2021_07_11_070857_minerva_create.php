@@ -13,7 +13,7 @@ class MinervaCreate extends Migration
      */
     public function up()
     {
-        Schema::create('audios', function (Blueprint $table) {
+        Schema::connection('minerva')->create('audios', function (Blueprint $table) {
             $table->string('id')->primary();
             $table->string('source_id');
             $table->string('artist');
@@ -34,6 +34,6 @@ class MinervaCreate extends Migration
      */
     public function down()
     {
-        Schema::drop('audios');
+        Schema::connection('minerva')->drop('audios');
     }
 }

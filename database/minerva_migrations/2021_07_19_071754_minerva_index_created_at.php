@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class MinervaAddCreatedAt extends Migration
+class MinervaIndexCreatedAt extends Migration
 {
     /**
      * Run the migrations.
@@ -13,8 +13,8 @@ class MinervaAddCreatedAt extends Migration
      */
     public function up()
     {
-        Schema::table('audios', function (Blueprint $table) {
-            $table->timestamp('created_at')->nullable();
+        Schema::connection('minerva')->table('audios', function (Blueprint $table) {
+            $table->index('created_at');
         });
     }
 
@@ -25,8 +25,8 @@ class MinervaAddCreatedAt extends Migration
      */
     public function down()
     {
-        Schema::table('audios', function (Blueprint $table) {
-            $table->dropColumn('created_at');
+        Schema::connection('minerva')->table('audios', function (Blueprint $table) {
+            $table->dropIndex('created_at');
         });
     }
 }

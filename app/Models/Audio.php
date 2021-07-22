@@ -13,6 +13,7 @@ class Audio extends Model
 {
     public $incrementing = false;
     public $timestamps = false;
+    protected $connection = 'minerva';
     protected $table = 'audios';
     protected $primaryKey = 'id';
     protected $keyType = 'string';

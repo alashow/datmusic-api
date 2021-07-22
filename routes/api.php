@@ -33,4 +33,7 @@ $router->group(['middleware' => 'require_client_headers'], function () use ($rou
     // covers
     $router->get('cover/artists/{artist}[/{size}]', ['as' => 'artist.cover', 'uses' => 'CoverController@artistImage']);
     $router->get('cover/{key}/{id}[/{size}]', ['as' => 'cover', 'uses' => 'CoverController@cover']);
+
+    // users
+    $router->post('users/register/fcm', ['as' => 'users.register.fcm', 'uses' => 'UsersApiController@registerFcmToken']);
 });
