@@ -17,7 +17,10 @@ class Audio extends Model
     protected $table = 'audios';
     protected $primaryKey = 'id';
     protected $keyType = 'string';
-    protected $fillable = ['id', 'source_id', 'title', 'artist', 'duration', 'date', 'cover_url', 'cover_url_medium', 'cover_url_small', 'created_at'];
+    protected $fillable = [
+        'id', 'source_id', 'title', 'artist', 'duration', 'date', 'is_explicit',
+        'cover_url', 'cover_url_medium', 'cover_url_small', 'created_at',
+    ];
 
     protected $casts = [
         'id'         => 'string',
@@ -37,6 +40,7 @@ class Audio extends Model
         $items = array_map(function ($item) {
             // album and cover urls are only nullable fields for "normal" audios
             self::requireField($item, 'album');
+            self::requireField($item, 'is_explicit', false);
             self::requireField($item, 'cover_url');
             self::requireField($item, 'cover_url_medium');
             self::requireField($item, 'cover_url_small');

@@ -37,6 +37,7 @@ trait ParserTrait
             $duration = $item->duration;
             $date = $item->date;
             $mp3 = $item->url;
+            $isExplicit = $item->is_explicit;
             $isHls = false;
 
             $peskyHlsReg = '/(psv4\.vkuseraudio\.net\/audio\/ee)/';
@@ -56,14 +57,15 @@ trait ParserTrait
             $hash = hash(config('app.hash.id'), $sourceId);
 
             $itemData = [
-                'id'        => $hash,
-                'source_id' => $sourceId,
-                'artist'    => trim(html_entity_decode($artist, ENT_QUOTES)),
-                'title'     => trim(html_entity_decode($title, ENT_QUOTES)),
-                'duration'  => (int) $duration,
-                'date'      => $date,
-                'mp3'       => $mp3,
-                'is_hls'    => $isHls,
+                'id'          => $hash,
+                'source_id'   => $sourceId,
+                'artist'      => trim(html_entity_decode($artist, ENT_QUOTES)),
+                'title'       => trim(html_entity_decode($title, ENT_QUOTES)),
+                'duration'    => (int) $duration,
+                'date'        => $date,
+                'mp3'         => $mp3,
+                'is_explicit' => $isExplicit,
+                'is_hls'      => $isHls,
             ];
 
             if (isset($item->album)) {
