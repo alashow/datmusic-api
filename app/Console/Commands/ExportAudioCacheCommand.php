@@ -83,13 +83,6 @@ class ExportAudioCacheCommand extends Command
 
         $this->counter += count($audios);
 
-        if (config('app.minerva.meilisearch.enabled')) {
-            $this->info("Batch uploading {$this->batchCount} items to meilisearch, uploaded = {$this->counter}");
-            $client = new Client(config('app.minerva.meilisearch.url'), config('app.minerva.meilisearch.key'));
-            $index = $client->index(config('app.minerva.meilisearch.index'));
-            $index->addDocuments($audios);
-        }
-
         if (config('app.minerva.database.enabled')) {
             $this->info("Batch inserting {$this->batchCount} items to minerva database, inserted = {$this->counter}");
             try {
