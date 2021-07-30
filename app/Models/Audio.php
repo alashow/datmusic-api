@@ -23,10 +23,11 @@ class Audio extends Model
     ];
 
     protected $casts = [
-        'id'         => 'string',
-        'duration'   => 'integer',
-        'date'       => 'timestamp',
-        'created_at' => 'timestamp',
+        'id'          => 'string',
+        'duration'    => 'integer',
+        'date'        => 'timestamp',
+        'is_explicit' => 'boolean',
+        'created_at'  => 'timestamp',
     ];
 
     /**

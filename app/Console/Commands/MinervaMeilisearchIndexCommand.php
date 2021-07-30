@@ -101,6 +101,9 @@ class MinervaMeilisearchIndexCommand extends Command
         if (array_key_exists('created_at', $audio) && $audio['created_at'] != null) {
             $audio['created_at'] = Carbon::parse($audio['created_at'])->timestamp;
         }
+        if (array_key_exists('is_explicit', $audio) && $audio['is_explicit'] != null) {
+            $audio['created_at'] = boolval($audio['is_explicit']);
+        }
 
         return $audio;
     }
