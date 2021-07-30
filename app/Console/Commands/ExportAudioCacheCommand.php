@@ -10,7 +10,6 @@ use App\Datmusic\CachesTrait;
 use App\Datmusic\ParserTrait;
 use App\Models\Audio;
 use Illuminate\Console\Command;
-use MeiliSearch\Client;
 
 class ExportAudioCacheCommand extends Command
 {
