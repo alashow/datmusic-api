@@ -6,8 +6,7 @@
 
 namespace App\Jobs;
 
-use
-    App\Datmusic\ParserTrait;
+use App\Datmusic\ParserTrait;
 use App\Models\Audio;
 use App\Util\Scanner;
 

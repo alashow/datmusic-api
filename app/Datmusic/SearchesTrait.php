@@ -12,7 +12,7 @@ use stdClass;
 
 trait SearchesTrait
 {
-    use CachesTrait, ParserTrait, AlbumArtistSearchesTrait, ScannerTrait, MultisearchTrait, MinervaSearchTrait, ScannerTrait;
+    use CachesTrait, ParserTrait, AlbumArtistSearchesTrait, MultisearchTrait, MinervaSearchTrait;
 
     public static $SEARCH_BACKEND_AUDIOS = 'audios';
     public static $SEARCH_BACKEND_ALBUMS = 'albums';

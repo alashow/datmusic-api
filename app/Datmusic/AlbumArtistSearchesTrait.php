@@ -166,8 +166,6 @@ trait AlbumArtistSearchesTrait
         $this->cacheResult($cacheKey, $data, $type);
         logger()->searchBy($type, $query, $offset);
 
-        $this->autoScanSearchResults($request, $data, $type);
-
         return okResponse($data, $type);
     }
 
