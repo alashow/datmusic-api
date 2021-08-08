@@ -8,6 +8,7 @@ namespace App\Datmusic;
 
 use App\Jobs\PostProcessAudioJob;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use JamesHeinrich\GetID3\GetID3;
@@ -58,27 +59,30 @@ trait DownloaderTrait
     /**
      * Just like download but with stream enabled.
      *
-     * @param string $key
-     * @param string $id
+     * @param Request $request
+     * @param string  $key
+     * @param string  $id
      *
      * @return RedirectResponse
      */
-    public function stream(string $key, string $id)
+    public function stream(Request $request, string $key, string $id)
     {
-        return $this->download($key, $id, true);
+        return $this->download($request, $key, $id, true);
     }
 
     /**
      * Serves given audio item or aborts with 404 if not found.
      *
-     * @param string $key
-     * @param string $id
-     * @param bool   $stream
+     * @param Request $request
+     * @param string  $key
+     * @param string  $id
+     * @param bool    $stream
      *
      * @return RedirectResponse
      */
-    public function download(string $key, string $id, bool $stream = false)
+    public function download(Request $request, string $key, string $id, bool $stream = false)
     {
+        $isRedirect = $request->has('redirect');
         [$fileName, $subPath, $path] = $this->buildFilePathsForId($id);
 
         if (@file_exists($path)) {
@@ -89,7 +93,7 @@ trait DownloaderTrait
             }
             $name = ! is_null($audioItem) ? $this->getFormattedName($audioItem) : "$id.mp3";
 
-            return $this->downloadLocal($path, $subPath, $fileName, $key, $id, $name, $stream, true);
+            return $this->downloadLocal($path, $subPath, $fileName, $key, $id, $name, $stream, true, $isRedirect);
         }
 
         $fetchNewMp3Url = $key === self::$SEARCH_BACKEND_MINERVA;
@@ -102,7 +106,7 @@ trait DownloaderTrait
             $this->writeAudioTags($audioItem, $path);
             $this->onDownloadCallback($audioItem);
 
-            return $this->downloadLocal($path, $subPath, $fileName, $key, $id, $name, $stream, false);
+            return $this->downloadLocal($path, $subPath, $fileName, $key, $id, $name, $stream, false, $isRedirect);
         } else {
             abort(500);
         }
@@ -119,17 +123,21 @@ trait DownloaderTrait
      * @param $name     string download response name
      * @param $stream   boolean  is stream
      * @param $cache    boolean is cache
+     * @param $redirect boolean is redirect
      *
      * @return RedirectResponse
      */
-    private function downloadLocal(string $path, string $subPath, string $fileName, string $key, string $id, string $name, bool $stream, bool $cache)
+    private function downloadLocal(string $path, string $subPath, string $fileName, string $key, string $id, string $name, bool $stream, bool $cache, bool $redirect)
     {
         if ($stream) {
-            logger()->stream($cache, $key, $id);
+            logger()->stream($cache, $key, $id, $name);
 
             return redirect("mp3/$subPath/$fileName");
         } else {
-            logger()->download($cache, $key, $id);
+            logger()->download($cache, $key, $id, $name, $redirect);
+            if ($redirect) {
+                return redirect("mp3/$subPath/$fileName");
+            }
 
             return $this->downloadResponse($path, $name);
         }
