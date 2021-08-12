@@ -58,12 +58,8 @@ class Audio extends Model
 
     private static function upsert(array $items)
     {
-        if (count($items) > 10) {
-            parent::upsert($items, ['id']);
-        } else { // manual upsert because some people might not have time to upgrade sqlite3 >3.24 to use upserts
-            parent::destroy(collect($items)->pluck('id'));
-            Audio::insert($items);
-        }
+        self::whereIn('id', collect($items)->pluck('id'))->delete();
+        self::insert($items);
     }
 
     private static function requireField(&$item, $fieldName, $default = null): void
