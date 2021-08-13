@@ -98,7 +98,7 @@ trait SearchesTrait
     private function getSearchResults(Request $request, string $query, int $offset)
     {
         if (empty($query)) {
-            $query = randomArtist();
+            $query = randomQuery();
         }
 
         $captchaParams = $this->getCaptchaParams($request);

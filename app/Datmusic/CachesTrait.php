@@ -30,7 +30,7 @@ trait CachesTrait
         $q = strtolower(getQuery($request));
         $page = getPage($request);
 
-        $q = empty($q) ? md5('popular') : $q;
+        $q = empty($q) ? md5('random_query') : $q;
 
         return hash(config('app.hash.cache'), ($q.$page));
     }

@@ -97,11 +97,11 @@ function fullUrl($path)
 }
 
 /**
- * @return string random artist name
+ * @return string random query
  */
-function randomArtist()
+function randomQuery()
 {
-    $randomArray = config('app.artists');
+    $randomArray = config('app.random_queries');
     $randomIndex = array_rand($randomArray);
 
     return $randomArray[$randomIndex];
