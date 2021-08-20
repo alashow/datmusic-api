@@ -154,4 +154,12 @@ return [
             'key' => env('MINERVA_MEILISEARCH_KEY', ''),
         ],
     ],
+
+    'deemix' => [
+        'enabled'                  => env('DEEMIX_ENABLED', false),
+        'api_url'                  => env('DEEMIX_API_URL', ''),
+        'downloads_folder'         => env('DEEMIX_DOWNLOADS_FOLDER', 'Music'),
+        'downloads_bitrate'        => env('DEEMIX_DOWNLOADS_BITRATE', 'flac'),
+        'downloads_folder_rewrite' => env('DEEMIX_DOWNLOADS_FOLDER_REWRITE', 'flacs'), //rewrites download folder name in links
+    ],
 ];

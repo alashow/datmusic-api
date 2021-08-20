@@ -1,10 +1,14 @@
 <?php
+/*
+ * Copyright (c) 2021  Alashov Berkeli
+ * It is licensed under GNU GPL v. 2 or later. For full terms see the file LICENSE.
+ */
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class MinervaIndexCreatedAt extends Migration
+class MinervaAddExtraInfo extends Migration
 {
     /**
      * Run the migrations.
@@ -14,7 +18,7 @@ class MinervaIndexCreatedAt extends Migration
     public function up()
     {
         Schema::connection('minerva')->table('audios', function (Blueprint $table) {
-            $table->index('created_at');
+            $table->json('extra_info')->nullable();
         });
     }
 
@@ -26,7 +30,7 @@ class MinervaIndexCreatedAt extends Migration
     public function down()
     {
         Schema::connection('minerva')->table('audios', function (Blueprint $table) {
-            $table->dropIndex('audios_created_at_index');
+            $table->dropColumn('extra_info');
         });
     }
 }

@@ -116,6 +116,11 @@ class Logger
         return $this->writeLog('Streaming'.($cache ? '.Cache' : ''), $args);
     }
 
+    public function deemixDownload($stream, $cache, ...$args)
+    {
+        return $this->writeLog(($stream ? 'Streaming' : 'Download').'.Deemix'.($cache ? '.Cache' : ''), $args);
+    }
+
     public function convert(...$args)
     {
         return $this->writeLog('Convert', $args);

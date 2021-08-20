@@ -8,9 +8,10 @@ namespace App\Providers;
 
 use App\Services\CoverArtArchiveClient;
 use App\Services\CoverArtClient;
+use App\Services\DeemixClient;
+use App\Services\HttpClient;
 use App\Services\SpotifyClient;
 use App\Services\VkHttpClient;
-use App\Util\HttpClient;
 use App\Util\Logger;
 use Exception;
 use Illuminate\Support\Facades\URL;
@@ -57,6 +58,11 @@ class AppServiceProvider extends ServiceProvider
 
         $httpClient = new HttpClient();
         $this->app->instance('httpClient', $httpClient);
+
+        if (config('app.deemix.enabled')) {
+            $deemixClient = new DeemixClient();
+            $this->app->instance('deemixClient', $deemixClient);
+        }
 
         $scanners = [];
 

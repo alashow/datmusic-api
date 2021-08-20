@@ -6,13 +6,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Datmusic\DeemixTrait;
 use App\Datmusic\DownloaderTrait;
 use App\Datmusic\SearchesTrait;
 use Illuminate\Http\JsonResponse;
 
 class ApiController extends Controller
 {
-    use DownloaderTrait, SearchesTrait;
+    use DownloaderTrait, SearchesTrait, DeemixTrait;
 
     /**
      * ApiController constructor.

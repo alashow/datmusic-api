@@ -19,6 +19,7 @@ $router->group(['middleware' => 'require_client_headers'], function () use ($rou
     // search
     $router->get('multisearch', ['as' => 'multisearch', 'uses' => 'ApiController@multisearch']);
     $router->get('minerva/search', ['as' => 'minerva.search', 'uses' => 'ApiController@minervaSearch']);
+    $router->get('deemix/search', ['as' => 'deemix.search', 'uses' => 'ApiController@deemixSearch']);
 
     // artists
     $router->get('search/artists', ['as' => 'search.artists', 'uses' => 'ApiController@searchArtists']);

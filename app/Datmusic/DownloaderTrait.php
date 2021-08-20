@@ -82,6 +82,10 @@ trait DownloaderTrait
      */
     public function download(Request $request, string $key, string $id, bool $stream = false)
     {
+        if ($this->isDeemixId($id)) {
+            return $this->deemixDownload($request, $id, $stream);
+        }
+
         $isRedirect = $request->has('redirect');
         [$fileName, $subPath, $path] = $this->buildFilePathsForId($id);
 
@@ -376,7 +380,7 @@ trait DownloaderTrait
      *
      * @param array $audioItem audio item info
      */
-    private function onDownloadCallback(array $audioItem)
+    public function onDownloadCallback(array $audioItem)
     {
         if (config('app.downloading.post_process.enabled')) {
             dispatch(new PostProcessAudioJob($audioItem))->onQueue('post_process');

@@ -17,6 +17,7 @@ function buildHttpProxyString()
 
     return $proxy;
 }
+
 /**
  * @return GuzzleHttp\Client Guzzle http client
  */
@@ -31,6 +32,14 @@ function httpClient()
 function vkClient()
 {
     return app('vkClient')->getClient();
+}
+
+/**
+ * @return GuzzleHttp\Client Guzzle deemix http client
+ */
+function deemixClient()
+{
+    return app('deemixClient')->getClient();
 }
 
 /**

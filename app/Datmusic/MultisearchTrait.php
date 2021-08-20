@@ -53,6 +53,9 @@ trait MultisearchTrait
             case self::$SEARCH_BACKEND_MINERVA:
                 $response = $this->minervaSearch($request);
                 break;
+            case self::$SEARCH_BACKEND_DEEMIX:
+                $response = $this->deemixSearch($request);
+                break;
             default:
                 abort('Unknown search backend type', 400);
         }
