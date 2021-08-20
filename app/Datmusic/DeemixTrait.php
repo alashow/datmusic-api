@@ -37,6 +37,10 @@ trait DeemixTrait
         $pageBy = 50;
         $offset = getPage($request) * $pageBy;
 
+        if (empty($query)) {
+            $query = randomQuery();
+        }
+
         $cacheKey = $this->getCacheKey($request);
         $cachedResult = $this->getCache($cacheKey, $backendName);
         $isCachedQuery = ! is_null($cachedResult);
