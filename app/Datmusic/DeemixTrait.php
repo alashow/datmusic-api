@@ -125,7 +125,7 @@ trait DeemixTrait
         return array_map(function ($item) {
             return [
                 'id'               => self::$DEEMIX_ID_PREFIX.$item->id,
-                'source_id'        => $item->id,
+                'source_id'        => strval($item->id),
                 'title'            => $item->title,
                 'artist'           => $item->artist->name,
                 'album'            => $item->album->title,
