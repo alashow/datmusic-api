@@ -81,12 +81,12 @@ class MinervaMeilisearchIndexCommand extends Command
         $index = $client->index(config('app.minerva.meilisearch.index'));
         $index->addDocuments($audios);
 
-        $lastItem = $audios[array_key_last($audios)];
-        if (array_key_exists('created_at', $lastItem)) {
-            $lastDate = $lastItem['created_at'];
-            if ($lastDate != null) {
-                Cache::forever(self::$LAST_INDEXED_AUDIO_CREATED_AT, $lastDate);
-            }
+        $previousIndexedDate = Cache::get(self::$LAST_INDEXED_AUDIO_CREATED_AT);
+        $lastCreatedAt = collect($audios)->pluck('created_at')->sortDesc()->last();
+        if ($lastCreatedAt > $previousIndexedDate) {
+            Cache::forever(self::$LAST_INDEXED_AUDIO_CREATED_AT, $lastCreatedAt);
+        } else {
+            $this->error('Last createdAt is less than previous indexed date. Audios: '.json_encode($audios));
         }
     }
 
