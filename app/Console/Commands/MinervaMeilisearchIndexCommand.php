@@ -76,6 +76,7 @@ class MinervaMeilisearchIndexCommand extends Command
             return $this->formatAudioForMeilisearch($audio);
         }, $audios);
 
+        $now = Carbon::now()->timestamp;
         $this->info("Batch uploading {$this->batchCount} items to meilisearch, uploaded = {$this->counter}");
         $client = new Client(config('app.minerva.meilisearch.url'), config('app.minerva.meilisearch.key'));
         $index = $client->index(config('app.minerva.meilisearch.index'));
@@ -86,7 +87,8 @@ class MinervaMeilisearchIndexCommand extends Command
         if ($lastCreatedAt > $previousIndexedDate) {
             Cache::forever(self::$LAST_INDEXED_AUDIO_CREATED_AT, $lastCreatedAt);
         } else {
-            $this->error('Last createdAt is less than previous indexed date. Audios: '.json_encode($audios));
+            $this->error('Last createdAt is less than previous indexed date. Setting it to now');
+            Cache::forever(self::$LAST_INDEXED_AUDIO_CREATED_AT, $now);
         }
     }
 
