@@ -11,6 +11,8 @@ use MeiliSearch\Client;
 
 trait MinervaSearchTrait
 {
+    public static $DEEMIX_ID_PREFIX_MINERVA_REPLACEMENT = 'dz-';
+
     public function minervaSearch(Request $request)
     {
         if (! config('app.minerva.meilisearch.enabled')) {
@@ -32,6 +34,12 @@ trait MinervaSearchTrait
         logger()->searchMinervaMeilisearch($query, $offset, $tookMs.'ms', 'count='.$hitsCount);
 
         $backendName = self::$SEARCH_BACKEND_MINERVA;
+
+        $hits = array_map(function ($item) {
+            $item['id'] = str_replace(self::$DEEMIX_ID_PREFIX_MINERVA_REPLACEMENT, self::$DEEMIX_ID_PREFIX, $item['id']);
+
+            return $item;
+        }, $hits);
 
         return okResponse($this->cleanAudioList($request, $backendName, $hits, false), $backendName);
     }

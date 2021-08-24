@@ -6,6 +6,8 @@
 
 namespace App\Console\Commands;
 
+use App\Datmusic\DeemixTrait;
+use App\Datmusic\MinervaSearchTrait;
 use App\Models\Audio;
 use Cache;
 use Carbon\Carbon;
@@ -14,6 +16,8 @@ use MeiliSearch\Client;
 
 class MinervaMeilisearchIndexCommand extends Command
 {
+    use MinervaSearchTrait, DeemixTrait;
+
     private static $LAST_INDEXED_AUDIO_CREATED_AT = 'minerva_last_indexed_audio';
     protected $signature = 'datmusic:minerva-meilisearch-index
                             {--reindex : Whether to index the whole database vs only the new items}';
@@ -94,6 +98,7 @@ class MinervaMeilisearchIndexCommand extends Command
 
     private function formatAudioForMeilisearch(array $audio)
     {
+        $audio['id'] = str_replace(self::$DEEMIX_ID_PREFIX, self::$DEEMIX_ID_PREFIX_MINERVA_REPLACEMENT, $audio['id']);
         if (array_key_exists('duration', $audio)) {
             $audio['duration'] = intval($audio['duration']);
         }
