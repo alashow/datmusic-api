@@ -29,8 +29,8 @@ class MinervaConfigureMeilisearchCommand extends Command
         $index = $client->index(config('app.minerva.meilisearch.index'));
         $index->updateRankingRules([
             'words', 'typo', 'proximity', 'attribute', 'exactness', // default
-            'desc(date)',
             'desc(created_at)',
+            'desc(date)',
             'asc(album)',
         ]);
 
