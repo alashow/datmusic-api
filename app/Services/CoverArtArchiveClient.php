@@ -53,7 +53,6 @@ class CoverArtArchiveClient
      *
      * @param $artist
      * @param $title
-     *
      * @return bool|string release id if succeeds, false when fails.
      */
     private function getReleaseId($artist, $title)
@@ -81,9 +80,8 @@ class CoverArtArchiveClient
     }
 
     /**
-     * @param string $artist
-     * @param string $title
-     *
+     * @param  string  $artist
+     * @param  string  $title
      * @return array|false size mapped images or false if fails
      */
     public function findCover(string $artist, string $title)

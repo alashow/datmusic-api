@@ -75,7 +75,6 @@ function logger()
  * @param $force_lowercase - Force the string to lowercase?
  * @param $anal            - If set to *true*, will remove all non-alphanumeric characters.
  * @param $trunc           - Number of characters to truncate to (default 100, 0 to disable).
- *
  * @return string sanitized string
  */
 function sanitize($string, $force_lowercase = true, $anal = false, $trunc = 100)
@@ -97,7 +96,6 @@ function sanitize($string, $force_lowercase = true, $anal = false, $trunc = 100)
  * Build full url. Prepends APP_URL to given string.
  *
  * @param $path
- *
  * @return string
  */
 function fullUrl($path)
@@ -117,8 +115,7 @@ function randomQuery()
 }
 
 /**
- * @param ResponseInterface $response
- *
+ * @param  ResponseInterface  $response
  * @return stdClass
  */
 function as_json($response)
@@ -127,11 +124,10 @@ function as_json($response)
 }
 
 /**
- * @param mixed|null  $data
- * @param string|null $dataFieldName
- * @param int         $status
- * @param array       $headers
- *
+ * @param  mixed|null  $data
+ * @param  string|null  $dataFieldName
+ * @param  int  $status
+ * @param  array  $headers
  * @return JsonResponse
  */
 function okResponse($data = null, string $dataFieldName = null, int $status = 200, array $headers = [])
@@ -140,8 +136,7 @@ function okResponse($data = null, string $dataFieldName = null, int $status = 20
 }
 
 /**
- * @param string $message
- *
+ * @param  string  $message
  * @return JsonResponse
  */
 function notFoundResponse(string $message = 'Not found')
@@ -150,10 +145,9 @@ function notFoundResponse(string $message = 'Not found')
 }
 
 /**
- * @param array|null $error
- * @param int        $status
- * @param array      $headers
- *
+ * @param  array|null  $error
+ * @param  int  $status
+ * @param  array  $headers
  * @return JsonResponse
  */
 function errorResponse(array $error = null, int $status = 200, array $headers = [])
@@ -162,14 +156,14 @@ function errorResponse(array $error = null, int $status = 200, array $headers = 
 }
 
 /**
- * @param string           $status
- * @param array|mixed|null $data
- * @param array|null       $error
- * @param int              $httpStatus
- * @param array            $headers
- * @param string|null      $dataFieldName
- *
+ * @param  string  $status
+ * @param  array|mixed|null  $data
+ * @param  array|null  $error
+ * @param  int  $httpStatus
+ * @param  array  $headers
+ * @param  string|null  $dataFieldName
  * @return JsonResponse
+ *
  * @throws Exception if $data is not array and dataFieldName is null
  */
 function json_response(string $status = 'ok', $data = null, array $error = null, int $httpStatus = 200, array $headers = [], string $dataFieldName = null)
@@ -196,9 +190,8 @@ function json_response(string $status = 'ok', $data = null, array $error = null,
 /**
  * Get param from the given request for given possible keys.
  *
- * @param Request $request
- * @param mixed   ...$keys
- *
+ * @param  Request  $request
+ * @param  mixed  ...$keys
  * @return mixed|null
  */
 function getPossibleKeys(Request $request, ...$keys)
@@ -227,8 +220,7 @@ function getRandomWeightedElement(array $weightedValues)
 /**
  * Get query param from given request.
  *
- * @param Request $request
- *
+ * @param  Request  $request
  * @return string
  */
 function getQuery(Request $request)
@@ -239,8 +231,7 @@ function getQuery(Request $request)
 /**
  * Get page param from given request.
  *
- * @param Request $request
- *
+ * @param  Request  $request
  * @return int
  */
 function getPage(Request $request)
@@ -256,9 +247,9 @@ function subPathForHash($hash)
 /**
  * Logs captcha errors for later analysis.
  *
- * @param Request  $request
- * @param array    $captcha captcha info
- * @param stdClass $error
+ * @param  Request  $request
+ * @param  array  $captcha  captcha info
+ * @param  stdClass  $error
  */
 function reportCaptchaLock(Request $request, array $captcha, stdClass $error)
 {
@@ -269,7 +260,7 @@ function reportCaptchaLock(Request $request, array $captcha, stdClass $error)
 /**
  * Logs captcha responses for later analysis.
  *
- * @param Request $request
+ * @param  Request  $request
  */
 function reportCaptchaLockRelease(Request $request)
 {

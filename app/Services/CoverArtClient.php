@@ -40,8 +40,7 @@ class CoverArtClient
      * Get cover image URL safely.
      * Returns full URL of cover image if succeeds, false when fails.
      *
-     * @param array $audio audio item containing artist and title
-     *
+     * @param  array  $audio  audio item containing artist and title
      * @return bool|string
      */
     public function getCover(array $audio, $size)
@@ -69,8 +68,7 @@ class CoverArtClient
      * Get cover image file safely.
      * Returns path to cover image file if succeeds, false when fails.
      *
-     * @param array $audio audio item containing artist and title
-     *
+     * @param  array  $audio  audio item containing artist and title
      * @return bool|string
      */
     public function getCoverFile(array $audio)
@@ -108,9 +106,8 @@ class CoverArtClient
     /**
      * Get artists image.
      *
-     * @param string $artist
-     * @param string $size
-     *
+     * @param  string  $artist
+     * @param  string  $size
      * @return false|string
      */
     public function getArtistImage(string $artist, string $size)
@@ -133,11 +130,10 @@ class CoverArtClient
     }
 
     /**
-     * @param string  $cacheKey
-     * @param Closure $retrieve
-     * @param string  $size
-     * @param int     $failureExpirationDays
-     *
+     * @param  string  $cacheKey
+     * @param  Closure  $retrieve
+     * @param  string  $size
+     * @param  int  $failureExpirationDays
      * @return string|false url or false if failed (both might be cached values)
      */
     private function fetchCover(string $cacheKey, Closure $retrieve, string $size, int $failureExpirationDays = 3)

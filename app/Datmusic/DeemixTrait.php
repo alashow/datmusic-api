@@ -24,8 +24,7 @@ trait DeemixTrait
     }
 
     /**
-     * @param Request $request
-     *
+     * @param  Request  $request
      * @return \Illuminate\Http\JsonResponse
      */
     public function deemixSearch(Request $request)
@@ -70,10 +69,9 @@ trait DeemixTrait
     }
 
     /**
-     * @param Request $request
-     * @param string  $id
-     * @param bool    $stream
-     *
+     * @param  Request  $request
+     * @param  string  $id
+     * @param  bool  $stream
      * @return RedirectResponse
      */
     public function deemixDownload(Request $request, string $id, bool $stream = false)

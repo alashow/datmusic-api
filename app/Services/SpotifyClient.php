@@ -32,6 +32,7 @@ class SpotifyClient
 
     /**
      * Get expiring cached access token.
+     *
      * @return string
      */
     private function getAccessToken()
@@ -64,8 +65,7 @@ class SpotifyClient
     }
 
     /**
-     * @param string $artist artist name
-     *
+     * @param  string  $artist  artist name
      * @return false|array artist or false if fails
      */
     public function findArtist(string $artist)
@@ -89,9 +89,8 @@ class SpotifyClient
     }
 
     /**
-     * @param string $artist artist name
-     * @param string $title song title
-     *
+     * @param  string  $artist  artist name
+     * @param  string  $title  song title
      * @return array|false size mapped images or false if fails
      */
     public function findCover(string $artist, string $title)
@@ -108,9 +107,8 @@ class SpotifyClient
     }
 
     /**
-     * @param string $artist
-     * @param string $size
-     *
+     * @param  string  $artist
+     * @param  string  $size
      * @return array|false size mapped images or false if fails
      */
     public function findArtistImage(string $artist)

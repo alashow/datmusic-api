@@ -16,10 +16,9 @@ class CoverController extends ApiController
     /**
      * Returns cover image url or 404 if fails.
      *
-     * @param string      $key
-     * @param string      $id
-     * @param string|null $size
-     *
+     * @param  string  $key
+     * @param  string  $id
+     * @param  string|null  $size
      * @return Redirector|JsonResponse
      */
     public function cover(string $key, string $id, string $size = null)
@@ -40,9 +39,8 @@ class CoverController extends ApiController
     /**
      * Returns image of the artist or 404 if fails to find it.
      *
-     * @param string      $artist
-     * @param string|null $size
-     *
+     * @param  string  $artist
+     * @param  string|null  $size
      * @return JsonResponse|RedirectResponse
      */
     public function artistImage(string $artist, string $size = null)

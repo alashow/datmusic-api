@@ -16,8 +16,7 @@ trait ParserTrait
     /**
      * Maps response to audio items.
      *
-     * @param array $audios
-     *
+     * @param  array  $audios
      * @return array
      */
     public function parseAudioItems(array $audios)
@@ -105,8 +104,7 @@ trait ParserTrait
      * Tries to get mp3 url bounded to this machines IP when proxy enabled, to avoid downloading mp3 via proxy.
      * Uses VK's bug/hack which leaks new mp3 url for requester's IP.
      *
-     * @param array $item audio item
-     *
+     * @param  array  $item  audio item
      * @return bool has been optimized or not
      */
     public function optimizeMp3Url(&$item)

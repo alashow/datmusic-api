@@ -21,8 +21,7 @@ trait CachesTrait
     /**
      * Get current request cache key.
      *
-     * @param Request $request
-     *
+     * @param  Request  $request
      * @return string
      */
     private function getCacheKey(Request $request)
@@ -45,22 +44,21 @@ trait CachesTrait
     /**
      * Save search result in cache.
      *
-     * @param string $cacheKey cache key
-     * @param mixed  $result   result data
-     * @param string $type     cache type. from: blank for audio search type, albums, artists
+     * @param  string  $cacheKey  cache key
+     * @param  mixed  $result  result data
+     * @param  string  $type  cache type. from: blank for audio search type, albums, artists
      */
     private function cacheResult(string $cacheKey, $result, string $type = '')
     {
         if (! blank($type)) {
             $type = "_$type";
         } // prefix with underscore if type is specified
-        Cache::put("query$type.".$cacheKey, $result, config("app.cache.duration$type") ?: config("app.cache.duration"));
+        Cache::put("query$type.".$cacheKey, $result, config("app.cache.duration$type") ?: config('app.cache.duration'));
     }
 
     /**
-     * @param string $cacheKey
-     * @param string $type cache type. from: blank for audio search type, albums, artists
-     *
+     * @param  string  $cacheKey
+     * @param  string  $type  cache type. from: blank for audio search type, albums, artists
      * @return mixed|null audio array or null if not cached
      */
     private function getCache(string $cacheKey, string $type = '')
@@ -75,11 +73,11 @@ trait CachesTrait
     /**
      * Get audio item from cache or abort with 404 if not found.
      *
-     * @param string $key
-     * @param string $id
-     * @param bool   $abort boolean aborts with 404 if not found, otherwise returns null
-     *
+     * @param  string  $key
+     * @param  string  $id
+     * @param  bool  $abort  boolean aborts with 404 if not found, otherwise returns null
      * @return array|null
+     *
      * @throws HttpException
      */
     public function getAudio(string $key, string $id, bool $abort = true, bool $fetchUrl = false)
@@ -134,8 +132,7 @@ trait CachesTrait
     }
 
     /**
-     * @param array $audio
-     *
+     * @param  array  $audio
      * @return string
      */
     public function getAudioUrl(array $audio)
@@ -154,7 +151,6 @@ trait CachesTrait
      * @param $id         string audio id
      * @param $item       array audio item
      * @param $expire     bool whether to save mp3 url
-     *
      * @return bool
      */
     public function cacheAudioItem(string $id, array $item, bool $expire = false)
@@ -175,7 +171,6 @@ trait CachesTrait
      * Get audio item from cache.
      *
      * @param $id string audio id
-     *
      * @return array|null
      */
     public function getCachedAudio(string $id)

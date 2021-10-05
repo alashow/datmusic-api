@@ -33,7 +33,7 @@ class Audio extends Model
     /**
      * Bulk insert given audio items.
      *
-     * @param array $items
+     * @param  array  $items
      */
     public static function insertAudioItems(array $items)
     {

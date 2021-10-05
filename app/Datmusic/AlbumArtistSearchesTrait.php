@@ -121,9 +121,8 @@ trait AlbumArtistSearchesTrait
     /**
      * Search and cache mechanism for albums and artists.
      *
-     * @param Request $request
-     * @param string  $type
-     *
+     * @param  Request  $request
+     * @param  string  $type
      * @return JsonResponse|array
      */
     private function searchItems(Request $request, string $type)
@@ -172,11 +171,11 @@ trait AlbumArtistSearchesTrait
     /**
      * Search and cache mechanism for albums and artists.
      *
-     * @param Request $request
-     * @param string  $artistId
-     * @param string  $type
-     *
+     * @param  Request  $request
+     * @param  string  $artistId
+     * @param  string  $type
      * @return JsonResponse|array
+     *
      * @throws \GuzzleHttp\Exception\GuzzleException
      */
     private function getArtistItems(Request $request, string $artistId, string $type)
@@ -230,10 +229,10 @@ trait AlbumArtistSearchesTrait
     /**
      * Search and cache mechanism for albums and artists.
      *
-     * @param Request $request
-     * @param array   ...$audios
-     *
+     * @param  Request  $request
+     * @param  array  ...$audios
      * @return JsonResponse|array
+     *
      * @throws \GuzzleHttp\Exception\GuzzleException
      */
     private function getAudios(Request $request, ...$audios)
@@ -262,9 +261,8 @@ trait AlbumArtistSearchesTrait
     }
 
     /**
-     * @param Request $request
-     * @param string  $query
-     *
+     * @param  Request  $request
+     * @param  string  $query
      * @return JsonResponse|bool
      */
     public function audiosByArtistName(Request $request, string $query)
@@ -282,9 +280,8 @@ trait AlbumArtistSearchesTrait
     }
 
     /**
-     * @param Request $request
-     * @param string  $query
-     *
+     * @param  Request  $request
+     * @param  string  $query
      * @return JsonResponse|bool
      */
     public function audiosByAlbumName(Request $request, string $query)
@@ -307,10 +304,9 @@ trait AlbumArtistSearchesTrait
     }
 
     /**
-     * @param Request $request
-     * @param string  $query
-     * @param int     $limit
-     *
+     * @param  Request  $request
+     * @param  string  $query
+     * @param  int  $limit
      * @return JsonResponse|bool
      */
     public function audiosByAlbumNameMultiple(Request $request, string $query, int $limit = 10)

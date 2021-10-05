@@ -29,7 +29,6 @@ trait DownloaderTrait
      *
      * @param $key
      * @param $id
-     *
      * @return int
      */
     public function bytes(string $key, string $id)
@@ -59,10 +58,9 @@ trait DownloaderTrait
     /**
      * Just like download but with stream enabled.
      *
-     * @param Request $request
-     * @param string  $key
-     * @param string  $id
-     *
+     * @param  Request  $request
+     * @param  string  $key
+     * @param  string  $id
      * @return RedirectResponse
      */
     public function stream(Request $request, string $key, string $id)
@@ -73,11 +71,10 @@ trait DownloaderTrait
     /**
      * Serves given audio item or aborts with 404 if not found.
      *
-     * @param Request $request
-     * @param string  $key
-     * @param string  $id
-     * @param bool    $stream
-     *
+     * @param  Request  $request
+     * @param  string  $key
+     * @param  string  $id
+     * @param  bool  $stream
      * @return RedirectResponse
      */
     public function download(Request $request, string $key, string $id, bool $stream = false)
@@ -128,7 +125,6 @@ trait DownloaderTrait
      * @param $stream   boolean  is stream
      * @param $cache    boolean is cache
      * @param $redirect boolean is redirect
-     *
      * @return RedirectResponse
      */
     private function downloadLocal(string $path, string $subPath, string $fileName, string $key, string $id, string $name, bool $stream, bool $cache, bool $redirect)
@@ -153,7 +149,6 @@ trait DownloaderTrait
      *
      * @param $path string path of the file
      * @param $name string name of the downloading file
-     *
      * @return RedirectResponse|void
      */
     private function downloadResponse(string $path, string $name)
@@ -174,8 +169,7 @@ trait DownloaderTrait
     /**
      * Formats name, appends mp3, ascii-fy and remove bad characters.
      *
-     * @param array $audio
-     *
+     * @param  array  $audio
      * @return string formatted name
      */
     private function getFormattedName(array $audio)
@@ -190,8 +184,7 @@ trait DownloaderTrait
     /**
      * Build file name and full path for given audio id.
      *
-     * @param string $id audio id
-     *
+     * @param  string  $id  audio id
      * @return array 0 - file name, 1 - sub path, 2 - full local path
      */
     private function buildFilePathsForId(string $id)
@@ -213,11 +206,10 @@ trait DownloaderTrait
     /**
      * Download given file url to given path.
      *
-     * @param string $url
-     * @param string $path
-     * @param bool   $proxy
-     * @param array  $audioItem
-     *
+     * @param  string  $url
+     * @param  string  $path
+     * @param  bool  $proxy
+     * @param  array  $audioItem
      * @return bool true if succeeds
      */
     private function downloadAudio(string $url, string $path, bool $proxy = true, array $audioItem = [])
@@ -272,11 +264,10 @@ trait DownloaderTrait
     /**
      * Download audio using ffmpeg.
      *
-     * @param string $url
-     * @param string $path
-     * @param bool   $proxy
-     * @param array  $audioItem
-     *
+     * @param  string  $url
+     * @param  string  $path
+     * @param  bool  $proxy
+     * @param  array  $audioItem
      * @return bool
      */
     private function downloadAudioFfmpeg(string $url, string $path, bool $proxy = true, array $audioItem = [])
@@ -304,9 +295,8 @@ trait DownloaderTrait
     /**
      * Verify whether the given file is an audio file.
      *
-     * @param string $path
-     * @param array  $audioItem
-     *
+     * @param  string  $path
+     * @param  array  $audioItem
      * @return bool
      */
     private function verifyDownloadedFile(string $path, array $audioItem)
@@ -378,7 +368,7 @@ trait DownloaderTrait
     /**
      * Dispatch post process audio job if enabled.
      *
-     * @param array $audioItem audio item info
+     * @param  array  $audioItem  audio item info
      */
     public function onDownloadCallback(array $audioItem)
     {

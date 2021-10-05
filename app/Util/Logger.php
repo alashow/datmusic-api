@@ -25,9 +25,8 @@ class Logger
     /**
      * Writes log to file with given type and arguments array.
      *
-     * @param       $type
-     * @param array $args
-     *
+     * @param  $type
+     * @param  array  $args
      * @return int|bool bytes written count or false on failure
      */
     public function writeLog($type, array $args = ['null'])

@@ -45,8 +45,7 @@ trait SearchesTrait
     /**
      * Searches audios from request query, with caching.
      *
-     * @param Request $request
-     *
+     * @param  Request  $request
      * @return JsonResponse|array
      */
     public function search(Request $request)
@@ -90,10 +89,9 @@ trait SearchesTrait
     /**
      * Request search page.
      *
-     * @param Request $request
-     * @param string  $query
-     * @param int     $offset
-     *
+     * @param  Request  $request
+     * @param  string  $query
+     * @param  int  $offset
      * @return stdClass
      */
     private function getSearchResults(Request $request, string $query, int $offset)
@@ -119,8 +117,7 @@ trait SearchesTrait
     /**
      * Get captcha inputs from given request.
      *
-     * @param Request $request
-     *
+     * @param  Request  $request
      * @return array extra params array to send to solve captcha if there's a key in request or empty array
      */
     protected function getCaptchaParams(Request $request)
@@ -139,9 +136,8 @@ trait SearchesTrait
     }
 
     /**
-     * @param Request  $request
-     * @param stdClass $response
-     *
+     * @param  Request  $request
+     * @param  stdClass  $response
      * @return bool|JsonResponse
      */
     protected function checkSearchResponseError(Request $request, stdClass $response)
@@ -183,11 +179,10 @@ trait SearchesTrait
     /**
      * Cleanup data for response.
      *
-     * @param Request $request
-     * @param string  $cacheKey
-     * @param array   $data
-     * @param bool    $sort
-     *
+     * @param  Request  $request
+     * @param  string  $cacheKey
+     * @param  array  $data
+     * @param  bool  $sort
      * @return array
      */
     private function cleanAudioList(Request $request, string $cacheKey, array $data, bool $sort = true)
@@ -262,8 +257,7 @@ trait SearchesTrait
     }
 
     /**
-     * @param array $strings items need to be tested
-     *
+     * @param  array  $strings  items need to be tested
      * @return bool true if any of inputs is bad match
      */
     private function isBadMatch(array $strings)
@@ -285,8 +279,7 @@ trait SearchesTrait
     /**
      * Replace bad words with empty string.
      *
-     * @param string $text
-     *
+     * @param  string  $text
      * @return string sanitized string
      */
     private function cleanBadWords(string $text)
@@ -297,10 +290,9 @@ trait SearchesTrait
     /**
      * Standard audio response with optional caching for each audio item.
      *
-     * @param Request $request
-     * @param array   $data
-     * @param bool    $cache
-     *
+     * @param  Request  $request
+     * @param  array  $data
+     * @param  bool  $cache
      * @return JsonResponse
      */
     protected function audiosResponse(Request $request, array $data, bool $cache = true)
@@ -318,7 +310,6 @@ trait SearchesTrait
      * Checks for errors in given responses.
      *
      * @param ...$responses
-     *
      * @return false|JsonResponse first found error or false
      */
     public function checkResponseErrors(...$responses)
@@ -339,7 +330,6 @@ trait SearchesTrait
      *
      * @param $response
      * @param $key
-     *
      * @return false|array
      */
     public function pluckItems($response, $key)
