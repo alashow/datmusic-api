@@ -54,7 +54,7 @@ trait CachesTrait
         if (! blank($type)) {
             $type = "_$type";
         } // prefix with underscore if type is specified
-        Cache::put("query$type.".$cacheKey, $result, config("app.cache.duration$type"));
+        Cache::put("query$type.".$cacheKey, $result, config("app.cache.duration$type") ?: config("app.cache.duration"));
     }
 
     /**
