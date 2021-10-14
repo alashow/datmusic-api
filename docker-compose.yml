@@ -2,7 +2,7 @@ version: '3.4'
 services:
   postgres:
     container_name: datmusic-postgres
-    image: postgres
+    image: postgres:13-alpine
     volumes:
       - postgres-data:/var/lib/postgresql/data
     ports:
