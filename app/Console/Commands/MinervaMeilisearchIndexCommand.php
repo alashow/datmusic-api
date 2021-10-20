@@ -87,7 +87,7 @@ class MinervaMeilisearchIndexCommand extends Command
         $index->addDocuments($audios);
 
         $previousIndexedDate = Cache::get(self::$LAST_INDEXED_AUDIO_CREATED_AT);
-        $lastCreatedAt = collect($audios)->pluck('created_at')->sortDesc()->last();
+        $lastCreatedAt = collect($audios)->pluck('created_at')->sortDesc()->first();
         if ($lastCreatedAt > $previousIndexedDate) {
             Cache::forever(self::$LAST_INDEXED_AUDIO_CREATED_AT, $lastCreatedAt);
         } else {
