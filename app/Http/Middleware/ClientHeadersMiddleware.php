@@ -13,6 +13,7 @@ class ClientHeadersMiddleware
 {
     public static $HEADER_CLIENT_ID = 'X-Datmusic-Id';
     public static $HEADER_CLIENT_VERSION = 'X-Datmusic-Version';
+    public static $HEADER_CLIENT_MIN_LENGTH = 12;
 
     /**
      * Handle an incoming request.
@@ -24,12 +25,13 @@ class ClientHeadersMiddleware
     public function handle(Request $request, Closure $next)
     {
         if (config('app.client_logger.require_headers')) {
-            $hasHeaders = $request->hasHeader(self::$HEADER_CLIENT_ID) && $request->hasHeader(self::$HEADER_CLIENT_VERSION);
-            if (! $hasHeaders) {
+            $validClientId = strlen(self::getClientId($request)) >= self::$HEADER_CLIENT_MIN_LENGTH;
+            $validClientVersion = strlen(self::getClientVersion($request)) >= self::$HEADER_CLIENT_MIN_LENGTH;
+            $validClientInfo = $validClientId && $validClientVersion;
+            if (! $validClientInfo) {
                 return errorResponse([
-                    //so far we only have one reason to ban, so no need to check the reason
                     'id'      => 'clientHeaders',
-                    'message' => 'Client headers were not provided',
+                    'message' => 'Valid client headers were not provided',
                 ], 400);
             }
         }
