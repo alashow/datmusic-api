@@ -6,6 +6,7 @@
 
 namespace App\Datmusic;
 
+use App\Models\Audio;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use stdClass;
@@ -238,6 +239,13 @@ trait SearchesTrait
         if (! config('app.downloading.hls.enabled')) {
             $badMatches = array_filter(array_map(function ($item) {
                 if (array_key_exists('is_hls', $item) && $item['is_hls']) {
+                    // don't mark as a bad match if it's already in minerva database
+                    if (config('app.minerva.database.enabled')) {
+                        if (Audio::find($item['id']) != null) {
+                            return $item;
+                        }
+                    }
+
                     return null;
                 } else {
                     return $item;

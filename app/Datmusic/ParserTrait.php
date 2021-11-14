@@ -53,7 +53,7 @@ trait ParserTrait
                 }
             }
 
-            if (!Str::endsWith($mp3, '.mp3')) {
+            if (! Str::endsWith($mp3, '.mp3')) {
                 $isHls = true;
             }
 
