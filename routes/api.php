@@ -15,17 +15,24 @@ $router->group(['middleware' => 'require_client_headers'], function () use ($rou
     // search
     $router->get('multisearch', ['as' => 'multisearch', 'uses' => 'ApiController@multisearch']);
     $router->get('minerva/search', ['as' => 'minerva.search', 'uses' => 'ApiController@minervaSearch']);
-    $router->get('deemix/search', ['as' => 'deemix.search', 'uses' => 'ApiController@deemixSearch']);
+
+    $router->get('deemix/search', ['as' => 'deemix.search', 'uses' => 'ApiController@deemixSearchAudios']);
+    $router->get('deemix/search/flacs', ['as' => 'deemix.search', 'uses' => 'ApiController@deemixSearchFlacs']);
+    $router->get('deemix/search/artists', ['as' => 'deemix.search.artists', 'uses' => 'ApiController@deemixSearchArtists']);
+    $router->get('deemix/search/albums', ['as' => 'deemix.search.albums', 'uses' => 'ApiController@deemixSearchAlbums']);
+
+    $router->get('deemix/artists/{id}', ['as' => 'deemix.artist', 'uses' => 'ApiController@deemixArtist']);
+    $router->get('deemix/albums/{id}', ['as' => 'deemix.album', 'uses' => 'ApiController@deemixAlbum']);
 
     // artists
-    $router->get('search/artists', ['as' => 'search.artists', 'uses' => 'ApiController@searchArtists']);
-    $router->get('artists/{id}', ['as' => 'artist', 'uses' => 'ApiController@getArtist']);
-    $router->get('artists/{id}/audios', ['as' => 'artist.audios', 'uses' => 'ApiController@getArtistAudios']);
-    $router->get('artists/{id}/albums', ['as' => 'artist.albums', 'uses' => 'ApiController@getArtistAlbums']);
+    $router->get('search/artists', ['as' => 'search.artists', 'uses' => 'ApiController@deemixSearchArtists']);
+    $router->get('artists/{id}', ['as' => 'artist', 'uses' => 'ApiController@deemixArtist']);
+    $router->get('artists/{id}/audios', ['as' => 'artist.audios', 'uses' => 'ApiController@deemixArtistAudios']);
+    $router->get('artists/{id}/albums', ['as' => 'artist.albums', 'uses' => 'ApiController@deemixArtistAlbums']);
 
     //albums
-    $router->get('search/albums', ['as' => 'search.albums', 'uses' => 'ApiController@searchAlbums']);
-    $router->get('albums/{id}', ['as' => 'album', 'uses' => 'ApiController@getAlbumById']);
+    $router->get('search/albums', ['as' => 'search.albums', 'uses' => 'ApiController@deemixSearchAlbums']);
+    $router->get('albums/{id}', ['as' => 'album', 'uses' => 'ApiController@deemixAlbum']);
 
     // covers
     $router->get('cover/artists/{artist}[/{size}]', ['as' => 'artist.cover', 'uses' => 'CoverController@artistImage']);

@@ -8,6 +8,7 @@ namespace App\Datmusic;
 
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use PHPHtmlParser\Selector;
 
 trait MultisearchTrait
 {
@@ -42,19 +43,19 @@ trait MultisearchTrait
         $response = null;
         switch ($type) {
             case self::$SEARCH_BACKEND_AUDIOS:
-                $response = $this->search($request);
+            case self::$SEARCH_BACKEND_DEEMIX_FLACS:
+                $response = $this->deemixSearch($request, $type);
                 break;
             case self::$SEARCH_BACKEND_ALBUMS:
-                $response = $this->searchAlbums($request);
+            case self::$SEARCH_BACKEND_DEEMIX_ALBUMS:
+                $response = $this->deemixSearchAlbums($request);
                 break;
             case self::$SEARCH_BACKEND_ARTISTS:
-                $response = $this->searchArtists($request);
+            case self::$SEARCH_BACKEND_DEEMIX_ARTISTS:
+                $response = $this->deemixSearchArtists($request);
                 break;
             case self::$SEARCH_BACKEND_MINERVA:
                 $response = $this->minervaSearch($request);
-                break;
-            case self::$SEARCH_BACKEND_DEEMIX:
-                $response = $this->deemixSearch($request);
                 break;
             default:
                 abort('Unknown search backend type', 400);
@@ -63,11 +64,7 @@ trait MultisearchTrait
         if ($error) {
             return $error;
         }
-        $results = $response;
-        if ($type != self::$SEARCH_BACKEND_AUDIOS) {
-            $results = $this->pluckItems($response, $type);
-        }
 
-        return [$type => $results];
+        return [$type => $this->pluckItems($response, $type)];
     }
 }

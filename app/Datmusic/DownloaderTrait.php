@@ -80,7 +80,7 @@ trait DownloaderTrait
     public function download(Request $request, string $key, string $id, bool $stream = false)
     {
         if ($this->isDeemixId($id)) {
-            return $this->deemixDownload($request, $id, $stream);
+            return $this->deemixDownload($request, $key, $id, $stream);
         }
 
         $isRedirect = $request->has('redirect');

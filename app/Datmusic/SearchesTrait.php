@@ -19,8 +19,11 @@ trait SearchesTrait
     public static $SEARCH_BACKEND_ALBUMS = 'albums';
     public static $SEARCH_BACKEND_ARTISTS = 'artists';
     public static $SEARCH_BACKEND_MINERVA = 'minerva';
-    public static $SEARCH_BACKEND_DEEMIX = 'flacs';
+    public static $SEARCH_BACKEND_DEEMIX_FLACS = 'flacs';
+    public static $SEARCH_BACKEND_DEEMIX_ARTISTS = 'artists';
+    public static $SEARCH_BACKEND_DEEMIX_ALBUMS = 'albums';
     public static $SEARCH_BACKEND_ARTIST = 'artist';
+    public static $SEARCH_BACKEND_ALBUM = 'audios';
     public static $SEARCH_BACKEND_TYPES = ['audios', 'albums', 'artists', 'minerva', 'flacs'];
 
     private $count = 200;

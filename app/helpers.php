@@ -281,6 +281,17 @@ if (! function_exists('get_file_type')) {
     }
 }
 
+if (! function_exists('safeProp')) {
+    function safeProp($object, $key)
+    {
+        if (property_exists($object, $key)) {
+            return $object->$key;
+        }
+
+        return null;
+    }
+}
+
 function isMimeTypeAudio($mimeType)
 {
     return in_array($mimeType, ['audio/mpeg', 'application/octet-stream']);
