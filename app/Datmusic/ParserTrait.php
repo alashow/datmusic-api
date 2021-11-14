@@ -53,6 +53,10 @@ trait ParserTrait
                 }
             }
 
+            if (!Str::endsWith($mp3, '.mp3')) {
+                $isHls = true;
+            }
+
             $hash = hash(config('app.hash.id'), $sourceId);
 
             $itemData = [
