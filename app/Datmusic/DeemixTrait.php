@@ -173,7 +173,7 @@ trait DeemixTrait
 
         if ($isCachedQuery) {
             logger()->getArtistItemsCache('album', $id, 'count='.count($cachedResult));
-            return okResponse($cachedResult, $backendName);
+            return okResponse($cachedResult);
         }
 
         try {
@@ -364,7 +364,7 @@ trait DeemixTrait
         $audios = property_exists($item, 'top') ? $this->cleanAudioList(app('request'), self::$SEARCH_BACKEND_AUDIOS, $this->mapDeemixSearchResults($item->top->data, self::$SEARCH_BACKEND_AUDIOS), false) : [];
         $albums = property_exists($item, 'albums') ? $this->mapDeemixSearchResults($item->albums->data, self::$SEARCH_BACKEND_DEEMIX_ALBUMS, $item) : [];
         return array_filter([
-            'id'          => $item->id,
+            'id'          => strval($item->id),
             'name'        => $item->name,
             'fans'        => safeProp($item, 'nb_fan'),
             'album_count' => safeProp($item, 'nb_album'),
@@ -420,13 +420,14 @@ trait DeemixTrait
             }
         }
         $audios = property_exists($item, 'tracks') ? $this->cleanAudioList(app('request'), self::$SEARCH_BACKEND_AUDIOS, $this->mapDeemixSearchResults($item->tracks->data, self::$SEARCH_BACKEND_AUDIOS, null, $item), false) : [];
+        $audiosCount = safeProp($item, 'nb_tracks', count($audios) ?: 10);
         return [
-            'id'           => $item->id,
+            'id'           => strval($item->id),
             'title'        => $item->title,
-            'is_explicit' => $item->explicit_lyrics,
+            'is_explicit'  => $item->explicit_lyrics,
             'type'         => $item->record_type,
             'genre_id'     => $item->genre_id,
-            'count'        => safeProp($item, 'nb_tracks'),
+            'count'        => $audiosCount,
             'year'         => $albumYear,
             'photo'        => [
                 'photo_1200' => $item->cover_xl,
@@ -435,6 +436,8 @@ trait DeemixTrait
             ],
             'main_artists' => [$mainArtist],
             'audios'       => $audios,
+            'owner_id'     => $mainArtist['id'],
+            'access_key'   => 'invalid',
         ];
     }
 }
