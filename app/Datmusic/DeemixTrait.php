@@ -275,18 +275,7 @@ trait DeemixTrait
      */
     private function mapDeemixSearchResults(array $data, string $backend, stdClass $artist = null, stdClass $album = null)
     {
-        // try to enrich album data with years if not provided
-        $albumsYears = [];
-        if ($backend == self::$SEARCH_BACKEND_ALBUMS || $backend == self::$SEARCH_BACKEND_DEEMIX_ALBUMS) {
-            if (! empty($data) && ! property_exists($data[0], 'release_date')) {
-                $vkAlbums = $this->searchAlbums(app('request'))->getData()->data->albums;
-                foreach ($vkAlbums as $album) {
-                    $albumsYears[md5($album->title.$album->main_artists[0]->name)] = $album->year;
-                }
-            }
-        }
-
-        return array_map(function ($item) use ($backend, $artist, $album, $albumsYears) {
+        return array_map(function ($item) use ($backend, $artist, $album) {
             switch ($backend) {
                 case self::$SEARCH_BACKEND_AUDIOS:
                 case self::$SEARCH_BACKEND_DEEMIX_FLACS:
@@ -296,7 +285,7 @@ trait DeemixTrait
                     return $this->mapDeemixArtist($item);
                 case self::$SEARCH_BACKEND_ALBUMS:
                 case self::$SEARCH_BACKEND_DEEMIX_ALBUMS:
-                    return $this->mapDeemixAlbum($item, $artist, $albumsYears);
+                    return $this->mapDeemixAlbum($item, $artist);
                 default:
                     throw new Exception("Unknown type: $backend");
             }
@@ -398,25 +387,18 @@ trait DeemixTrait
      *
      * @param  stdClass  $item
      * @param  stdClass|null  $artist
-     * @param  array  $albumYears
      * @return array
      *
      * @throws Exception
      */
-    private function mapDeemixAlbum(stdClass $item, stdClass $artist = null, array $albumYears = [])
+    private function mapDeemixAlbum(stdClass $item, stdClass $artist = null)
     {
         if ($artist != null) {
             unset($artist->top);
             unset($artist->albums);
         }
         $mainArtist = $this->mapDeemixArtist($artist ?: $item->artist);
-        $albumYear = Carbon::parse(safeProp($item, 'release_date'))->year;
-        if (! empty($albumYears)) {
-            $albumHash = md5($item->title.$mainArtist['name']);
-            if (array_key_exists($albumHash, $albumYears)) {
-                $albumYear = $albumYears[$albumHash];
-            }
-        }
+        $albumYear = property_exists($item, 'release_date') ? Carbon::parse($item->release_date)->year : 9999;
         $audios = property_exists($item, 'tracks') ? $this->cleanAudioList(app('request'), self::$SEARCH_BACKEND_AUDIOS, $this->mapDeemixSearchResults($item->tracks->data, self::$SEARCH_BACKEND_AUDIOS, null, $item), false) : [];
         $audiosCount = safeProp($item, 'nb_tracks', count($audios) ?: 10);
 
