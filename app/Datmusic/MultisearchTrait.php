@@ -8,7 +8,6 @@ namespace App\Datmusic;
 
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use PHPHtmlParser\Selector;
 
 trait MultisearchTrait
 {

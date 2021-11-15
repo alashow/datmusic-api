@@ -74,6 +74,7 @@ trait DeemixTrait
 
         if ($isCachedQuery) {
             logger()->searchByCache($backendName, $query, $offset, 'count='.count($cachedResult));
+
             return okResponse($isAudios ? $this->cleanAudioList($request, $backendName, $cachedResult) : $cachedResult, $backendName);
         }
 
@@ -105,10 +106,10 @@ trait DeemixTrait
     }
 
     /**
-     * @param Request $request
-     * @param string  $id
-     *
+     * @param  Request  $request
+     * @param  string  $id
      * @return JsonResponse
+     *
      * @throws Exception
      */
     public function deemixArtist(Request $request, string $id)
@@ -122,6 +123,7 @@ trait DeemixTrait
 
         if ($isCachedQuery) {
             logger()->getArtistItemsCache('artist', $id, 'count='.count($cachedResult));
+
             return okResponse($cachedResult, $backendName);
         }
 
@@ -137,7 +139,6 @@ trait DeemixTrait
         $this->cacheResult($cacheKey, $result, $backendName);
         logger()->getArtistItemsCache('artist', $id, 'count='.count($result));
 
-
         return okResponse($result, $backendName);
     }
 
@@ -145,6 +146,7 @@ trait DeemixTrait
     {
         $response = $this->deemixArtist($request, $id);
         $audios = $response->getData()->data->artist->audios;
+
         return okResponse($audios, self::$SEARCH_BACKEND_AUDIOS);
     }
 
@@ -152,14 +154,15 @@ trait DeemixTrait
     {
         $response = $this->deemixArtist($request, $id);
         $albums = $response->getData()->data->artist->albums;
+
         return okResponse($albums, self::$SEARCH_BACKEND_ALBUMS);
     }
 
     /**
-     * @param Request $request
-     * @param string  $id
-     *
+     * @param  Request  $request
+     * @param  string  $id
      * @return JsonResponse
+     *
      * @throws Exception
      */
     public function deemixAlbum(Request $request, string $id)
@@ -173,6 +176,7 @@ trait DeemixTrait
 
         if ($isCachedQuery) {
             logger()->getArtistItemsCache('album', $id, 'count='.count($cachedResult));
+
             return okResponse($cachedResult);
         }
 
@@ -200,12 +204,12 @@ trait DeemixTrait
     /**
      * Downloads audio via Deemix and redirects to downloaded file.
      *
-     * @param Request $request
-     * @param string  $key
-     * @param string  $id
-     * @param bool    $stream
-     *
+     * @param  Request  $request
+     * @param  string  $key
+     * @param  string  $id
+     * @param  bool  $stream
      * @return RedirectResponse
+     *
      * @throws GuzzleException
      */
     public function deemixDownload(Request $request, string $key, string $id, bool $stream = false)
@@ -245,7 +249,6 @@ trait DeemixTrait
      * @param $isCache
      * @param $id
      * @param $path
-     *
      * @return RedirectResponse|Redirector
      */
     private function deemixDownloadResponse($isStream, $isCache, $id, $path)
@@ -262,12 +265,12 @@ trait DeemixTrait
     }
 
     /**
-     * @param array         $data
-     * @param string        $backend
-     * @param stdClass|null $artist
-     * @param stdClass|null $album
-     *
+     * @param  array  $data
+     * @param  string  $backend
+     * @param  stdClass|null  $artist
+     * @param  stdClass|null  $album
      * @return array[]
+     *
      * @throws Exception if unknown $backend
      */
     private function mapDeemixSearchResults(array $data, string $backend, stdClass $artist = null, stdClass $album = null)
@@ -304,12 +307,12 @@ trait DeemixTrait
      * Map deemix track to datmusic audio.
      *
      * @param $item
-     *
      * @return array
      */
     private function mapDeemixTrack($item, stdClass $album = null): array
     {
         $album = $album ?: $item->album;
+
         return [
             'id'               => self::$DEEMIX_ID_PREFIX.$item->id,
             'source_id'        => strval($item->id),
@@ -328,7 +331,6 @@ trait DeemixTrait
      * Map deemix downloaded track to datmusic audio.
      *
      * @param $data
-     *
      * @return array
      */
     private function mapDeemixDownloadResult($data)
@@ -354,15 +356,16 @@ trait DeemixTrait
     /**
      * Map deemix artist to datmusic artist.
      *
-     * @param stdClass $item
-     *
+     * @param  stdClass  $item
      * @return array
+     *
      * @throws Exception
      */
     private function mapDeemixArtist(stdClass $item)
     {
         $audios = property_exists($item, 'top') ? $this->cleanAudioList(app('request'), self::$SEARCH_BACKEND_AUDIOS, $this->mapDeemixSearchResults($item->top->data, self::$SEARCH_BACKEND_AUDIOS), false) : [];
         $albums = property_exists($item, 'albums') ? $this->mapDeemixSearchResults($item->albums->data, self::$SEARCH_BACKEND_DEEMIX_ALBUMS, $item) : [];
+
         return array_filter([
             'id'          => strval($item->id),
             'name'        => $item->name,
@@ -398,11 +401,11 @@ trait DeemixTrait
     /**
      * Map deemix album to datmusic album.
      *
-     * @param stdClass      $item
-     * @param stdClass|null $artist
-     * @param array         $albumYears
-     *
+     * @param  stdClass  $item
+     * @param  stdClass|null  $artist
+     * @param  array  $albumYears
      * @return array
+     *
      * @throws Exception
      */
     private function mapDeemixAlbum(stdClass $item, stdClass $artist = null, array $albumYears = [])
@@ -421,6 +424,7 @@ trait DeemixTrait
         }
         $audios = property_exists($item, 'tracks') ? $this->cleanAudioList(app('request'), self::$SEARCH_BACKEND_AUDIOS, $this->mapDeemixSearchResults($item->tracks->data, self::$SEARCH_BACKEND_AUDIOS, null, $item), false) : [];
         $audiosCount = safeProp($item, 'nb_tracks', count($audios) ?: 10);
+
         return [
             'id'           => strval($item->id),
             'title'        => $item->title,
