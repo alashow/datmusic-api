@@ -387,11 +387,6 @@ trait DeemixTrait
                     'width'  => 250,
                     'height' => 250,
                 ],
-                [
-                    'url'    => $item->picture_small,
-                    'width'  => 56,
-                    'height' => 56,
-                ],
             ],
             'audios'      => $audios,
             'albums'      => $albums,
