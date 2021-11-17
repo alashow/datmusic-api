@@ -106,10 +106,10 @@ trait DeemixTrait
     }
 
     /**
-     * @param Request $request
-     * @param string  $id
-     *
+     * @param  Request  $request
+     * @param  string  $id
      * @return JsonResponse
+     *
      * @throws Exception
      */
     public function deemixArtist(Request $request, string $id)
@@ -159,10 +159,10 @@ trait DeemixTrait
     }
 
     /**
-     * @param Request $request
-     * @param string  $id
-     *
+     * @param  Request  $request
+     * @param  string  $id
      * @return JsonResponse
+     *
      * @throws Exception
      */
     public function deemixAlbum(Request $request, string $id)
@@ -204,12 +204,12 @@ trait DeemixTrait
     /**
      * Downloads audio via Deemix and redirects to downloaded file.
      *
-     * @param Request $request
-     * @param string  $key
-     * @param string  $id
-     * @param bool    $stream
-     *
+     * @param  Request  $request
+     * @param  string  $key
+     * @param  string  $id
+     * @param  bool  $stream
      * @return RedirectResponse
+     *
      * @throws GuzzleException
      */
     public function deemixDownload(Request $request, string $key, string $id, bool $stream = false)
@@ -249,7 +249,6 @@ trait DeemixTrait
      * @param $isCache
      * @param $id
      * @param $path
-     *
      * @return RedirectResponse|Redirector
      */
     private function deemixDownloadResponse($isStream, $isCache, $id, $path)
@@ -266,12 +265,12 @@ trait DeemixTrait
     }
 
     /**
-     * @param array         $data
-     * @param string        $backend
-     * @param stdClass|null $artist
-     * @param stdClass|null $album
-     *
+     * @param  array  $data
+     * @param  string  $backend
+     * @param  stdClass|null  $artist
+     * @param  stdClass|null  $album
      * @return array[]
+     *
      * @throws Exception if unknown $backend
      */
     private function mapDeemixSearchResults(array $data, string $backend, stdClass $artist = null, stdClass $album = null)
@@ -297,7 +296,6 @@ trait DeemixTrait
      * Map deemix track to datmusic audio.
      *
      * @param $item
-     *
      * @return array
      */
     private function mapDeemixTrack($item, stdClass $album = null): array
@@ -322,7 +320,6 @@ trait DeemixTrait
      * Map deemix downloaded track to datmusic audio.
      *
      * @param $data
-     *
      * @return array
      */
     private function mapDeemixDownloadResult($data)
@@ -348,9 +345,9 @@ trait DeemixTrait
     /**
      * Map deemix artist to datmusic artist.
      *
-     * @param stdClass $item
-     *
+     * @param  stdClass  $item
      * @return array
+     *
      * @throws Exception
      */
     private function mapDeemixArtist(stdClass $item)
@@ -388,10 +385,10 @@ trait DeemixTrait
     /**
      * Map deemix album to datmusic album.
      *
-     * @param stdClass      $item
-     * @param stdClass|null $artist
-     *
+     * @param  stdClass  $item
+     * @param  stdClass|null  $artist
      * @return array
+     *
      * @throws Exception
      */
     private function mapDeemixAlbum(stdClass $item, stdClass $artist = null)
