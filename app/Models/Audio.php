@@ -68,4 +68,9 @@ class Audio extends Model
             $item[$fieldName] = $default;
         }
     }
+
+    public static function findDeemix($id, $bitrate)
+    {
+        return Audio::where('id', $id)->where('source_id', 'LIKE', "%.$bitrate")->first();
+    }
 }
