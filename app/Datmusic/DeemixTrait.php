@@ -355,12 +355,9 @@ trait DeemixTrait
         $audios = property_exists($item, 'top') ? $this->cleanAudioList(app('request'), self::$SEARCH_BACKEND_AUDIOS, $this->mapDeemixSearchResults($item->top->data, self::$SEARCH_BACKEND_AUDIOS), false) : [];
         $albums = property_exists($item, 'albums') ? $this->mapDeemixSearchResults($item->albums->data, self::$SEARCH_BACKEND_DEEMIX_ALBUMS, $item) : [];
 
-        return array_filter([
-            'id'          => strval($item->id),
-            'name'        => $item->name,
-            'fans'        => safeProp($item, 'nb_fan'),
-            'album_count' => safeProp($item, 'nb_album'),
-            'photo'       => [
+        $hasPhoto = preg_match("/images\/artist\/([a-zA-Z0-9-.]{1,32}\/?){2}/", $item->picture_xl) == 1;
+        $buildArtistPhoto = function () use ($item) {
+            return [
                 [
                     'url'    => $item->picture_xl,
                     'width'  => 1000,
@@ -376,10 +373,18 @@ trait DeemixTrait
                     'width'  => 250,
                     'height' => 250,
                 ],
-            ],
+            ];
+        };
+
+        return [
+            'id'          => strval($item->id),
+            'name'        => $item->name,
+            'fans'        => safeProp($item, 'nb_fan') ?: 0,
+            'album_count' => safeProp($item, 'nb_album') ?: 0,
+            'photo'       => $hasPhoto ? $buildArtistPhoto() : [],
             'audios'      => $audios,
             'albums'      => $albums,
-        ]);
+        ];
     }
 
     /**
