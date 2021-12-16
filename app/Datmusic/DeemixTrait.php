@@ -407,6 +407,16 @@ trait DeemixTrait
         $audios = property_exists($item, 'tracks') ? $this->cleanAudioList(app('request'), self::$SEARCH_BACKEND_AUDIOS, $this->mapDeemixSearchResults($item->tracks->data, self::$SEARCH_BACKEND_AUDIOS, null, $item), false) : [];
         $audiosCount = safeProp($item, 'nb_tracks', count($audios) ?: 10);
 
+        $getAlbumCover = function ($type, $size) use ($item) {
+            $cover = property_exists($item, $type) ? $item->{$type} : null;
+            $coverMd5 = property_exists($item, 'md5_image') ? $item->md5_image : null;
+            if ($cover == null && $coverMd5 != null) {
+                return "https://e-cdns-images.dzcdn.net/images/cover/{$coverMd5}/{$size}x{$size}-000000-80-0-0.jpg";
+            }
+
+            return $cover;
+        };
+
         return [
             'id'           => strval($item->id),
             'title'        => $item->title,
@@ -416,9 +426,9 @@ trait DeemixTrait
             'count'        => $audiosCount,
             'year'         => $albumYear,
             'photo'        => [
-                'photo_1200' => $item->cover_xl,
-                'photo_600'  => $item->cover_big,
-                'photo_300'  => $item->cover_medium,
+                'photo_1200' => $getAlbumCover('cover_xl', 1000),
+                'photo_600'  => $getAlbumCover('cover_big', 500),
+                'photo_300'  => $getAlbumCover('cover_medium', 250),
             ],
             'main_artists' => [$mainArtist],
             'audios'       => $audios,
