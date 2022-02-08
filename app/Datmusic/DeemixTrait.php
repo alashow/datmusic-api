@@ -324,21 +324,21 @@ trait DeemixTrait
      */
     private function mapDeemixDownloadResult($data)
     {
-        $trackExtendedInfo = $data->single->trackAPI_gw;
+        $trackInfo = $data->single->trackAPI;
 
         return [
             'id'               => self::$DEEMIX_ID_PREFIX.$data->id,
-            'source_id'        => $data->files[0],
+            'source_id'        => $data->files[0]->path,
             'title'            => $data->title,
             'artist'           => $data->artist,
-            'album'            => $trackExtendedInfo->ALB_TITLE,
-            'cover_url'        => $data->cover,
-            'cover_url_medium' => $data->cover_big,
-            'cover_url_small'  => $data->cover_medium,
-            'duration'         => intval($trackExtendedInfo->DURATION),
+            'album'            => $trackInfo->album->title,
+            'cover_url'        => $trackInfo->album->cover,
+            'cover_url_medium' => $trackInfo->album->cover_big,
+            'cover_url_small'  => $trackInfo->album->cover_medium,
+            'duration'         => intval($trackInfo->duration),
             'is_explicit'      => $data->explicit,
-            'date'             => Carbon::parse($trackExtendedInfo->PHYSICAL_RELEASE_DATE)->timestamp,
-            'extra_info'       => json_encode($trackExtendedInfo),
+            'date'             => Carbon::parse($trackInfo->release_date)->timestamp,
+            'extra_info'       => json_encode($trackInfo),
         ];
     }
 
