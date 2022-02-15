@@ -185,6 +185,8 @@ trait DeemixTrait
         } catch (GuzzleException $e) {
             logger()->getArtistItemsCache('album', $id, 'error='.$e->getMessage());
             abort(404);
+
+            return null;
         }
 
         $result = $this->mapDeemixAlbum($response);
@@ -225,7 +227,7 @@ trait DeemixTrait
         $trackId = str_replace(self::$DEEMIX_ID_PREFIX, '', $id);
         $dlPath = sprintf('dl/track/%s/%s', $trackId, $bitrate);
 
-        $response = json_decode(deemixClient()->get($dlPath)->getBody());
+        $response = json_decode(deemixDownloaderClient()->get($dlPath)->getBody());
         $hasErrors = ! empty($response->errors);
 
         if (! $hasErrors) {

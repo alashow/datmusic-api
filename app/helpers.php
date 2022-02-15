@@ -43,6 +43,14 @@ function deemixClient()
 }
 
 /**
+ * @return GuzzleHttp\Client Guzzle deemix downloader http client
+ */
+function deemixDownloaderClient()
+{
+    return app('deemixClient')->getDownloaderClient();
+}
+
+/**
  * @return SpotifyClient
  */
 function scanners()
