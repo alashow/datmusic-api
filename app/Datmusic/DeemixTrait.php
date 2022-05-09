@@ -221,7 +221,9 @@ trait DeemixTrait
 
         $cached = Audio::findDeemix($id, $bitrate);
         if (! is_null($cached)) {
-            return $this->deemixDownloadResponse($stream, true, $id, $cached->source_id);
+            if (@file_exists($cached->source_id)) {
+                return $this->deemixDownloadResponse($stream, true, $id, $cached->source_id);
+            }
         }
 
         $trackId = str_replace(self::$DEEMIX_ID_PREFIX, '', $id);
