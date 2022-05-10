@@ -221,8 +221,12 @@ trait DeemixTrait
 
         $cached = Audio::findDeemix($id, $bitrate);
         if (! is_null($cached)) {
-            if (@file_exists($cached->source_id)) {
-                return $this->deemixDownloadResponse($stream, true, $id, $cached->source_id);
+            $path = $cached->source_id;
+            $letterGroupedPath = $this->mapDeemixPathToLetterGroupedPath($path);
+            if (@file_exists($letterGroupedPath)) {
+                return $this->deemixDownloadResponse($stream, true, $id, $letterGroupedPath);
+            } else if (@file_exists($path)) {
+                return $this->deemixDownloadResponse($stream, true, $id, $path);
             }
         }
 
@@ -439,5 +443,19 @@ trait DeemixTrait
             'owner_id'     => $mainArtist['id'],
             'access_key'   => 'invalid',
         ];
+    }
+
+    /**
+     * Given: Music/Eminem/The Eminem Show/The Eminem Show - Single.mp3
+     * Return: Music/E/Eminem/The Eminem Show/The Eminem Show - Single.mp3
+     *
+     * @param $path
+     *
+     * @return string mapped path
+     */
+    private function mapDeemixPathToLetterGroupedPath($path): string {
+        $prefix = config('app.deemix.downloads_folder') . '/';
+        $suffix = substr($path, strlen($prefix));
+        return $prefix . $suffix[0] . '/' . $suffix;
     }
 }
