@@ -112,6 +112,6 @@ class MinervaMeilisearchIndexCommand extends Command
             $audio['is_explicit'] = boolval($audio['is_explicit']);
         }
 
-        return $audio;
+        return utf8ize($audio);
     }
 }
