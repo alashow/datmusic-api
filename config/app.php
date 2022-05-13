@@ -295,5 +295,7 @@ return [
         'downloads_bitrate'        => env('DEEMIX_DOWNLOADS_BITRATE', 'flac'),
         // to rewrite download folder name in links
         'downloads_folder_rewrite' => env('DEEMIX_DOWNLOADS_FOLDER_REWRITE', 'flacs'),
+        // verifies download file exists before redirecting to download url
+        'downloads_verify_file_before_redirect' => env('DEEMIX_DOWNLOADS_VERIFY_FILE_BEFORE_REDIRECT', false),
     ],
 ];
