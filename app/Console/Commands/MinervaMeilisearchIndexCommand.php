@@ -98,7 +98,7 @@ class MinervaMeilisearchIndexCommand extends Command
 
     private function formatAudioForMeilisearch(array $audio)
     {
-        $audio['id'] = str_replace(self::$DEEMIX_ID_PREFIX, self::$DEEMIX_ID_PREFIX_MINERVA_REPLACEMENT, $audio['id']);
+        $audio['id'] = str_replace(Audio::$DEEMIX_ID_PREFIX, self::$DEEMIX_ID_PREFIX_MINERVA_REPLACEMENT, $audio['id']);
         if (array_key_exists('duration', $audio)) {
             $audio['duration'] = intval($audio['duration']);
         }

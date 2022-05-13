@@ -6,6 +6,7 @@
 
 namespace App\Datmusic;
 
+use App\Models\Audio;
 use Illuminate\Http\Request;
 use MeiliSearch\Client;
 
@@ -36,7 +37,7 @@ trait MinervaSearchTrait
         $backendName = self::$SEARCH_BACKEND_MINERVA;
 
         $hits = array_map(function ($item) {
-            $item['id'] = str_replace(self::$DEEMIX_ID_PREFIX_MINERVA_REPLACEMENT, self::$DEEMIX_ID_PREFIX, $item['id']);
+            $item['id'] = str_replace(self::$DEEMIX_ID_PREFIX_MINERVA_REPLACEMENT, Audio::$DEEMIX_ID_PREFIX, $item['id']);
 
             return $item;
         }, $hits);

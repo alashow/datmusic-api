@@ -11,6 +11,8 @@ use Illuminate\Support\Facades\Date;
 
 class Audio extends Model
 {
+    public static $DEEMIX_ID_PREFIX = 'dz.';
+
     public $incrementing = false;
     public $timestamps = false;
     protected $connection = 'minerva';
@@ -67,6 +69,13 @@ class Audio extends Model
         if (! array_key_exists($fieldName, $item)) {
             $item[$fieldName] = $default;
         }
+    }
+
+    public function scopeDeemix($query)
+    {
+        $prefix = self::$DEEMIX_ID_PREFIX;
+
+        return $query->where('id', 'LIKE', "$prefix%");
     }
 
     public static function findDeemix($id, $bitrate)

@@ -19,8 +19,6 @@ use stdClass;
 
 trait DeemixTrait
 {
-    public static $DEEMIX_ID_PREFIX = 'dz.';
-
     private function verifyDeemixEnabled()
     {
         if (! config('app.deemix.enabled') || ! config('app.minerva.database.enabled')) {
@@ -30,7 +28,7 @@ trait DeemixTrait
 
     public function isDeemixId($id)
     {
-        return Str::startsWith($id, self::$DEEMIX_ID_PREFIX);
+        return Str::startsWith($id, Audio::$DEEMIX_ID_PREFIX);
     }
 
     public function deemixSearchAudios(Request $request)
@@ -222,12 +220,12 @@ trait DeemixTrait
 
         $cached = Audio::findDeemix($id, $bitrate);
         if (! is_null($cached)) {
-            if (!$shouldVerifyDownloadFiles || (@file_exists($cached->source_id))) {
+            if (! $shouldVerifyDownloadFiles || (@file_exists($cached->source_id))) {
                 return $this->deemixDownloadResponse($stream, true, $id, $cached->source_id);
             }
         }
 
-        $trackId = str_replace(self::$DEEMIX_ID_PREFIX, '', $id);
+        $trackId = str_replace(Audio::$DEEMIX_ID_PREFIX, '', $id);
         $dlPath = sprintf('dl/track/%s/%s', $trackId, $bitrate);
 
         $response = json_decode(deemixDownloaderClient()->get($dlPath)->getBody());
@@ -308,7 +306,7 @@ trait DeemixTrait
         $album = $album ?: $item->album;
 
         return [
-            'id'               => self::$DEEMIX_ID_PREFIX.$item->id,
+            'id'               => Audio::$DEEMIX_ID_PREFIX.$item->id,
             'source_id'        => strval($item->id),
             'title'            => $item->title,
             'artist'           => $item->artist->name,
@@ -332,7 +330,7 @@ trait DeemixTrait
         $trackInfo = $data->single->trackAPI;
 
         return [
-            'id'               => self::$DEEMIX_ID_PREFIX.$data->id,
+            'id'               => Audio::$DEEMIX_ID_PREFIX.$data->id,
             'source_id'        => $data->files[0]->path,
             'title'            => $data->title,
             'artist'           => $data->artist,
