@@ -31,14 +31,14 @@ trait CachesTrait
 
         $q = empty($q) ? md5('random_query') : $q;
 
-        return hash(config('app.hash.cache'), ($q.$page));
+        return hash(config('app.hash.cache'), $q.$page);
     }
 
     private function getCacheKeyForId(Request $request, string $id)
     {
         $page = getPage($request);
 
-        return hash(config('app.hash.cache'), ($id.$page));
+        return hash(config('app.hash.cache'), $id.$page);
     }
 
     /**
